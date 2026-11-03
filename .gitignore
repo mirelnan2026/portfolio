@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# build output & caches
+.next/
+out/
+dist/
+.turbo/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# env — secrets never in git
+.env
+.env*.local
+!.env.example
+
+# editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code — personal settings only (shared settings and commands are committed)
+.claude/settings.local.json
+
+# tooling
+.vercel/
+playwright-report/
+test-results/
+
+# misc
+*.log
+.DS_Store
