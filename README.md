@@ -7,8 +7,8 @@ Personal portfolio built from my CV, with an AI layer on top:
 - **Job match** — paste a job description, get a structured fit analysis with evidence from the CV.
 - **MCP server** — the same CV tools exposed to any MCP client (Claude Desktop, Claude Code).
 
-Built to **WCAG 2.2 AA**, in light and dark themes — accessibility is enforced by tooling and tests,
-not only promised.
+Built to **WCAG 2.2 AA**, in light and dark themes, and to the **OWASP** security baselines —
+both enforced by tooling and tests, not only promised.
 
 > Status: stage 0 — foundation and portfolio page.
 
@@ -23,6 +23,7 @@ not only promised.
 | AI | Claude API (`@anthropic-ai/sdk`), Model Context Protocol (`@modelcontextprotocol/sdk`) |
 | Quality | ESLint, Prettier, Vitest, Playwright, Conventional Commits (commitlint + lefthook) |
 | Accessibility | `eslint-plugin-jsx-a11y`, `@axe-core/playwright`, Lighthouse CI, Radix primitives (via shadcn/ui) |
+| Security | Security headers + CSP, zod input validation, gitleaks, CodeQL, Dependabot |
 | Hosting | Vercel |
 
 ## Project structure
@@ -132,6 +133,24 @@ Target: **WCAG 2.2 level AA** across the whole site, in both light and dark them
 - The chat announces streamed answers once, when complete, through an `aria-live="polite"` region.
 
 The accessibility statement (standard, testing method, known limitations, contact) is published at `/accessibility`.
+
+## Security
+
+Baseline: **OWASP Top 10** and the **OWASP Top 10 for LLM Applications**, applied as defense in depth.
+
+| Layer | Measures |
+|---|---|
+| HTTP | Content Security Policy, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors 'none'` (target: Mozilla Observatory A+) |
+| API | zod validation of every input (types and max lengths), rate limiting on every `/api/*` route, generic error responses |
+| Secrets | Validated at startup, server-only modules, never exposed via `NEXT_PUBLIC_`; gitleaks pre-commit hook and GitHub push protection |
+| AI | User input treated as untrusted (prompt injection); read-only tools over public CV data only; token and conversation limits; model output rendered as text; spend limit on the API key |
+| Database | Read-only role for the app, separate role for migrations and seed; TLS; parameterized queries only (Drizzle) |
+| Supply chain | Frozen lockfile in CI, `pnpm audit`, Dependabot, minimum release age for new versions, install scripts allow-listed, GitHub Actions pinned to commit SHA with minimal permissions |
+| Repository | Protected `main` (pull request + green CI), CodeQL scanning, protected preview deployments |
+| Privacy | No tracking cookies, no third-party scripts |
+
+Security headers are checked by an end-to-end test, and prompt-injection attempts are part of the AI evaluations.
+Vulnerabilities can be reported as described in [`SECURITY.md`](SECURITY.md) (also at `/.well-known/security.txt`).
 
 ## Getting started
 
