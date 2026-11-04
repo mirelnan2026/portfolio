@@ -58,10 +58,35 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
 
 ## Content rules
 
+### Approved sources
+Personal contributions come **only** from:
+1. the CV — (a local file);
+2. the interview brief — (a local file) (owner's own notes): the three JWX
+   phases, the four case studies, owned vs contributed, "Technical range" context notes, the AI workflow.
+Every record in `cv-data` carries `source: "cv" | "interview-brief"`. Never add a claim without a source.
+
+### Product context
+Product/industry descriptions (JWX Dashboard, Res_Q, HPI Check) are public context with `source_url`, never
+evidence of contributions; no vendor marketing numbers, no logos. JWX phases 01–02 have no public product:
+describe them generically ("video advertising platform", "content management suite").
+
+### Ownership
+Highlights carry `ownership: "owned" | "contributed"`. Owned: metering & billing, the AI media-transformation
+frontend, both framework upgrades (shared-library extraction: owner to confirm). Never present `contributed` as
+`owned`, never claim a whole product.
+
+### Confidentiality (applies to site, data, chat, job match, MCP)
+- No internal ticket IDs, branch names or repository links.
+- No internal product codenames, no feature-flag names.
+- No unreleased roadmap, no business figures (revenue, customer counts, pricing).
+- No architecture detail precise enough to reproduce — describe the shape of the problem, not the internals.
+- Client codebases ((a local folder), (a local folder), (a local folder)) are **not** a content source.
+- The chat declines such requests with: "That's covered by a confidentiality agreement, so I can describe the
+  shape of the problem instead."
+
+### Always
 - **Never include the phone number** anywhere (data, seed, UI, PDFs, fixtures). The `Profile` type has no `phone` field.
-- Personal contributions come **only** from the CV text. Product/industry descriptions (JWX Dashboard, Res_Q, HPI Check)
-  are public context with `source_url`, never evidence of contributions; no vendor marketing numbers, no logos.
-- The chat and job-match must answer only from tool results and say "not in the CV" otherwise.
+- The chat and job-match answer only from tool results and say "not in the CV" otherwise.
 
 ## Secrets
 
