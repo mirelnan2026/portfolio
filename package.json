@@ -8,6 +8,7 @@
   },
   "prettier": "@mirelnan/prettier-config",
   "scripts": {
+    "prepare": "lefthook install",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
@@ -17,7 +18,10 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
     "@mirelnan/prettier-config": "workspace:*",
+    "lefthook": "catalog:",
     "prettier": "catalog:",
     "turbo": "^2.11.10",
     "typescript": "catalog:"

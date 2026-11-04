@@ -1,0 +1,19 @@
+# Git hooks managed by lefthook.
+# Installed by `lefthook install`, which runs automatically on `pnpm install` (root "prepare" script).
+# Fast checks only — CI re-runs everything, because hooks can be skipped with --no-verify.
+
+pre-commit:
+  piped: true
+  jobs:
+    - name: secrets
+      run: gitleaks git --pre-commit --staged --redact --verbose
+
+    - name: format
+      glob: "*"
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: pnpm exec commitlint --edit {1}
