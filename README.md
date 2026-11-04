@@ -7,6 +7,9 @@ Personal portfolio built from my CV, with an AI layer on top:
 - **Job match** — paste a job description, get a structured fit analysis with evidence from the CV.
 - **MCP server** — the same CV tools exposed to any MCP client (Claude Desktop, Claude Code).
 
+Built to **WCAG 2.2 AA**, in light and dark themes — accessibility is enforced by tooling and tests,
+not only promised.
+
 > Status: stage 0 — foundation and portfolio page.
 
 ## Tech stack
@@ -19,6 +22,7 @@ Personal portfolio built from my CV, with an AI layer on top:
 | Rate limiting | Upstash Redis (`@upstash/ratelimit`) |
 | AI | Claude API (`@anthropic-ai/sdk`), Model Context Protocol (`@modelcontextprotocol/sdk`) |
 | Quality | ESLint, Prettier, Vitest, Playwright, Conventional Commits (commitlint + lefthook) |
+| Accessibility | `eslint-plugin-jsx-a11y`, `@axe-core/playwright`, Lighthouse CI, Radix primitives (via shadcn/ui) |
 | Hosting | Vercel |
 
 ## Project structure
@@ -102,6 +106,33 @@ Code is grouped **by feature, not by file type**: deleting or moving a feature m
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:` …).
 - Architecture decisions are recorded in `docs/adr/`.
 
+## Accessibility
+
+Target: **WCAG 2.2 level AA** across the whole site, in both light and dark themes.
+
+### How it is enforced
+
+| Layer | Tool | Catches problems |
+|---|---|---|
+| Editor and commit | `eslint-plugin-jsx-a11y` (strict) | While typing, and before every commit (lefthook) |
+| Automated tests | `@axe-core/playwright` on every page, light and dark | In CI — any violation fails the build |
+| E2E tests | Queries by role and accessible name (`getByRole`) | An unlabeled control cannot even be tested |
+| Audit | Lighthouse CI on Vercel previews (Accessibility = 100) | On every pull request |
+| Manual | Keyboard only, Orca screen reader, 400% zoom, forced colors | For every new section |
+
+### Implementation rules
+
+- Semantic HTML first; ARIA only where HTML is not enough. One `h1`, no skipped heading levels.
+- Fully operable by keyboard: logical focus order, visible focus, skip link, focus never hidden by the sticky header.
+- Text contrast ≥ 4.5:1 (≥ 3:1 for large text and UI parts), checked for every color token in both themes.
+- Click targets ≥ 24×24px; content reflows at 320px width and 400% zoom without horizontal scrolling.
+- Respects `prefers-reduced-motion`, `prefers-contrast` and `forced-colors`.
+- State is never conveyed by color alone (e.g. a selected skill also has `aria-pressed` and a visible marker).
+- Dialogs, menus and tabs use Radix primitives, which manage focus and ARIA correctly.
+- The chat announces streamed answers once, when complete, through an `aria-live="polite"` region.
+
+The accessibility statement (standard, testing method, known limitations, contact) is published at `/accessibility`.
+
 ## Getting started
 
 Requirements: Node 24 (`nvm use`), pnpm 12 (`corepack enable`).
@@ -117,7 +148,7 @@ pnpm dev
 |---|---|
 | `pnpm dev` | Runs all apps in development mode |
 | `pnpm build` | Builds everything, in dependency order, with Turborepo caching |
-| `pnpm lint` / `pnpm typecheck` / `pnpm test` | Quality checks across the workspace |
+| `pnpm lint` / `pnpm typecheck` / `pnpm test` | Quality checks across the workspace (lint includes accessibility rules) |
 
 ## Environment variables
 

@@ -42,7 +42,19 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
 - TypeScript `strict` + `noUncheckedIndexedAccess`. Conventional Commits (commitlint + lefthook).
 - Migrations via `drizzle-kit generate` + `migrate` (never `push` against production). Seed is idempotent.
 - UI: light + dark + system themes via `next-themes`; colors only through CSS tokens (no hardcoded colors);
-  WCAG 2.2 AA; no invented metrics, no skill progress bars.
+  no invented metrics, no skill progress bars. English only (`<html lang="en">`).
+
+## Accessibility (first-class requirement)
+
+Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
+- Enforced by tooling: `eslint-plugin-jsx-a11y` (strict), `@axe-core/playwright` on every page in light and dark
+  (violations fail CI), Lighthouse Accessibility = 100. E2E tests query by role/accessible name (`getByRole`).
+- Semantic HTML first, ARIA only where HTML is not enough; one `h1`, no skipped heading levels.
+- Full keyboard support, visible focus (`:focus-visible`), skip link, focus never hidden by the sticky header.
+- Contrast ≥ 4.5:1 for text (≥ 3:1 for large text and UI parts); targets ≥ 24×24px; reflow at 320px / 400% zoom.
+- Respect `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`. Never convey state by color alone.
+- Use Radix primitives (via shadcn/ui) for dialogs, menus, tabs — don't hand-roll them.
+- Streaming chat output goes through an `aria-live="polite"` region; dialogs move and restore focus.
 
 ## Content rules
 
