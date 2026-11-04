@@ -3,5 +3,9 @@ packages:
   - "packages/*"
   - "tooling/*"
 catalog:
+  '@eslint/js': ^9.39.5
+  eslint: ^9.39.5
+  eslint-config-prettier: ^10.1.8
   prettier: ^3.9.10
   typescript: ^6.0.3
+  typescript-eslint: ^8.72.1
