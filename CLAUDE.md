@@ -56,6 +56,29 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
 - Use Radix primitives (via shadcn/ui) for dialogs, menus, tabs — don't hand-roll them.
 - Streaming chat output goes through an `aria-live="polite"` region; dialogs move and restore focus.
 
+## Security (first-class requirement)
+
+Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review checks security.
+- **HTTP headers** (set in `next.config.ts` / `proxy.ts`): CSP (`default-src 'self'`, `frame-ancestors 'none'`,
+  `object-src 'none'`, `base-uri 'self'`), HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy:
+  strict-origin-when-cross-origin`, restrictive `Permissions-Policy`. Nonce vs hash CSP is decided at step 4
+  (nonces force dynamic rendering, which conflicts with ISR). Target: Mozilla Observatory A+.
+- **Input**: every API input validated with zod (types + max lengths) at the boundary; body size limits;
+  rate limiting (Upstash) on every `/api/*` route; generic error messages, no stack traces to the client.
+- **Secrets**: validated at startup (`lib/env.ts`); never `NEXT_PUBLIC_`; modules using them import `server-only`;
+  gitleaks in lefthook + GitHub secret scanning with push protection.
+- **AI**: the user's text and job descriptions are untrusted (prompt injection). Tools are **read-only** and only
+  return public CV data; no secrets or private data in prompts; `max_tokens` and conversation length capped;
+  model output rendered as text/sanitized markdown (never `dangerouslySetInnerHTML`); job-match output validated
+  with zod; spend limit set in the Anthropic console.
+- **Database**: the runtime uses a read-only Postgres role; migrations/seed use a separate role; TLS required;
+  queries only through Drizzle (parameterized), no string-built SQL.
+- **Supply chain**: frozen lockfile in CI, `pnpm audit`, Dependabot, pnpm `minimumReleaseAge`, install scripts
+  allowed only via `onlyBuiltDependencies`; GitHub Actions pinned to commit SHA with minimal `permissions:`.
+- **Repo / platform**: protected `main` (PR + green CI), CodeQL, Vercel Deployment Protection on previews,
+  `SECURITY.md` + `/.well-known/security.txt`.
+- **Privacy**: no tracking cookies (cookieless analytics only), no third-party scripts without a reason.
+
 ## Content rules
 
 ### Approved sources
@@ -72,7 +95,7 @@ describe them generically ("video advertising platform", "content management sui
 
 ### Ownership
 Highlights carry `ownership: "owned" | "contributed"`. Owned: metering & billing, the AI media-transformation
-frontend, both framework upgrades (shared-library extraction: owner to confirm). Never present `contributed` as
+frontend, both framework upgrades, the shared-library extraction. Never present `contributed` as
 `owned`, never claim a whole product.
 
 ### Confidentiality (applies to site, data, chat, job match, MCP)
@@ -86,6 +109,9 @@ frontend, both framework upgrades (shared-library extraction: owner to confirm).
 
 ### Always
 - **Never include the phone number** anywhere (data, seed, UI, PDFs, fixtures). The `Profile` type has no `phone` field.
+  The only CV PDF allowed in the repo is the no-phone export
+  ((a local file) → `apps/web/public/mirel-nan-cv.pdf`);
+  re-check any new export for phone traces (text, `tel:` links, metadata) before committing it.
 - The chat and job-match answer only from tool results and say "not in the CV" otherwise.
 
 ## Secrets
