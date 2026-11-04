@@ -104,8 +104,18 @@ Code is grouped **by feature, not by file type**: deleting or moving a feature m
 - Database: plural `snake_case` tables and columns, foreign keys `<entity>_id`; `camelCase` in TypeScript.
 - Claude tools: `verb_noun` in `snake_case` (`get_profile`, `search_cv`).
 - API routes: `kebab-case` nouns (`/api/job-match`).
-- Commits follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:` …).
+- Commits follow [Conventional Commits](https://www.conventionalcommits.org/), checked by commitlint on every commit;
+  scopes match the workspace packages (`web`, `db`, `domain`, `tooling`, …).
 - Architecture decisions are recorded in `docs/adr/`.
+
+## Git hooks
+
+| Hook         | Runs                                                       | Why                                                                        |
+| ------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `pre-commit` | gitleaks on the staged diff, then Prettier on staged files | a committed secret cannot be taken back; formatting is fixed automatically |
+| `commit-msg` | commitlint                                                 | consistent, machine-readable history                                       |
+
+Hooks give fast feedback but can be skipped, so CI runs every check again.
 
 ## Accessibility
 
@@ -154,7 +164,10 @@ Vulnerabilities can be reported as described in [`SECURITY.md`](SECURITY.md) (al
 
 ## Getting started
 
-Requirements: Node 24 (`nvm use`), pnpm 12 (`corepack enable`).
+Requirements: Node 24 (`nvm use`), pnpm 12 (`corepack enable`),
+[gitleaks](https://github.com/gitleaks/gitleaks) 8.30+ on your `PATH` (used by the pre-commit hook).
+
+Git hooks are installed automatically by `pnpm install` (run `pnpm run prepare` to reinstall them).
 
 ```bash
 pnpm install
@@ -168,6 +181,7 @@ pnpm dev
 | `pnpm dev`                                   | Runs all apps in development mode                                       |
 | `pnpm build`                                 | Builds everything, in dependency order, with Turborepo caching          |
 | `pnpm lint` / `pnpm typecheck` / `pnpm test` | Quality checks across the workspace (lint includes accessibility rules) |
+| `pnpm format` / `pnpm format:check`          | Formats the repo with Prettier / checks formatting (used in CI)         |
 
 ## Environment variables
 

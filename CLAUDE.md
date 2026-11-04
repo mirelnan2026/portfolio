@@ -40,7 +40,11 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
 - npm scope `@mirelnan/*`. Files and folders kebab-case; React components PascalCase; hooks `use-*.ts`; tests next to code as `*.test.ts`.
 - DB: plural snake_case tables, snake_case columns, FK `<entity>_id`; camelCase in TS (Drizzle `casing: 'snake_case'`).
 - AI tool names: verb_noun snake_case (`get_profile`, `search_cv`). API routes: kebab-case nouns (`/api/job-match`).
-- TypeScript `strict` + `noUncheckedIndexedAccess`. Conventional Commits (commitlint + lefthook).
+- TypeScript `strict` + `noUncheckedIndexedAccess`.
+- Conventional Commits, enforced by commitlint in the `commit-msg` hook: header ≤ 72 chars; scope optional but
+  one of `web`, `mcp-server`, `domain`, `cv-data`, `db`, `ai`, `tooling`, `ci`, `deps` (`commitlint.config.mjs`).
+  A new package means a new scope. `docs:` for prose only, `chore(tooling):` for shared tool config,
+  `build:` for dependencies and build orchestration.
 - Migrations via `drizzle-kit generate` + `migrate` (never `push` against production). Seed is idempotent.
 - UI: light + dark + system themes via `next-themes`; colors only through CSS tokens (no hardcoded colors);
   no invented metrics, no skill progress bars. English only (`<html lang="en">`).
@@ -129,7 +133,32 @@ frontend, both framework upgrades, the shared-library extraction. Never present 
 Only in `.env.local` (git-ignored) and Vercel project settings. `.env.example` documents every variable.
 Variables: `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `ANTHROPIC_API_KEY` (stage 1+).
 
+## Tooling decisions
+
+- Shared versions live in the pnpm **catalog** (`pnpm-workspace.yaml`); packages use `"catalog:"`.
+  Internal packages use `workspace:*`. Tool-config packages declare the tool as a `peerDependency`.
+- **TypeScript 6.0.x**, not 7: Next.js, typescript-eslint and drizzle-kit need the JS compiler API.
+- **ESLint 10** (v9 is EOL since 2026-08-06). Plugins that still use removed APIs (e.g. `eslint-plugin-react`,
+  `jsx-a11y` via `eslint-config-next`) get wrapped with `@eslint/compat` `fixupPluginRules()` at step 4.
+- Before picking any version: check latest, **support/EOL status** and peer ranges; test in a scratch dir if unsure.
+- Dependency install scripts are blocked by pnpm; decisions are recorded in `allowBuilds` in
+  `pnpm-workspace.yaml` (`lefthook: false` — hooks are installed by our own root `prepare` script instead).
+- Prettier runs once from the root (not via Turbo); ESLint and `tsc` run per package via Turbo.
+  Tool-managed files (`pnpm-lock.yaml`, `pnpm-workspace.yaml`) are in `.prettierignore`.
+- Git hooks (`lefthook.yml`): pre-commit = gitleaks on staged diff, then Prettier on staged files (`piped`);
+  commit-msg = commitlint. ESLint on staged files is added once packages have `eslint.config.js`.
+  Hooks are a convenience, not a control — CI re-runs everything.
+- gitleaks is a system binary (`~/.local/bin`, installed from the official release with checksum check), not an npm package.
+
 ## Commands
 
-To be filled in as the root `package.json` scripts are written (`pnpm dev`, `pnpm build`, `pnpm lint`,
-`pnpm typecheck`, `pnpm test`, `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`).
+| Command                                                                  | What it does                                                                             |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `pnpm install`                                                           | install; on a fresh clone also runs `prepare` → `lefthook install`                       |
+| `pnpm run prepare`                                                       | (re)install git hooks — pnpm 12 skips `prepare` when the install is "Already up to date" |
+| `pnpm format` / `pnpm format:check`                                      | Prettier write / check over the whole repo (CI uses `check`)                             |
+| `pnpm lint` / `pnpm typecheck` / `pnpm test` / `pnpm build` / `pnpm dev` | Turbo tasks across packages                                                              |
+| `pnpm exec lefthook validate`                                            | validate `lefthook.yml`                                                                  |
+| `gitleaks git --redact .`                                                | scan the whole git history for secrets                                                   |
+
+To be added later: `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`.
