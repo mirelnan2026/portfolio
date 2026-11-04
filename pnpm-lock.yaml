@@ -164,6 +164,9 @@ settings:
 
 catalogs:
   default:
+    prettier:
+      specifier: ^3.9.10
+      version: 3.9.10
     typescript:
       specifier: ^6.0.3
       version: 6.0.3
@@ -172,6 +175,12 @@ importers:
 
   .:
     devDependencies:
+      '@mirelnan/prettier-config':
+        specifier: workspace:*
+        version: link:tooling/prettier
+      prettier:
+        specifier: 'catalog:'
+        version: 3.9.10
       turbo:
         specifier: ^2.11.10
         version: 2.11.10
@@ -187,7 +196,11 @@ importers:
 
   tooling/eslint: {}
 
-  tooling/prettier: {}
+  tooling/prettier:
+    dependencies:
+      prettier:
+        specifier: ^3.9.0
+        version: 3.9.10
 
   tooling/typescript: {}
 
@@ -223,6 +236,11 @@ packages:
     cpu: [arm64]
     os: [win32]
 
+  prettier@3.9.10:
+    resolution: {integrity: sha512-skGHTH1Yb9QvaTC4hWnRTzEYtCpApF0UMBPz+t/0ZPzP8ihefo/btKd+QA7pUE0fEwA1SbS/NmhyEcstdXOIdA==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   turbo@2.11.10:
     resolution: {integrity: sha512-3GJYwig8ygEI89oaOZdduJX8/aw6O9eRPYHoIt6T3FZl9hkKjiyIspufJoVgqXihPoJu8M5CSV0DlZvzfohBCw==}
     hasBin: true
@@ -251,6 +269,8 @@ snapshots:
 
   '@turbo/windows-arm64@2.11.10':
     optional: true
+
+  prettier@3.9.10: {}
 
   turbo@2.11.10:
     optionalDependencies:
