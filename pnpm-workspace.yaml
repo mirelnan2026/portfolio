@@ -2,3 +2,5 @@ packages:
   - "apps/*"
   - "packages/*"
   - "tooling/*"
+catalog:
+  typescript: ^6.0.3
