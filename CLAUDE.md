@@ -26,6 +26,7 @@ docs/adr           Architecture Decision Records
 ```
 
 Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `apps/*`.
+
 - Apps never import `drizzle-orm` directly; they use repository interfaces from `domain`,
   wired in `apps/web/src/server/container.ts` (composition root).
 - Packages expose only what is listed in `exports` in their `package.json` (no deep imports).
@@ -47,6 +48,7 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
 ## Accessibility (first-class requirement)
 
 Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
+
 - Enforced by tooling: `eslint-plugin-jsx-a11y` (strict), `@axe-core/playwright` on every page in light and dark
   (violations fail CI), Lighthouse Accessibility = 100. E2E tests query by role/accessible name (`getByRole`).
 - Semantic HTML first, ARIA only where HTML is not enough; one `h1`, no skipped heading levels.
@@ -59,9 +61,10 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
 ## Security (first-class requirement)
 
 Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review checks security.
+
 - **HTTP headers** (set in `next.config.ts` / `proxy.ts`): CSP (`default-src 'self'`, `frame-ancestors 'none'`,
-  `object-src 'none'`, `base-uri 'self'`), HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy:
-  strict-origin-when-cross-origin`, restrictive `Permissions-Policy`. Nonce vs hash CSP is decided at step 4
+  `object-src 'none'`, `base-uri 'self'`), HSTS, `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, restrictive `Permissions-Policy`. Nonce vs hash CSP is decided at step 4
   (nonces force dynamic rendering, which conflicts with ISR). Target: Mozilla Observatory A+.
 - **Input**: every API input validated with zod (types + max lengths) at the boundary; body size limits;
   rate limiting (Upstash) on every `/api/*` route; generic error messages, no stack traces to the client.
@@ -82,23 +85,29 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
 ## Content rules
 
 ### Approved sources
+
 Personal contributions come **only** from:
+
 1. the CV — (a local file);
 2. the interview brief — (a local file) (owner's own notes): the three JWX
    phases, the four case studies, owned vs contributed, "Technical range" context notes, the AI workflow.
+
 Every record in `cv-data` carries `source: "cv" | "interview-brief"`. Never add a claim without a source.
 
 ### Product context
+
 Product/industry descriptions (JWX Dashboard, Res_Q, HPI Check) are public context with `source_url`, never
 evidence of contributions; no vendor marketing numbers, no logos. JWX phases 01–02 have no public product:
 describe them generically ("video advertising platform", "content management suite").
 
 ### Ownership
+
 Highlights carry `ownership: "owned" | "contributed"`. Owned: metering & billing, the AI media-transformation
 frontend, both framework upgrades, the shared-library extraction. Never present `contributed` as
 `owned`, never claim a whole product.
 
 ### Confidentiality (applies to site, data, chat, job match, MCP)
+
 - No internal ticket IDs, branch names or repository links.
 - No internal product codenames, no feature-flag names.
 - No unreleased roadmap, no business figures (revenue, customer counts, pricing).
@@ -108,6 +117,7 @@ frontend, both framework upgrades, the shared-library extraction. Never present 
   shape of the problem instead."
 
 ### Always
+
 - **Never include the phone number** anywhere (data, seed, UI, PDFs, fixtures). The `Profile` type has no `phone` field.
   The only CV PDF allowed in the repo is the no-phone export
   ((a local file) → `apps/web/public/mirel-nan-cv.pdf`);

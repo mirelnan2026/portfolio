@@ -14,17 +14,17 @@ both enforced by tooling and tests, not only promised.
 
 ## Tech stack
 
-| Area | Choice |
-|---|---|
-| Monorepo | pnpm workspaces + Turborepo |
-| Web | Next.js (App Router), React, TypeScript, Tailwind CSS v4, shadcn/ui |
-| Data | PostgreSQL on Neon, Drizzle ORM |
-| Rate limiting | Upstash Redis (`@upstash/ratelimit`) |
-| AI | Claude API (`@anthropic-ai/sdk`), Model Context Protocol (`@modelcontextprotocol/sdk`) |
-| Quality | ESLint, Prettier, Vitest, Playwright, Conventional Commits (commitlint + lefthook) |
+| Area          | Choice                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| Monorepo      | pnpm workspaces + Turborepo                                                                       |
+| Web           | Next.js (App Router), React, TypeScript, Tailwind CSS v4, shadcn/ui                               |
+| Data          | PostgreSQL on Neon, Drizzle ORM                                                                   |
+| Rate limiting | Upstash Redis (`@upstash/ratelimit`)                                                              |
+| AI            | Claude API (`@anthropic-ai/sdk`), Model Context Protocol (`@modelcontextprotocol/sdk`)            |
+| Quality       | ESLint, Prettier, Vitest, Playwright, Conventional Commits (commitlint + lefthook)                |
 | Accessibility | `eslint-plugin-jsx-a11y`, `@axe-core/playwright`, Lighthouse CI, Radix primitives (via shadcn/ui) |
-| Security | Security headers + CSP, zod input validation, gitleaks, CodeQL, Dependabot |
-| Hosting | Vercel |
+| Security      | Security headers + CSP, zod input validation, gitleaks, CodeQL, Dependabot                        |
+| Hosting       | Vercel                                                                                            |
 
 ## Project structure
 
@@ -113,13 +113,13 @@ Target: **WCAG 2.2 level AA** across the whole site, in both light and dark them
 
 ### How it is enforced
 
-| Layer | Tool | Catches problems |
-|---|---|---|
-| Editor and commit | `eslint-plugin-jsx-a11y` (strict) | While typing, and before every commit (lefthook) |
-| Automated tests | `@axe-core/playwright` on every page, light and dark | In CI — any violation fails the build |
-| E2E tests | Queries by role and accessible name (`getByRole`) | An unlabeled control cannot even be tested |
-| Audit | Lighthouse CI on Vercel previews (Accessibility = 100) | On every pull request |
-| Manual | Keyboard only, Orca screen reader, 400% zoom, forced colors | For every new section |
+| Layer             | Tool                                                        | Catches problems                                 |
+| ----------------- | ----------------------------------------------------------- | ------------------------------------------------ |
+| Editor and commit | `eslint-plugin-jsx-a11y` (strict)                           | While typing, and before every commit (lefthook) |
+| Automated tests   | `@axe-core/playwright` on every page, light and dark        | In CI — any violation fails the build            |
+| E2E tests         | Queries by role and accessible name (`getByRole`)           | An unlabeled control cannot even be tested       |
+| Audit             | Lighthouse CI on Vercel previews (Accessibility = 100)      | On every pull request                            |
+| Manual            | Keyboard only, Orca screen reader, 400% zoom, forced colors | For every new section                            |
 
 ### Implementation rules
 
@@ -138,16 +138,16 @@ The accessibility statement (standard, testing method, known limitations, contac
 
 Baseline: **OWASP Top 10** and the **OWASP Top 10 for LLM Applications**, applied as defense in depth.
 
-| Layer | Measures |
-|---|---|
-| HTTP | Content Security Policy, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors 'none'` (target: Mozilla Observatory A+) |
-| API | zod validation of every input (types and max lengths), rate limiting on every `/api/*` route, generic error responses |
-| Secrets | Validated at startup, server-only modules, never exposed via `NEXT_PUBLIC_`; gitleaks pre-commit hook and GitHub push protection |
-| AI | User input treated as untrusted (prompt injection); read-only tools over public CV data only; token and conversation limits; model output rendered as text; spend limit on the API key |
-| Database | Read-only role for the app, separate role for migrations and seed; TLS; parameterized queries only (Drizzle) |
-| Supply chain | Frozen lockfile in CI, `pnpm audit`, Dependabot, minimum release age for new versions, install scripts allow-listed, GitHub Actions pinned to commit SHA with minimal permissions |
-| Repository | Protected `main` (pull request + green CI), CodeQL scanning, protected preview deployments |
-| Privacy | No tracking cookies, no third-party scripts |
+| Layer        | Measures                                                                                                                                                                               |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTP         | Content Security Policy, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors 'none'` (target: Mozilla Observatory A+)                            |
+| API          | zod validation of every input (types and max lengths), rate limiting on every `/api/*` route, generic error responses                                                                  |
+| Secrets      | Validated at startup, server-only modules, never exposed via `NEXT_PUBLIC_`; gitleaks pre-commit hook and GitHub push protection                                                       |
+| AI           | User input treated as untrusted (prompt injection); read-only tools over public CV data only; token and conversation limits; model output rendered as text; spend limit on the API key |
+| Database     | Read-only role for the app, separate role for migrations and seed; TLS; parameterized queries only (Drizzle)                                                                           |
+| Supply chain | Frozen lockfile in CI, `pnpm audit`, Dependabot, minimum release age for new versions, install scripts allow-listed, GitHub Actions pinned to commit SHA with minimal permissions      |
+| Repository   | Protected `main` (pull request + green CI), CodeQL scanning, protected preview deployments                                                                                             |
+| Privacy      | No tracking cookies, no third-party scripts                                                                                                                                            |
 
 Security headers are checked by an end-to-end test, and prompt-injection attempts are part of the AI evaluations.
 Vulnerabilities can be reported as described in [`SECURITY.md`](SECURITY.md) (also at `/.well-known/security.txt`).
@@ -163,10 +163,10 @@ pnpm db:migrate && pnpm db:seed       # once the db package is ready
 pnpm dev
 ```
 
-| Script | What it does |
-|---|---|
-| `pnpm dev` | Runs all apps in development mode |
-| `pnpm build` | Builds everything, in dependency order, with Turborepo caching |
+| Script                                       | What it does                                                            |
+| -------------------------------------------- | ----------------------------------------------------------------------- |
+| `pnpm dev`                                   | Runs all apps in development mode                                       |
+| `pnpm build`                                 | Builds everything, in dependency order, with Turborepo caching          |
 | `pnpm lint` / `pnpm typecheck` / `pnpm test` | Quality checks across the workspace (lint includes accessibility rules) |
 
 ## Environment variables
@@ -174,11 +174,11 @@ pnpm dev
 Secrets live only in `.env.local` (git-ignored) and in the Vercel project settings.
 `.env.example` lists every variable without values.
 
-| Variable | Used for |
-|---|---|
-| `DATABASE_URL` | Neon Postgres connection |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Rate limiting |
-| `ANTHROPIC_API_KEY` | Claude API (from stage 1) |
+| Variable                                             | Used for                  |
+| ---------------------------------------------------- | ------------------------- |
+| `DATABASE_URL`                                       | Neon Postgres connection  |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Rate limiting             |
+| `ANTHROPIC_API_KEY`                                  | Claude API (from stage 1) |
 
 ## Content rules
 
