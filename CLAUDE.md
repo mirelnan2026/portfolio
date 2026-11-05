@@ -103,6 +103,8 @@ Every record in `cv-data` carries `source: "cv" | "interview-brief"`. Never add 
 Product/industry descriptions (JWX Dashboard, Res_Q, HPI Check) are public context with `source_url`, never
 evidence of contributions; no vendor marketing numbers, no logos. JWX phases 01–02 have no public product:
 describe them generically ("video advertising platform", "content management suite").
+Product descriptions are shown **on the site only** (product cards): AI tools never return them, so the chat,
+job match and MCP server cannot use them (owner decision, 2026-11-05).
 
 ### Ownership
 
@@ -126,7 +128,9 @@ frontend, both framework upgrades, the shared-library extraction. Never present 
   The only CV PDF allowed in the repo is the no-phone export
   ((a local file) → `apps/web/public/mirel-nan-cv.pdf`);
   re-check any new export for phone traces (text, `tel:` links, metadata) before committing it.
-- The chat and job-match answer only from tool results and say "not in the CV" otherwise.
+- The chat, job match and MCP server answer **only** from the CV and the interview brief (through tool results),
+  with the exclusions and confidentiality rules above applied, and say "not in the CV" otherwise — never from the
+  model's general knowledge or from product pages.
 
 ## Secrets
 

@@ -197,6 +197,9 @@ Secrets live only in `.env.local` (git-ignored) and in the Vercel project settin
 ## Content rules
 
 - Personal contributions come only from the CV. Product descriptions are public context, linked to their source.
+- The chat, job match and MCP server answer only from the CV and the owner's interview notes,
+  never from general model knowledge; anything else gets "not in the CV".
+- Public product descriptions are shown on the site as context only and are never given to the AI tools.
 - No phone number anywhere in the repository.
 
 ## Roadmap
