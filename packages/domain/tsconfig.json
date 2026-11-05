@@ -1,0 +1,4 @@
+{
+  "extends": "@mirelnan/tsconfig/library.json",
+  "include": ["src"]
+}

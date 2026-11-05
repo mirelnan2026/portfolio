@@ -13,7 +13,7 @@
     "lint": {},
     "typecheck": {},
     "test": {
-      "outputs": ["coverage/**"]
+      "outputs": []
     }
   }
 }
