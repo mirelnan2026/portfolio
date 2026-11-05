@@ -12,6 +12,13 @@ Full plan: (a local file).
 
 ## Architecture
 
+**Modular monolith** with a single architectural style: layers with ports and adapters (Clean/hexagonal family).
+One repo, one data model, one database, shipped as two apps. `domain` holds the model and the ports (repository
+interfaces); `db` is the outbound adapter; `ai` holds the use cases (Claude tools); `apps/*` are inbound adapters
+(HTTP, MCP) plus the composition root. Inside each package the folder layout fits its role (domain by role,
+db by tool, ai by capability, web by feature); the package template and the dependency rule are the same everywhere.
+Not microservices — split a part out only if it needs its own scaling, deploy cadence or data.
+
 pnpm workspaces + Turborepo. `apps/` = deployables, `packages/` = libraries, `tooling/` = shared config.
 
 ```

@@ -57,6 +57,11 @@ portfolio/
 
 ### Layers and dependency direction
 
+The architecture is a **modular monolith**: one repository, one data model and one database, shipped as
+two apps. Inside, it is layered with ports and adapters — `domain` defines the model and the repository
+interfaces (ports), `db` implements them (adapter), and the apps are the entry points that wire everything
+together in one composition root.
+
 ```
             ┌──────────────┐
             │    domain    │   types, schemas, rules — no I/O
