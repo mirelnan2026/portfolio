@@ -117,13 +117,27 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
 
 ### Approved sources
 
-Personal contributions come **only** from:
+Claims about the owner come **only** from registered sources (ADR 0006). Each source is a record in
+`cv-data` (`{ slug, kind, title }`); every claim points to one with `sourceSlug`. The kinds are fixed in `domain`:
 
-1. the CV — (a local file);
-2. the interview brief — (a local file) (owner's own notes): the three JWX
-   phases, the four case studies, owned vs contributed, "Technical range" context notes, the AI workflow.
+| Kind               | Document                                                                                                                                                                                                                      | Rules                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `cv`               | the CV — (a local file)                                                                                                                                                               | used as written                          |
+| `employment-brief` | owner's notes on client work — today `jwx-brief` = (a local file) (the three JWX phases, the four case studies, owned vs contributed, "Technical range" context notes, the AI workflow) | exclusions + confidentiality rules below |
+| `project-brief`    | owner's notes on a personal project they fully own (a private Claude artifact)                                                                                                                                                | only released, public facts              |
 
-Every record in `cv-data` carries `source: "cv" | "interview-brief"`. Never add a claim without a source.
+Documents are transcription material only: the app and the AI never read them, and their location is never
+stored in the data. Adding a source is approving it, so it goes through review. Never add a claim without a
+`sourceSlug` that points to a registered source.
+
+### Personal projects
+
+- A `Project` is in the data only once it is released (`releasedOn` is required); work in progress stays in the
+  project's brief. Unreleased plans are treated like a client's unreleased roadmap.
+- Links are optional and public only (no private repositories). Once `offlineSince` is set, the website and
+  store links are hidden everywhere (`visibleLinks`), because an expired domain can be bought by someone else.
+- Personal projects are fully owned, so they have no `ownership` field.
+- Case studies are optional, zero or more per experience or project; `about` says which.
 
 ### Product context
 
@@ -155,9 +169,9 @@ frontend, both framework upgrades, the shared-library extraction. Never present 
   The only CV PDF allowed in the repo is the no-phone export
   ((a local file) → `apps/web/public/mirel-nan-cv.pdf`);
   re-check any new export for phone traces (text, `tel:` links, metadata) before committing it.
-- The chat, job match and MCP server answer **only** from the CV and the interview brief (through tool results),
-  with the exclusions and confidentiality rules above applied, and say "not in the CV" otherwise — never from the
-  model's general knowledge or from product pages.
+- The chat, job match and MCP server answer **only** from registered sources (the CV, employment briefs, project
+  briefs), through tool results over the database, with the exclusions and confidentiality rules above applied,
+  and say "not in the CV" otherwise — never from the model's general knowledge or from product pages.
 
 ## Secrets
 
@@ -190,11 +204,11 @@ Variables: `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`,
 - `--save-catalog` only for external packages; never in the same `pnpm add` as `workspace:*` packages.
 - **Domain schemas** (zod 4): every object is `z.strictObject`; types come from `z.infer`. References between
   entities are `<entity>Slug` (`industrySlug`, `phaseSlug`, mirroring `<entity>_id` in the DB); identity in the
-  domain is the slug, never a DB id. Periods are a `Period` value object `{ start, end }` (`end: null` = ongoing).
+  domain is the slug, never a DB id. Provenance is `sourceSlug` (a registered source), never an enum of documents. Periods are a `Period` value object `{ start, end }` (`end: null` = ongoing).
   Cross-field rules (`refine`/`superRefine`) pass `when: (payload) => payload.issues.length === 0`, because zod
   still runs them after a field failed. Aggregate invariants live in the aggregate's schema; cross-aggregate
   references (a case study's experience exists) are checked by the `cv-data` tests and DB foreign keys.
-- **Repositories (ports)**: one read-only interface per aggregate root in `domain/src/repositories/`, bundled in
+- **Repositories (ports)**: one read-only interface per aggregate root (10, including `sources` and `projects`) in `domain/src/repositories/`, bundled in
   `Repositories`. Methods return promises; a missing item is `null`, not an exception. Only methods a known
   consumer needs (no generic CRUD; the seed writes through `db` directly). Consumers take only the ports they
   need (`Pick<Repositories, …>`); the AI layer never gets `products`. The in-memory adapter is a separate entry
