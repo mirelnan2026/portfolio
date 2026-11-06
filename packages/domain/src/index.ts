@@ -45,6 +45,17 @@ export type { Profile } from "./entities/profile";
 export { skillCategorySchema, skillSchema } from "./entities/skill";
 export type { Skill, SkillCategory } from "./entities/skill";
 
+// Repositories (ports)
+export type { CaseStudyRepository } from "./repositories/case-study-repository";
+export type { EducationRepository } from "./repositories/education-repository";
+export type { ExperienceRepository } from "./repositories/experience-repository";
+export type { IndustryRepository } from "./repositories/industry-repository";
+export type { LanguageRepository } from "./repositories/language-repository";
+export type { ProductRepository } from "./repositories/product-repository";
+export type { ProfileRepository } from "./repositories/profile-repository";
+export type { Repositories } from "./repositories/repositories";
+export type { SkillRepository } from "./repositories/skill-repository";
+
 // Rules
 export { formatDuration, monthsBetween, toDuration } from "./rules/duration";
 export type { Duration } from "./rules/duration";
