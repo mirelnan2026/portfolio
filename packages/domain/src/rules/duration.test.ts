@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDuration, monthsBetween, toDuration, toYearMonth } from "./duration";
+import { formatDuration, monthsBetween, toDuration } from "./duration";
 
 describe("monthsBetween", () => {
   it("counts a single month as one month", () => {
@@ -44,11 +44,5 @@ describe("formatDuration", () => {
     [{ years: 2, months: 5 }, "2 years 5 months"],
   ])("formats %o as %j", (duration, expected) => {
     expect(formatDuration(duration)).toBe(expected);
-  });
-});
-
-describe("toYearMonth", () => {
-  it("returns the UTC calendar month with two digits", () => {
-    expect(toYearMonth(new Date(Date.UTC(2026, 2, 5)))).toBe("2026-03");
   });
 });

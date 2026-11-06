@@ -1,31 +1,9 @@
-/**
- * A calendar month in ISO format, e.g. "2023-03".
- * The CV has month precision, so periods are stored and compared by month.
- */
-export type YearMonth = string;
+import { toMonthIndex, type YearMonth } from "../values/year-month";
 
 /** A length of time in whole years and months, e.g. 3 years and 8 months. */
 export interface Duration {
   years: number;
   months: number;
-}
-
-const YEAR_MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
-
-/** Months since year 0, so two months can be subtracted. */
-function toMonthIndex(value: YearMonth): number {
-  const match = YEAR_MONTH.exec(value);
-  if (!match) {
-    throw new RangeError(`Invalid year-month: "${value}" (expected YYYY-MM)`);
-  }
-  const [, year, month] = match;
-  return Number(year) * 12 + Number(month) - 1;
-}
-
-/** The calendar month of a date, in UTC, e.g. 2026-11-05 → "2026-11". */
-export function toYearMonth(date: Date): YearMonth {
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  return `${String(date.getUTCFullYear())}-${month}`;
 }
 
 /**
