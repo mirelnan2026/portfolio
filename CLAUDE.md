@@ -194,6 +194,11 @@ Variables: `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`,
   Cross-field rules (`refine`/`superRefine`) pass `when: (payload) => payload.issues.length === 0`, because zod
   still runs them after a field failed. Aggregate invariants live in the aggregate's schema; cross-aggregate
   references (a case study's experience exists) are checked by the `cv-data` tests and DB foreign keys.
+- **Repositories (ports)**: one read-only interface per aggregate root in `domain/src/repositories/`, bundled in
+  `Repositories`. Methods return promises; a missing item is `null`, not an exception. Only methods a known
+  consumer needs (no generic CRUD; the seed writes through `db` directly). Consumers take only the ports they
+  need (`Pick<Repositories, …>`); the AI layer never gets `products`. The in-memory adapter is a separate entry
+  point, `@mirelnan/domain/testing`, so test helpers stay out of the main API.
 
 ## Commands
 
