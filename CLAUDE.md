@@ -188,6 +188,12 @@ Variables: `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`,
   packages need no extra `types`), tests next to the code, table-driven with `it.each`; test through the public API.
   Turbo `test` has no outputs until coverage is enabled in CI.
 - `--save-catalog` only for external packages; never in the same `pnpm add` as `workspace:*` packages.
+- **Domain schemas** (zod 4): every object is `z.strictObject`; types come from `z.infer`. References between
+  entities are `<entity>Slug` (`industrySlug`, `phaseSlug`, mirroring `<entity>_id` in the DB); identity in the
+  domain is the slug, never a DB id. Periods are a `Period` value object `{ start, end }` (`end: null` = ongoing).
+  Cross-field rules (`refine`/`superRefine`) pass `when: (payload) => payload.issues.length === 0`, because zod
+  still runs them after a field failed. Aggregate invariants live in the aggregate's schema; cross-aggregate
+  references (a case study's experience exists) are checked by the `cv-data` tests and DB foreign keys.
 
 ## Commands
 
