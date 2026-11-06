@@ -142,6 +142,7 @@ Target: **WCAG 2.2 level AA** across the whole site, in both light and dark them
 - Fully operable by keyboard: logical focus order, visible focus, skip link, focus never hidden by the sticky header.
 - Text contrast ≥ 4.5:1 (≥ 3:1 for large text and UI parts), checked for every color token in both themes.
 - Click targets ≥ 24×24px; content reflows at 320px width and 400% zoom without horizontal scrolling.
+- Responsive on every device: mobile-first CSS, intrinsic layouts, container queries and fluid type, from 320px to wide screens.
 - Respects `prefers-reduced-motion`, `prefers-contrast` and `forced-colors`.
 - State is never conveyed by color alone (e.g. a selected skill also has `aria-pressed` and a visible marker).
 - Dialogs, menus and tabs use Radix primitives, which manage focus and ARIA correctly.

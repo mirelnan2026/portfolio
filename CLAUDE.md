@@ -69,6 +69,26 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
 - Use Radix primitives (via shadcn/ui) for dialogs, menus, tabs — don't hand-roll them.
 - Streaming chat output goes through an `aria-live="polite"` region; dialogs move and restore focus.
 
+## Responsive (first-class requirement)
+
+UI and UX must work on every device: phone, tablet, laptop, large desktop, portrait and landscape. Use the
+modern approach: mobile-first CSS with intrinsic, fluid layouts. Desktop gets the most visitors, so every
+breakpoint is designed on purpose. Desktop is never a stretched phone layout.
+
+- Mobile-first CSS: unprefixed Tailwind classes target small screens; `sm:`/`md:`/`lg:`/`xl:` add the larger layouts.
+- Intrinsic layouts: flexbox/grid with `minmax()`, `auto-fit`, `gap`; breakpoints follow the content, not device names.
+- Container queries (`@container`) for components (cards, highlights), so a component adapts to its slot.
+- Fluid type and spacing with `clamp()`; `rem` units; readable line length (`max-w-prose`); no fixed heights.
+- Works from 320px wide with no horizontal scroll, up to wide screens (content max width, no edge-to-edge text).
+- Large screens keep their density: full navigation, two-column timeline, grids. Small screens: the section
+  menu becomes a shadcn `Sheet` below `md`, the timeline becomes one column, tables (job match) become stacked
+  cards, the chat panel opens full screen.
+- Touch: larger targets (≥ 44×44px) only for coarse pointers (`pointer: coarse`), so desktop controls stay
+  compact; WCAG 24×24px applies everywhere. Nothing works only on hover; inputs ≥ 16px font (no iOS zoom).
+- `dvh` units and `env(safe-area-inset-*)` for full-height and fixed elements; `next/image` with `sizes`.
+- Verified by Playwright projects for desktop and phone viewports (smoke + axe on both), Lighthouse with both
+  the desktop and mobile presets, and a manual check on a real phone.
+
 ## Security (first-class requirement)
 
 Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review checks security.
