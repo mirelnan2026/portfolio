@@ -1,4 +1,6 @@
 // Values
+export { periodSchema } from "./values/period";
+export type { Period } from "./values/period";
 export { slugSchema } from "./values/slug";
 export type { Slug } from "./values/slug";
 export { sourceSchema } from "./values/source";
@@ -8,8 +10,30 @@ export { toYearMonth, yearMonthSchema } from "./values/year-month";
 export type { YearMonth } from "./values/year-month";
 
 // Entities
+export { caseStudySchema } from "./entities/case-study";
+export type { CaseStudy } from "./entities/case-study";
 export { educationSchema } from "./entities/education";
 export type { Education } from "./entities/education";
+export {
+  employmentTypeSchema,
+  experienceSchema,
+  highlightSchema,
+  ownershipSchema,
+  phaseSchema,
+  productLinkSchema,
+  skillUsageSchema,
+  workModeSchema,
+} from "./entities/experience";
+export type {
+  EmploymentType,
+  Experience,
+  Highlight,
+  Ownership,
+  Phase,
+  ProductLink,
+  SkillUsage,
+  WorkMode,
+} from "./entities/experience";
 export { industrySchema } from "./entities/industry";
 export type { Industry } from "./entities/industry";
 export { cefrLevelSchema, languageSchema } from "./entities/language";
