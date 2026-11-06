@@ -133,7 +133,9 @@ stored in the data. Adding a source is approving it, so it goes through review. 
 ### Personal projects
 
 - A `Project` is in the data only once it is released (`releasedOn` is required); work in progress stays in the
-  project's brief. Unreleased plans are treated like a client's unreleased roadmap.
+  project's brief. Unreleased plans are treated like a client's unreleased roadmap. A `cv-data` content test
+  rejects a `releasedOn` or `offlineSince` later than the current month (kept out of the `domain` schema, which
+  stays pure and does not read the clock).
 - Links are optional and public only (no private repositories). Once `offlineSince` is set, the website and
   store links are hidden everywhere (`visibleLinks`), because an expired domain can be bought by someone else.
 - Personal projects are fully owned, so they have no `ownership` field.
