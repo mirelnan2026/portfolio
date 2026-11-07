@@ -40,6 +40,7 @@ describe("cvData", () => {
 
   it.each([
     ["sources", slugs(cvData.sources)],
+    ["experiences", slugs(cvData.experiences)],
     ["skills", slugs(cvData.skills)],
     ["industries", slugs(cvData.industries)],
     ["products", slugs(cvData.products)],
@@ -47,6 +48,29 @@ describe("cvData", () => {
     ["languages", cvData.languages.map((language) => language.code)],
   ])("has unique %s", (_name, values) => {
     expect(duplicates(values)).toEqual([]);
+  });
+
+  it("lists each skill of an experience once per phase", () => {
+    const repeated = cvData.experiences.flatMap((experience) =>
+      duplicates(
+        experience.skills.map(
+          (usage) => `${experience.slug}/${usage.phaseSlug ?? "-"}/${usage.skillSlug}`,
+        ),
+      ),
+    );
+    expect(repeated).toEqual([]);
+  });
+
+  it("lists experiences newest first", () => {
+    const starts = cvData.experiences.map((experience) => experience.period.start);
+    expect(starts).toEqual(starts.toSorted().reverse());
+  });
+
+  it("features four highlights, one card each in the Highlights grid", () => {
+    const featured = cvData.experiences.flatMap((experience) =>
+      experience.highlights.filter((highlight) => highlight.featured !== null),
+    );
+    expect(featured).toHaveLength(4);
   });
 });
 

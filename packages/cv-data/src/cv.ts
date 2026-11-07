@@ -1,5 +1,13 @@
 import type { CvData } from "@mirelnan/domain";
 import { education } from "./education";
+import { cnGroup } from "./experiences/cn-group";
+import { freelance } from "./experiences/freelance";
+import { geoBlueLabel } from "./experiences/geo-blue-label";
+import { incorom } from "./experiences/incorom";
+import { jwpConnatix } from "./experiences/jwp-connatix";
+import { ringier } from "./experiences/ringier";
+import { softelligence } from "./experiences/softelligence";
+import { sware } from "./experiences/sware";
 import { industries } from "./industries";
 import { languages } from "./languages";
 import { products } from "./products";
@@ -14,7 +22,16 @@ import { sources } from "./sources";
 export const cvData: CvData = {
   sources,
   profile,
-  experiences: [],
+  experiences: [
+    jwpConnatix,
+    sware,
+    cnGroup,
+    softelligence,
+    ringier,
+    incorom,
+    geoBlueLabel,
+    freelance,
+  ],
   projects: [],
   skills,
   caseStudies: [],
