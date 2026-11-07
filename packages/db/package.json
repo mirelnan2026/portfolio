@@ -2,5 +2,23 @@
   "name": "@mirelnan/db",
   "version": "0.0.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check"
+  },
+  "dependencies": {
+    "@mirelnan/domain": "workspace:*",
+    "drizzle-orm": "0.45.4"
+  },
+  "devDependencies": {
+    "@mirelnan/eslint-config": "workspace:*",
+    "@mirelnan/tsconfig": "workspace:*",
+    "@types/node": "^24.19.2",
+    "drizzle-kit": "0.31.11",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
+  }
 }
