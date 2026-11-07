@@ -10,6 +10,7 @@ export type { YearMonth } from "./values/year-month";
 // Entities
 export { caseStudySchema, caseStudySubjectSchema } from "./entities/case-study";
 export type { CaseStudy, CaseStudySubject } from "./entities/case-study";
+export { cvDataSchema } from "./entities/cv-data";
 export type { CvData } from "./entities/cv-data";
 export { educationSchema } from "./entities/education";
 export type { Education } from "./entities/education";

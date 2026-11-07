@@ -2,5 +2,24 @@
   "name": "@mirelnan/cv-data",
   "version": "0.0.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@mirelnan/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@mirelnan/eslint-config": "workspace:*",
+    "@mirelnan/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
 }
