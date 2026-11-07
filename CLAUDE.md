@@ -153,9 +153,11 @@ stored in the data. Adding a source is approving it, so it goes through review. 
 
 ### Product context
 
-Product/industry descriptions (JWX Dashboard, Res_Q, HPI Check) are public context with `source_url`, never
-evidence of contributions; no vendor marketing numbers, no logos. The first JWX phase has no public product:
-describe it generically ("content management suite", "video advertising platform").
+Product/industry descriptions (JWX Portal, JWX Dashboard, Res_Q, HPI Check) are public context with `source_url`,
+never evidence of contributions; no vendor marketing numbers, no logos. A product is named as its public page names
+it (`portal.connatix.com` is titled "JWX Portal"), never by an internal name. When no public page describes what a
+product does, the description states only sourced facts (JWX Portal: the Connatix–JW Player merger press release).
+The JWX phases themselves stay generic ("content management suite", "video platform dashboard").
 Product descriptions are shown **on the site only** (product cards): AI tools never return them, so the chat,
 job match and MCP server cannot use them (owner decision, 2026-11-05).
 
@@ -170,7 +172,8 @@ the spec-driven delivery of the 2026 feature work (the last two because the CV s
 
 Two phases in the data (owner decision, 2026-11-07), although the brief describes three: `content-management-suite`
 (2023-03 – 2024-12, `video-content-management`; it also holds the brief's advertising-platform work) and
-`video-platform-dashboard` (2025-01 – 2026-10, `video-tech`, linked to the JWX Dashboard product). The phase
+`video-platform-dashboard` (2025-01 – 2026-10, `video-tech`, linked to the JWX Dashboard product); the first
+phase is linked to the JWX Portal product. The phase
 months come from the owner, not from the brief, which stays unchanged. A CV bullet the brief places in a phase gets
 that `phaseSlug`; a CV bullet the brief does not place stays on the experience. The brief adds only work the CV
 does not mention; its details on work the CV already lists go into the case studies.
