@@ -81,6 +81,8 @@ together in one composition root.
   Apps depend on the interfaces, and wire the implementations in one place
   (`apps/web/src/server/container.ts`). Swapping the database or testing with in-memory data
   does not touch feature code.
+- The tables, their relations and the rules the database enforces are in
+  [`packages/db/README.md`](packages/db/README.md) (an ER diagram that GitHub renders).
 - `cv-data` is used only by the seed script: the CV is written once as typed data,
   validated against the `domain` schemas, then loaded into Postgres.
 - `ai` defines each Claude tool once (zod schema + handler); the web chat and the MCP server both use it.
