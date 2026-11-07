@@ -222,6 +222,11 @@ Variables: `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`,
   Cross-field rules (`refine`/`superRefine`) pass `when: (payload) => payload.issues.length === 0`, because zod
   still runs them after a field failed. Aggregate invariants live in the aggregate's schema; cross-aggregate
   references (a case study's experience exists) are checked by the `cv-data` tests and DB foreign keys.
+- **`CvData`** is `z.infer<typeof cvDataSchema>` (`domain/entities/cv-data.ts`): the whole snapshot, validated by
+  the `cv-data` tests and again by the seed before it writes. `cv-data` holds one file per collection (one per
+  experience) and `cv.ts` assembles them. Data files end in `satisfies X[]` (checked, inferred type kept);
+  `cv.ts` annotates `cvData: CvData` (the exported contract; an empty list is `Project[]`, not `never[]`). Its tests check schemas, unique slugs, every `*Slug` reference, no
+  phone-like number, the excluded brief topics and no future release dates.
 - **Repositories (ports)**: one read-only interface per aggregate root (10, including `sources` and `projects`) in `domain/src/repositories/`, bundled in
   `Repositories`. Methods return promises; a missing item is `null`, not an exception. Only methods a known
   consumer needs (no generic CRUD; the seed writes through `db` directly). Consumers take only the ports they
