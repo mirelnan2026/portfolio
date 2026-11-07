@@ -18,6 +18,18 @@ export const products = [
     retrievedOn: "2026-11-07",
   },
   {
+    slug: "jwx-portal",
+    name: "JWX Portal",
+    url: "https://portal.connatix.com/",
+    description:
+      "The portal of Connatix, a video technology company that merged with JW Player in " +
+      "October 2024 to form JWP Connatix, now JWX.",
+    industrySlug: "video-tech",
+    sourceUrl:
+      "https://www.llrpartners.com/connatix-and-jw-player-merge-to-create-the-industrys-largest-video-technology-and-monetization-platform/",
+    retrievedOn: "2026-11-07",
+  },
+  {
     slug: "res-q",
     name: "Res_Q",
     url: "https://www.sware.com/products/res_q",

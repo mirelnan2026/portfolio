@@ -44,6 +44,7 @@ describe("cvData", () => {
     ["skills", slugs(cvData.skills)],
     ["industries", slugs(cvData.industries)],
     ["products", slugs(cvData.products)],
+    ["case studies", slugs(cvData.caseStudies)],
     ["education", slugs(cvData.education)],
     ["languages", cvData.languages.map((language) => language.code)],
   ])("has unique %s", (_name, values) => {
@@ -78,11 +79,30 @@ describe("references", () => {
   it.each([
     ["sourceSlug", slugs(cvData.sources)],
     ["skillSlug", slugs(cvData.skills)],
+    ["skillSlugs", slugs(cvData.skills)],
     ["industrySlug", slugs(cvData.industries)],
     ["productSlug", slugs(cvData.products)],
   ])("every %s points to a registered record", (key, known) => {
-    const unknown = valuesOf(cvData, key).filter((value) => !known.includes(String(value)));
+    // `.flat()` opens the lists, e.g. a case study's `skillSlugs`.
+    const unknown = valuesOf(cvData, key)
+      .flat()
+      .filter((value) => !known.includes(String(value)));
     expect(unknown).toEqual([]);
+  });
+
+  it("every case study is about a registered experience, phase or project", () => {
+    const unknown = cvData.caseStudies.filter(({ about }) => {
+      if (about.kind === "project") {
+        return !cvData.projects.some((project) => project.slug === about.projectSlug);
+      }
+      const experience = cvData.experiences.find((item) => item.slug === about.experienceSlug);
+      return (
+        experience === undefined ||
+        (about.phaseSlug !== null &&
+          !experience.phases.some((phase) => phase.slug === about.phaseSlug))
+      );
+    });
+    expect(unknown.map((caseStudy) => caseStudy.slug)).toEqual([]);
   });
 });
 

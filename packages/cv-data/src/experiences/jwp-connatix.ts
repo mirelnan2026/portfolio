@@ -215,6 +215,9 @@ export const jwpConnatix = {
       sourceSlug: "cv",
     },
   ],
-  products: [{ productSlug: "jwx-dashboard", phaseSlug: "video-platform-dashboard" }],
+  products: [
+    { productSlug: "jwx-portal", phaseSlug: "content-management-suite" },
+    { productSlug: "jwx-dashboard", phaseSlug: "video-platform-dashboard" },
+  ],
   sourceSlug: "cv",
 } satisfies Experience;

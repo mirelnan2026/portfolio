@@ -1,4 +1,8 @@
 import type { CvData } from "@mirelnan/domain";
+import { billingCorrectness } from "./case-studies/billing-correctness";
+import { darkLaunchBehindFlag } from "./case-studies/dark-launch-behind-flag";
+import { sharedLibraryExtraction } from "./case-studies/shared-library-extraction";
+import { upgradeSequencing } from "./case-studies/upgrade-sequencing";
 import { education } from "./education";
 import { cnGroup } from "./experiences/cn-group";
 import { freelance } from "./experiences/freelance";
@@ -34,7 +38,12 @@ export const cvData: CvData = {
   ],
   projects: [],
   skills,
-  caseStudies: [],
+  caseStudies: [
+    sharedLibraryExtraction,
+    upgradeSequencing,
+    darkLaunchBehindFlag,
+    billingCorrectness,
+  ],
   industries,
   products,
   education,
