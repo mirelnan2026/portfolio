@@ -99,6 +99,37 @@ breakpoint is designed on purpose. Desktop is never a stretched phone layout.
 - Verified by Playwright projects for desktop and phone viewports (smoke + axe on both), Lighthouse with both
   the desktop and mobile presets, and a manual check on a real phone.
 
+## SEO (first-class requirement)
+
+Aligned with modern SEO: technical quality, people-first content, structured data and AI search (GEO).
+Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at step 4.
+
+- **Structure: one page now.** Pages per case study (`/case-studies/[slug]`, static, with their own metadata, OG
+  image and JSON-LD) are added only when a case study has substantial content; the first candidate is
+  `this-portfolio`. Section and item anchors come from slugs (`#experience-jwp-connatix`,
+  `#case-study-upgrade-sequencing`), so links keep working when pages are added.
+- **Rendering:** all content is in the server-rendered HTML (Server Components + ISR), never client-only.
+  Core Web Vitals targets as in UX: LCP < 2.5s, INP < 200ms, CLS < 0.1.
+- **One canonical origin, `https://mirelnan.dev`:** `metadataBase` + `alternates.canonical`; `www` redirects to
+  the apex; Vercel preview deployments are not indexed (`X-Robots-Tag: noindex`, checked by a test at step 6).
+- **Metadata (Next.js Metadata API), generated from the data:** a unique `<title>` (≤ 60 characters) and meta
+  description (≤ 160), Open Graph and Twitter cards with an image from `next/og`, `<html lang="en">`.
+- **Crawling:** `app/robots.ts` allows every crawler, including AI search and training crawlers (GPTBot,
+  OAI-SearchBot, ClaudeBot, PerplexityBot, Google-Extended); `app/sitemap.ts` lists the URLs from the data; an
+  unknown URL returns a real 404.
+- **Structured data:** JSON-LD `ProfilePage` with `mainEntity: Person` (name, job title, location, `sameAs`
+  LinkedIn, `knowsAbout` from skills, `alumniOf`), built from the repositories. `<` is escaped in the JSON
+  (XSS), and the inline script gets a CSP hash or nonce (decided with the CSP at step 4).
+- **Content:** facts only from the data (E-E-A-T comes from sourced, specific claims); one `h1`, descriptive
+  headings and link text, meaningful `alt` (the same rules as accessibility).
+- **AI search:** `/llms.txt` generated from the same repositories (a static route handler), so it cannot drift
+  from the site; content written as self-contained, quotable statements.
+- **Verified by:** Lighthouse SEO = 100 (desktop and mobile presets); a Playwright test for title, description,
+  canonical, robots, and a JSON-LD that parses and contains the `Person`; `robots.txt`, `sitemap.xml` and
+  `llms.txt` return 200. Google Search Console and Bing Webmaster Tools at step 6, verified by DNS TXT record
+  (no script), with the sitemap submitted.
+- No tracking or analytics script for SEO (privacy rule).
+
 ## Security (first-class requirement)
 
 Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review checks security.

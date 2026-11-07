@@ -2,13 +2,14 @@
 
 Personal portfolio built from my CV, with an AI layer on top:
 
-- **Portfolio** — experience timeline, highlights, skills and projects, rendered from a Postgres database.
+- **Portfolio** — experience timeline, highlights, skills, case studies and projects, rendered from a Postgres
+  database.
 - **Ask about me** — a chat with Claude that answers only from my CV through tool use (it never invents experience).
 - **Job match** — paste a job description, get a structured fit analysis with evidence from the CV.
 - **MCP server** — the same CV tools exposed to any MCP client (Claude Desktop, Claude Code).
 
-Built to **WCAG 2.2 AA**, in light and dark themes, and to the **OWASP** security baselines —
-both enforced by tooling and tests, not only promised.
+Built to **WCAG 2.2 AA**, in light and dark themes, to the **OWASP** security baselines and to modern **SEO**
+practice — all enforced by tooling and tests, not only promised.
 
 > Status: stage 0 — foundation and portfolio page.
 
@@ -93,7 +94,7 @@ together in one composition root.
 ```
 app/                 Routing only: pages, layouts, API route handlers, metadata
 features/<feature>/  Everything for one feature: components, hooks, server code, queries
-  portfolio/         Hero, highlights, experience timeline, skills, projects
+  portfolio/         Hero, highlights, experience timeline, skills, case studies, projects
   chat/              "Ask about me" (stage 1–2)
   job-match/         Job description → structured fit analysis (stage 2)
 components/ui/       shadcn/ui primitives (generated)
@@ -151,6 +152,23 @@ Target: **WCAG 2.2 level AA** across the whole site, in both light and dark them
 - The chat announces streamed answers once, when complete, through an `aria-live="polite"` region.
 
 The accessibility statement (standard, testing method, known limitations, contact) is published at `/accessibility`.
+
+## SEO
+
+The site is built to be found by search engines and cited by AI search, using only what is public anyway.
+
+| Area            | How                                                                                                 |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| Rendering       | Every word is in the server-rendered HTML; Core Web Vitals within the "good" thresholds             |
+| One origin      | Canonical URLs on `mirelnan.dev`, `www` redirected, preview deployments not indexed                 |
+| Metadata        | Title, description, Open Graph and Twitter cards generated from the same data as the page           |
+| Structured data | JSON-LD `ProfilePage` + `Person`, with links to the owner's public profiles                         |
+| Crawling        | `robots.txt` open to every crawler (AI search included), `sitemap.xml`, real 404s                   |
+| AI search       | `/llms.txt` generated from the data, so it cannot fall out of date                                  |
+| Checks          | Lighthouse SEO = 100, a Playwright test for the tags and the JSON-LD, Search Console and Bing tools |
+
+One page for now. A case study gets its own page once it has enough content to stand on its own; anchors are
+built from stable slugs, so existing links keep working when that happens.
 
 ## Security
 
