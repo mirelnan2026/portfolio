@@ -16,7 +16,7 @@ const experience = {
       period: { start: "2023-03", end: "2024-12" },
       industrySlug: "video-tech",
       summary: "Built reporting screens.",
-      source: "interview-brief",
+      sourceSlug: "example-brief",
     },
   ],
   highlights: [
@@ -25,12 +25,12 @@ const experience = {
       ownership: "owned",
       featured: { title: "New product build-out" },
       phaseSlug: "first-product",
-      source: "cv",
+      sourceSlug: "cv",
     },
   ],
-  skills: [{ skillSlug: "angular", phaseSlug: null, contextNote: null, source: "cv" }],
+  skills: [{ skillSlug: "angular", phaseSlug: null, contextNote: null, sourceSlug: "cv" }],
   products: [{ productSlug: "example-dashboard", phaseSlug: "first-product" }],
-  source: "cv",
+  sourceSlug: "cv",
 } satisfies Experience;
 
 function issuePaths(input: unknown) {

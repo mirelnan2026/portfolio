@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { slugSchema } from "../values/slug";
-import { sourceSchema } from "../values/source";
 import { textSchema } from "../values/text";
 
 /** Skill groups, in the order the CV lists them. */
@@ -20,7 +19,7 @@ export const skillSchema = z.strictObject({
   slug: slugSchema,
   name: textSchema,
   category: skillCategorySchema,
-  source: sourceSchema,
+  sourceSlug: slugSchema,
 });
 
 export type Skill = z.infer<typeof skillSchema>;

@@ -1,29 +1,36 @@
 import { z } from "zod";
 import { slugSchema } from "../values/slug";
-import { sourceSchema } from "../values/source";
 import { httpsUrlSchema, textSchema } from "../values/text";
 
 /**
- * A story told as context → approach → outcome, plus what it shows about the owner.
- * It links to the experience (and optionally the phase) it comes from.
+ * What a case study is about: an experience (optionally one of its phases) or a personal project,
+ * never both. The union makes "a phase without its experience" impossible to write.
  */
-export const caseStudySchema = z
-  .strictObject({
-    slug: slugSchema,
-    title: textSchema,
-    context: textSchema,
-    approach: textSchema,
-    outcome: textSchema,
-    whatItShows: textSchema,
-    experienceSlug: slugSchema.nullable(),
+export const caseStudySubjectSchema = z.discriminatedUnion("kind", [
+  z.strictObject({
+    kind: z.literal("experience"),
+    experienceSlug: slugSchema,
     phaseSlug: slugSchema.nullable(),
-    url: httpsUrlSchema.nullable(),
-    skillSlugs: z.array(slugSchema),
-    source: sourceSchema,
-  })
-  .refine((caseStudy) => caseStudy.phaseSlug === null || caseStudy.experienceSlug !== null, {
-    message: "A phase can only be set together with its experience",
-    path: ["phaseSlug"],
-  });
+  }),
+  z.strictObject({
+    kind: z.literal("project"),
+    projectSlug: slugSchema,
+  }),
+]);
 
+/** A story told as context → approach → outcome, plus what it shows about the owner. */
+export const caseStudySchema = z.strictObject({
+  slug: slugSchema,
+  title: textSchema,
+  context: textSchema,
+  approach: textSchema,
+  outcome: textSchema,
+  whatItShows: textSchema,
+  about: caseStudySubjectSchema,
+  url: httpsUrlSchema.nullable(),
+  skillSlugs: z.array(slugSchema),
+  sourceSlug: slugSchema,
+});
+
+export type CaseStudySubject = z.infer<typeof caseStudySubjectSchema>;
 export type CaseStudy = z.infer<typeof caseStudySchema>;

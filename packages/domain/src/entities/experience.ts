@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { isWithin, periodSchema } from "../values/period";
 import { slugSchema } from "../values/slug";
-import { sourceSchema } from "../values/source";
 import { textSchema } from "../values/text";
 
 export const employmentTypeSchema = z.enum(["full-time", "contract", "freelance"]);
@@ -20,7 +19,7 @@ export const phaseSchema = z.strictObject({
   period: periodSchema,
   industrySlug: slugSchema,
   summary: textSchema,
-  source: sourceSchema,
+  sourceSlug: slugSchema,
 });
 
 /** One achievement. `phaseSlug` is null when it belongs to the experience as a whole. */
@@ -30,7 +29,7 @@ export const highlightSchema = z.strictObject({
   /** Set when the highlight is shown as a card in the Highlights section. */
   featured: z.strictObject({ title: textSchema }).nullable(),
   phaseSlug: slugSchema.nullable(),
-  source: sourceSchema,
+  sourceSlug: slugSchema,
 });
 
 /** A skill used in this experience, with the evidence behind the skill filter and job match. */
@@ -38,7 +37,7 @@ export const skillUsageSchema = z.strictObject({
   skillSlug: slugSchema,
   phaseSlug: slugSchema.nullable(),
   contextNote: textSchema.nullable(),
-  source: sourceSchema,
+  sourceSlug: slugSchema,
 });
 
 /** A public product worked on. Site context only, never given to the AI tools. */
@@ -64,7 +63,7 @@ export const experienceSchema = z
     highlights: z.array(highlightSchema),
     skills: z.array(skillUsageSchema),
     products: z.array(productLinkSchema),
-    source: sourceSchema,
+    sourceSlug: slugSchema,
   })
   .superRefine(
     (experience, ctx) => {

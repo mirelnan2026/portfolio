@@ -8,7 +8,7 @@ const education = {
   location: "Bucharest, Romania",
   startYear: 2006,
   endYear: 2009,
-  source: "cv",
+  sourceSlug: "cv",
 };
 
 describe("educationSchema", () => {

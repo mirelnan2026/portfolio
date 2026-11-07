@@ -10,7 +10,7 @@ const profile = {
   email: "jane@example.com",
   linkedinUrl: "https://www.linkedin.com/in/jane-doe",
   interests: ["chess"],
-  source: "cv",
+  sourceSlug: "cv",
 };
 
 describe("profileSchema", () => {
@@ -34,7 +34,7 @@ describe("profileSchema", () => {
     expect(profileSchema.safeParse({ ...profile, email: "jane" }).success).toBe(false);
   });
 
-  it("rejects a source other than the approved ones", () => {
-    expect(profileSchema.safeParse({ ...profile, source: "linkedin" }).success).toBe(false);
+  it("rejects a sourceSlug that is not a slug", () => {
+    expect(profileSchema.safeParse({ ...profile, sourceSlug: "My CV" }).success).toBe(false);
   });
 });

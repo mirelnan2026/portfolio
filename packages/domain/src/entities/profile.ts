@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sourceSchema } from "../values/source";
+import { slugSchema } from "../values/slug";
 import { httpsUrlSchema, textSchema } from "../values/text";
 
 /**
@@ -15,7 +15,7 @@ export const profileSchema = z.strictObject({
   email: z.email(),
   linkedinUrl: httpsUrlSchema,
   interests: z.array(textSchema),
-  source: sourceSchema,
+  sourceSlug: slugSchema,
 });
 
 export type Profile = z.infer<typeof profileSchema>;

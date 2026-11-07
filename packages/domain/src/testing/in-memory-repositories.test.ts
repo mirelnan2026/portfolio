@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import type { CvData } from "../entities/cv-data";
 import type { Experience } from "../entities/experience";
 import type { Profile } from "../entities/profile";
-import { createInMemoryRepositories, type InMemoryData } from "./in-memory-repositories";
+import { createInMemoryRepositories } from "./in-memory-repositories";
 
 const profile = {
   name: "Jane Doe",
@@ -12,7 +13,7 @@ const profile = {
   email: "jane@example.com",
   linkedinUrl: "https://www.linkedin.com/in/jane-doe",
   interests: [],
-  source: "cv",
+  sourceSlug: "cv",
 } satisfies Profile;
 
 const experience = {
@@ -27,12 +28,14 @@ const experience = {
   highlights: [],
   skills: [],
   products: [],
-  source: "cv",
+  sourceSlug: "cv",
 } satisfies Experience;
 
-const data: InMemoryData = {
+const data: CvData = {
+  sources: [{ slug: "cv", kind: "cv", title: "CV" }],
   profile,
   experiences: [experience],
+  projects: [],
   skills: [],
   caseStudies: [],
   industries: [],
@@ -43,6 +46,10 @@ const data: InMemoryData = {
 
 describe("createInMemoryRepositories", () => {
   const repositories = createInMemoryRepositories(data);
+
+  it("lists the registered sources", async () => {
+    await expect(repositories.sources.list()).resolves.toEqual(data.sources);
+  });
 
   it("returns the profile", async () => {
     await expect(repositories.profile.get()).resolves.toEqual(profile);
