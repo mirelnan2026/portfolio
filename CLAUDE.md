@@ -8,6 +8,8 @@ Personal portfolio for Mirel Nan (Senior Frontend Engineer), built from the CV, 
 an "Ask about me" chat with Claude using tool use (must never invent experience), a job-match feature
 with structured output, and an MCP server exposing the CV. Stages follow Anthropic Academy:
 0 foundation + portfolio page → 1 Claude API → 2 tool use + structured output → 3 MCP → 4 Claude Code.
+Domain: `mirelnan.dev` (registrar Porkbun; connected to Vercel at step 6; `.dev` is HTTPS-only via HSTS preload).
+The "portfolio" project enters `cv-data` only once the site is live on it (see "Personal projects").
 Full plan: (a local file).
 
 ## Architecture
@@ -46,6 +48,14 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
 
 - npm scope `@mirelnan/*`. Files and folders kebab-case; React components PascalCase; hooks `use-*.ts`; tests next to code as `*.test.ts`.
 - DB: plural snake_case tables, snake_case columns, FK `<entity>_id`; camelCase in TS (Drizzle `casing: 'snake_case'`).
+- DB schema (`packages/db/src/schema`, one file per aggregate): surrogate key `id` (integer identity) plus a unique
+  `slug`; the domain only ever sees the slug, and the mappers translate. Months are `date` columns holding the first
+  day. Postgres enums take their values from the domain (`pgEnum("ownership", ownershipSchema.enum)`). Aggregate
+  rules are repeated as constraints (CHECK on periods and on a case study's subject, composite FK
+  `(experience_id, phase_id)` so a phase belongs to the same experience, `UNIQUE NULLS NOT DISTINCT`).
+  `onDelete: "cascade"` only inside an aggregate; references between aggregates block the delete. Constraint
+  names are snake_case (name composite ones explicitly). No `created_at`/`updated_at`: data comes only from the
+  seed and its history is in git. `packages/db/migrations` is generated, reviewed and committed, never edited by hand.
 - AI tool names: verb_noun snake_case (`get_profile`, `search_cv`). API routes: kebab-case nouns (`/api/job-match`).
 - TypeScript `strict` + `noUncheckedIndexedAccess`.
 - Conventional Commits, enforced by commitlint in the `commit-msg` hook: header ≤ 72 chars; scope optional but
@@ -189,7 +199,9 @@ Variables: `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`,
   `jsx-a11y` via `eslint-config-next`) get wrapped with `@eslint/compat` `fixupPluginRules()` at step 4.
 - Before picking any version: check latest, **support/EOL status** and peer ranges; test in a scratch dir if unsure.
 - Dependency install scripts are blocked by pnpm; decisions are recorded in `allowBuilds` in
-  `pnpm-workspace.yaml` (`lefthook: false` — hooks are installed by our own root `prepare` script instead).
+  `pnpm-workspace.yaml` (`lefthook: false` — hooks are installed by our own root `prepare` script instead;
+  `esbuild: false` — drizzle-kit needs it, and its platform binary arrives as an optional dependency).
+- **Drizzle ORM 0.45.x + drizzle-kit 0.31.x**, exact versions in `packages/db` (1.0 is still a release candidate).
 - Prettier runs once from the root (not via Turbo); ESLint and `tsc` run per package via Turbo.
   Tool-managed files (`pnpm-lock.yaml`, `pnpm-workspace.yaml`) are in `.prettierignore`.
 - Git hooks (`lefthook.yml`): pre-commit = gitleaks on staged diff, then Prettier on staged files (`piped`);
