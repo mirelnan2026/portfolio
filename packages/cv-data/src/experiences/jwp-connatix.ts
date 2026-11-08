@@ -20,8 +20,8 @@ export const jwpConnatix = {
       period: { start: "2023-03", end: "2024-12" },
       industrySlug: "video-content-management",
       summary:
-        "Feature work across the suite, including its advertising side, then the extraction of its " +
-        "shared libraries and the framework migration of the multi-app workspace.",
+        "Feature work across the content management suite, then the extraction of its shared " +
+        "libraries and the framework migration of the multi-app workspace.",
       sourceSlug: "jwx-brief",
     },
     {
