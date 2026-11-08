@@ -81,6 +81,13 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   `to-domain.ts`; a nullable reference (`phase_id`, the case study's `about`) uses `leftJoin`. `list()` and
   `getBySlug()` share one loader with an optional `where`. The round-trip test adds fictitious records (a project
   and a case study about it) for aggregates `cv-data` does not have yet.
+- **Neon access** (step 3): node-postgres (`pg`, `drizzle-orm/node-postgres`) over TCP for scripts and, at step 4,
+  for the app (Neon's recommendation for Node.js and Vercel Fluid compute; the HTTP driver has no interactive
+  transactions, which the seed needs). `src/client.ts` → `connectToPostgres(url)` returns `{ db, close }`.
+  Command-line scripts live in `src/cli/` (`no-console` off there only), run with `tsx --env-file-if-exists=.env.local`
+  (in CI the variables come from the environment). Migrations run through `drizzle-orm`'s `migrate()` (same API
+  as the PGlite tests), so `drizzle.config.ts` never holds credentials and drizzle-kit stays offline
+  (`generate`, `check`).
 - **`@mirelnan/db` public API:** `exports: { ".": "./src/index.ts" }` + `sideEffects: false`; `index.ts` exports
   only `createDrizzleRepositories(db): Repositories` and the `Database` type. Tables, ids and `writeCvData` stay
   internal.
@@ -253,8 +260,18 @@ does not mention; its details on work the CV already lists go into the case stud
 
 ## Secrets
 
-Only in `.env.local` (git-ignored) and Vercel project settings. `.env.example` documents every variable.
-Variables: `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `ANTHROPIC_API_KEY` (stage 1+).
+Only in `.env.local` (git-ignored) and Vercel project settings. Each consumer has its own `.env.example` next to
+it, listing only the variables that process needs (least privilege: the web app never holds the owner URL):
+
+| Where                              | Variable                                                                  | Role / use                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `packages/db/.env.local`           | `DATABASE_ADMIN_URL`                                                      | Neon owner role, direct (unpooled); only `db:migrate` and `db:seed`, locally |
+| `apps/web/.env.local` + Vercel (4) | `DATABASE_URL`                                                            | read-only role `portfolio_reader` (step 3b), pooled                          |
+| `apps/web` + Vercel (5, stage 1+)  | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `ANTHROPIC_API_KEY` | rate limit (Upstash created at step 5, when first used), Claude API          |
+
+Connection strings use `sslmode=verify-full` (node-postgres treats `require` as an alias and warns). Errors about
+a variable never echo its value. When the Neon integration is connected to the Vercel project (step 6), it must
+not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or use a variable prefix).
 
 ## Tooling decisions
 
