@@ -76,6 +76,14 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   `id` where a table has none (the seed inserts in `cv-data` order and resets identities). No zod on read: the
   trust boundary is the write. Tests are round trips on PGlite via `createTestDatabase()` (`src/test-database.ts`):
   seed `cvData`, then `toStrictEqual` against it.
+  Aggregates load in a fixed number of queries (no N+1): roots first, then one query per list filtered with
+  `inArray(<parent>_id, ids)` in `Promise.all`, grouped with `groupBy` and mapped by the pure functions in
+  `to-domain.ts`; a nullable reference (`phase_id`, the case study's `about`) uses `leftJoin`. `list()` and
+  `getBySlug()` share one loader with an optional `where`. The round-trip test adds fictitious records (a project
+  and a case study about it) for aggregates `cv-data` does not have yet.
+- **`@mirelnan/db` public API:** `exports: { ".": "./src/index.ts" }` + `sideEffects: false`; `index.ts` exports
+  only `createDrizzleRepositories(db): Repositories` and the `Database` type. Tables, ids and `writeCvData` stay
+  internal.
 - UI: light + dark + system themes via `next-themes`; colors only through CSS tokens (no hardcoded colors);
   no invented metrics, no skill progress bars. English only (`<html lang="en">`).
 
