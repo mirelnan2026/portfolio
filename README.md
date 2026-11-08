@@ -118,10 +118,10 @@ Code is grouped **by feature, not by file type**: deleting or moving a feature m
 
 ## Git hooks
 
-| Hook         | Runs                                                       | Why                                                                        |
-| ------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `pre-commit` | gitleaks on the staged diff, then Prettier on staged files | a committed secret cannot be taken back; formatting is fixed automatically |
-| `commit-msg` | commitlint                                                 | consistent, machine-readable history                                       |
+| Hook         | Runs                                                                                  | Why                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | gitleaks on the staged diff, then Prettier, then ESLint on staged files (per package) | a committed secret cannot be taken back; formatting is fixed automatically; lint errors are caught before review |
+| `commit-msg` | commitlint                                                                            | consistent, machine-readable history                                                                             |
 
 Hooks give fast feedback but can be skipped, so CI runs every check again.
 
