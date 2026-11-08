@@ -1,7 +1,7 @@
 # @mirelnan/db
 
-The database adapter: the Drizzle schema, the migrations and (from step 2.7) the Neon client, the seed and
-the repository implementations. Nothing outside this package sees a table or a database id; consumers get
+The database adapter: the Drizzle schema, the migrations and the seed (`writeCvData`). The repository
+implementations come at step 2.7b and the Neon client at step 3. Nothing outside this package sees a table or a database id; consumers get
 `domain` types through the repository interfaces.
 
 ## Data model
@@ -160,12 +160,25 @@ so the database stays consistent even when it is written to directly.
 A phase must also lie within its experience's period. That rule compares two tables, so it stays in the
 `domain` schema rather than in a trigger.
 
+## Seed
+
+`writeCvData(db, data)` rebuilds the database from `@mirelnan/cv-data`, the source of truth:
+
+1. It validates the data with `cvDataSchema` from `domain`; invalid data is rejected before the database is touched.
+2. In one transaction, it empties every table (`TRUNCATE … RESTART IDENTITY CASCADE`) and inserts all rows in
+   dependency order, so running it again gives the same rows with the same ids.
+3. A slug that points to nothing throws an error naming it, and the transaction rolls back completely.
+
+It takes the driver-independent `Database` type (`src/database.ts`): the tests run it on PGlite, an in-memory
+Postgres, with the real migrations; from step 3 it runs on Neon.
+
 ## Commands
 
 | Command                                         | What it does                                                            |
 | ----------------------------------------------- | ----------------------------------------------------------------------- |
 | `pnpm --filter @mirelnan/db db:generate --name` | Writes a new SQL migration from the schema changes (no database needed) |
 | `pnpm --filter @mirelnan/db db:check`           | Checks that the migrations and their snapshots are consistent           |
+| `pnpm --filter @mirelnan/db test`               | Runs the seed tests on PGlite (in-memory Postgres, no database needed)  |
 
 Migrations are generated, reviewed in the pull request and committed; they are never edited by hand, and
 `drizzle-kit push` is never used against production.
