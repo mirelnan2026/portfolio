@@ -1,8 +1,21 @@
 # @mirelnan/db
 
-The database adapter: the Drizzle schema, the migrations and the seed (`writeCvData`). The repository
-implementations come at step 2.7b and the Neon client at step 3. Nothing outside this package sees a table or a database id; consumers get
-`domain` types through the repository interfaces.
+The database adapter: the Drizzle schema, the migrations, the seed (`writeCvData`) and the repositories that
+read the data back as `domain` types. The Neon client comes at step 3. Nothing outside this package sees a table
+or a database id; consumers get `domain` types through the repository interfaces.
+
+## Public API
+
+`package.json` exports only `src/index.ts`, so nothing else can be imported (no deep imports):
+
+```ts
+import { createDrizzleRepositories, type Database } from "@mirelnan/db";
+
+const repositories = createDrizzleRepositories(db); // every domain port, read from Postgres
+```
+
+The composition root of each app calls it once. `writeCvData` stays internal: only the seed script in this
+package uses it.
 
 ## Data model
 
@@ -172,13 +185,30 @@ A phase must also lie within its experience's period. That rule compares two tab
 It takes the driver-independent `Database` type (`src/database.ts`): the tests run it on PGlite, an in-memory
 Postgres, with the real migrations; from step 3 it runs on Neon.
 
+## Repositories
+
+One factory per port in [`src/repositories`](src/repositories), `createDrizzle<Entity>Repository(db)`:
+
+- Each query selects the domain's columns explicitly and turns a foreign key into its slug with a join
+  (`innerJoin` for a required reference, `leftJoin` for a nullable one such as `phase_id` → `phaseSlug`).
+- An aggregate (experience, project, case study) is read in a fixed number of queries, however many rows there
+  are: one for the roots, then one per list, filtered with `inArray(parent_id, ids)` and run in parallel. The rows
+  are grouped by parent (keeping `position` order) and turned back into domain values by the pure functions in
+  `to-domain.ts`, the reverse of the seed (dates → months and periods, `featured_title` → `featured`, the store
+  columns → `mobileApp`, the three references → `about`).
+- `list()` and `getBySlug()` share the same loader; `getBySlug` only adds a `where`, and returns `null` when
+  nothing matches.
+
+The tests are round trips: seed the data, read it back, compare with `toStrictEqual`. They add a fictitious
+project and a case study about it, so the Project aggregate is covered before the CV has any project.
+
 ## Commands
 
 | Command                                         | What it does                                                            |
 | ----------------------------------------------- | ----------------------------------------------------------------------- |
 | `pnpm --filter @mirelnan/db db:generate --name` | Writes a new SQL migration from the schema changes (no database needed) |
 | `pnpm --filter @mirelnan/db db:check`           | Checks that the migrations and their snapshots are consistent           |
-| `pnpm --filter @mirelnan/db test`               | Runs the seed tests on PGlite (in-memory Postgres, no database needed)  |
+| `pnpm --filter @mirelnan/db test`               | Runs the seed and repository tests on PGlite (in-memory Postgres)       |
 
 Migrations are generated, reviewed in the pull request and committed; they are never edited by hand, and
 `drizzle-kit push` is never used against production.
