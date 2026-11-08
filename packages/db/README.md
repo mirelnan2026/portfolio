@@ -1,8 +1,8 @@
 # @mirelnan/db
 
-The database adapter: the Drizzle schema, the migrations, the seed (`writeCvData`) and the repositories that
-read the data back as `domain` types. The Neon client comes at step 3. Nothing outside this package sees a table
-or a database id; consumers get `domain` types through the repository interfaces.
+The database adapter: the Drizzle schema, the migrations, the seed (`writeCvData`), the repositories that
+read the data back as `domain` types, and the command-line scripts that migrate and seed Neon. Nothing outside
+this package sees a table or a database id; consumers get `domain` types through the repository interfaces.
 
 ## Public API
 
@@ -209,6 +209,15 @@ project and a case study about it, so the Project aggregate is covered before th
 | `pnpm --filter @mirelnan/db db:generate --name` | Writes a new SQL migration from the schema changes (no database needed) |
 | `pnpm --filter @mirelnan/db db:check`           | Checks that the migrations and their snapshots are consistent           |
 | `pnpm --filter @mirelnan/db test`               | Runs the seed and repository tests on PGlite (in-memory Postgres)       |
+| `pnpm --filter @mirelnan/db db:migrate`         | Applies the migrations not applied yet (owner URL from `.env.local`)    |
+| `pnpm --filter @mirelnan/db db:seed`            | Rebuilds every table from `cv-data` in one transaction (owner URL)      |
 
 Migrations are generated, reviewed in the pull request and committed; they are never edited by hand, and
 `drizzle-kit push` is never used against production.
+
+### Connecting to Neon
+
+Copy `.env.example` to `.env.local` (git-ignored) and set `DATABASE_ADMIN_URL`: the owner role's direct
+connection string (pooling off), with `sslmode=verify-full`. Only `db:migrate` and `db:seed` read it, on your
+machine; the scripts use node-postgres (`src/client.ts`) and never print the URL. The web app gets a read-only
+role instead (step 3b).
