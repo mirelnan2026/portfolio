@@ -167,11 +167,11 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
 Claims about the owner come **only** from registered sources (ADR 0006). Each source is a record in
 `cv-data` (`{ slug, kind, title }`); every claim points to one with `sourceSlug`. The kinds are fixed in `domain`:
 
-| Kind               | Document                                                                                                                                                                                                                             | Rules                                    |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
-| `cv`               | the CV — (a local file)                                                                                                                                                                      | used as written                          |
-| `employment-brief` | owner's notes on client work — today `jwx-brief` = (a local file) (the JWX work and its phases, the four case studies, owned vs contributed, "Technical range" context notes, the AI workflow) | exclusions + confidentiality rules below |
-| `project-brief`    | owner's notes on a personal project they fully own (a private Claude artifact)                                                                                                                                                       | only released, public facts              |
+| Kind               | Document                                                                                                                                                                                                                                                                                                                      | Rules                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `cv`               | the CV — (a local file)                                                                                                                                                                                                                                                               | used as written                          |
+| `employment-brief` | owner's notes on client work — today `jwx-brief` = (a local file); `… - Printable - Extended.pdf` is the old version with three phases and is not a source (the JWX work and its phases, the four case studies, owned vs contributed, "Technical range" context notes, the AI workflow) | exclusions + confidentiality rules below |
+| `project-brief`    | owner's notes on a personal project they fully own (a private Claude artifact)                                                                                                                                                                                                                                                | only released, public facts              |
 
 Documents are transcription material only: the app and the AI never read them, and their location is never
 stored in the data. Adding a source is approving it, so it goes through review. Never add a claim without a
@@ -207,11 +207,12 @@ the spec-driven delivery of the 2026 feature work (the last two because the CV s
 
 ### JWX phases
 
-Two phases in the data (owner decision, 2026-11-07), although the brief describes three: `content-management-suite`
-(2023-03 – 2024-12, `video-content-management`; it also holds the brief's advertising-platform work) and
+Two phases, as in the brief (owner decision, 2026-11-07; the brief was updated to match on 2026-11-08):
+`content-management-suite` (2023-03 – 2024-12, `video-content-management`; it includes the suite's advertising
+side) and
 `video-platform-dashboard` (2025-01 – 2026-10, `video-tech`, linked to the JWX Dashboard product); the first
 phase is linked to the JWX Portal product. The phase
-months come from the owner, not from the brief, which stays unchanged. A CV bullet the brief places in a phase gets
+months come from the brief. A CV bullet the brief places in a phase gets
 that `phaseSlug`; a CV bullet the brief does not place stays on the experience. The brief adds only work the CV
 does not mention; its details on work the CV already lists go into the case studies.
 

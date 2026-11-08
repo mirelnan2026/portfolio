@@ -2,8 +2,8 @@ import type { Experience } from "@mirelnan/domain";
 import { usedSkills } from "./skill-usages";
 
 /**
- * One contract, two phases (owner decision; the brief describes three). CV bullets the brief places in a
- * phase carry its slug; the brief adds only the work the CV does not mention.
+ * One contract, two phases, as in the brief. CV bullets the brief places in a phase carry its slug;
+ * the brief adds only the work the CV does not mention.
  */
 export const jwpConnatix = {
   slug: "jwp-connatix",
@@ -20,7 +20,7 @@ export const jwpConnatix = {
       period: { start: "2023-03", end: "2024-12" },
       industrySlug: "video-content-management",
       summary:
-        "Feature work on the advertising and content-management products, then the extraction of their " +
+        "Feature work across the suite, including its advertising side, then the extraction of its " +
         "shared libraries and the framework migration of the multi-app workspace.",
       sourceSlug: "jwx-brief",
     },
