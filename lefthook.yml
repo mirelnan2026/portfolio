@@ -13,6 +13,27 @@ pre-commit:
       run: pnpm exec prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
 
+    # ESLint runs inside each package, so it finds that package's eslint.config.js and tsconfig.
+    # Same command as `pnpm lint`, on the staged files only. A package gets a job once it has a config.
+    - name: lint
+      group:
+        parallel: true
+        jobs:
+          - name: lint domain
+            root: packages/domain/
+            glob: "*.{ts,tsx,js,mjs,cjs}"
+            run: pnpm exec eslint {staged_files}
+
+          - name: lint cv-data
+            root: packages/cv-data/
+            glob: "*.{ts,tsx,js,mjs,cjs}"
+            run: pnpm exec eslint {staged_files}
+
+          - name: lint db
+            root: packages/db/
+            glob: "*.{ts,tsx,js,mjs,cjs}"
+            run: pnpm exec eslint {staged_files}
+
 commit-msg:
   jobs:
     - name: commitlint

@@ -270,8 +270,11 @@ Variables: `DATABASE_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`,
 - **Drizzle ORM 0.45.x + drizzle-kit 0.31.x**, exact versions in `packages/db` (1.0 is still a release candidate).
 - Prettier runs once from the root (not via Turbo); ESLint and `tsc` run per package via Turbo.
   Tool-managed files (`pnpm-lock.yaml`, `pnpm-workspace.yaml`) are in `.prettierignore`.
-- Git hooks (`lefthook.yml`): pre-commit = gitleaks on staged diff, then Prettier on staged files (`piped`);
-  commit-msg = commitlint. ESLint on staged files is added once packages have `eslint.config.js`.
+- Git hooks (`lefthook.yml`): pre-commit = gitleaks on staged diff, then Prettier on staged files, then ESLint
+  (`piped`); commit-msg = commitlint. ESLint is a `group` with one parallel job per package that has an
+  `eslint.config.js` (`root: packages/<name>/`, `glob: "*.{ts,tsx,js,mjs,cjs}"`, `pnpm exec eslint {staged_files}`):
+  the same command as `pnpm lint`, no `--fix` (only Prettier rewrites staged files). A new package or app adds
+  its job when it gets its ESLint config (`apps/web` at step 4).
   Hooks are a convenience, not a control — CI re-runs everything.
 - gitleaks is a system binary (`~/.local/bin`, installed from the official release with checksum check), not an npm package.
 - **Package template** (set by `packages/domain`): `exports` points at TS source (`./src/index.ts`, no build),
