@@ -63,6 +63,12 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   A new package means a new scope. `docs:` for prose only, `chore(tooling):` for shared tool config,
   `build:` for dependencies and build orchestration.
 - Migrations via `drizzle-kit generate` + `migrate` (never `push` against production). Seed is idempotent.
+- **Seed** (`packages/db/src/seed/write-cv-data.ts`): `writeCvData(db, data)` parses with `cvDataSchema` first,
+  then one transaction: `TRUNCATE … RESTART IDENTITY CASCADE` on every table, inserts in dependency order, slug →
+  id maps that throw on an unknown slug (in Drizzle an `undefined` value means DEFAULT, so a silent miss would
+  insert a wrong row). It takes the driver-independent `Database` type (`src/database.ts`), so tests run it on
+  PGlite (in-memory Postgres, the real migrations) and step 3 on Neon. `cv-data` is the source of truth: the
+  database is rebuilt from it, never edited.
 - UI: light + dark + system themes via `next-themes`; colors only through CSS tokens (no hardcoded colors);
   no invented metrics, no skill progress bars. English only (`<html lang="en">`).
 
