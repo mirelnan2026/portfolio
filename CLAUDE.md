@@ -69,6 +69,13 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   insert a wrong row). It takes the driver-independent `Database` type (`src/database.ts`), so tests run it on
   PGlite (in-memory Postgres, the real migrations) and step 3 on Neon. `cv-data` is the source of truth: the
   database is rebuilt from it, never edited.
+- **Drizzle repositories** (`packages/db/src/repositories/drizzle-<entity>-repository.ts`): one factory per port,
+  `createDrizzle<Entity>Repository(db): <Entity>Repository`, returning a plain object. Each query selects the
+  domain's columns explicitly (no `getTableColumns`, so a new column never leaks into the domain) and turns a
+  foreign key into its slug with `innerJoin` (`source_id` → `sourceSlug`). Order comes from `position`, or from
+  `id` where a table has none (the seed inserts in `cv-data` order and resets identities). No zod on read: the
+  trust boundary is the write. Tests are round trips on PGlite via `createTestDatabase()` (`src/test-database.ts`):
+  seed `cvData`, then `toStrictEqual` against it.
 - UI: light + dark + system themes via `next-themes`; colors only through CSS tokens (no hardcoded colors);
   no invented metrics, no skill progress bars. English only (`<html lang="en">`).
 
