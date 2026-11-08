@@ -1,18 +1,15 @@
-import { PGlite } from "@electric-sql/pglite";
 import { cvData } from "@mirelnan/cv-data";
 import { count } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/pglite";
-import { migrate } from "drizzle-orm/pglite/migrator";
 import { beforeAll, describe, expect, it } from "vitest";
+import type { Database } from "../database";
 import * as tables from "../schema";
+import { createTestDatabase } from "../test-database";
 import { writeCvData } from "./write-cv-data";
 
-// An in-memory Postgres per test file: real SQL, real constraints, no server and no network.
-const client = new PGlite();
-const db = drizzle({ client, schema: tables, casing: "snake_case" });
+let db: Database;
 
 beforeAll(async () => {
-  await migrate(db, { migrationsFolder: "./migrations" });
+  db = await createTestDatabase();
 });
 
 /** The number of rows in every table, keyed by table name. */
