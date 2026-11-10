@@ -110,6 +110,11 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   (violations fail CI), Lighthouse Accessibility = 100. E2E tests query by role/accessible name (`getByRole`).
 - Semantic HTML first, ARIA only where HTML is not enough; one `h1`, no skipped heading levels.
 - Full keyboard support, visible focus (`:focus-visible`), skip link, focus never hidden by the sticky header.
+  How (step 4d): `globals.css` gives every element one focus style (`:focus-visible` → 2px solid `outline-ring`,
+  offset 2px); the root layout renders `SkipLink` (first Tab stop, `href="#main"`), the sticky `SiteHeader` and
+  `<main id="main">`; the header height is the `--header-height` token, reused as `scroll-padding-top` on
+  `<html>`, so anchor jumps and focus scrolling stop below the header. Smooth scrolling only under
+  `prefers-reduced-motion: no-preference`; the translucent header turns solid under `prefers-contrast: more`.
 - Contrast ≥ 4.5:1 for text (≥ 3:1 for large text and UI parts); targets ≥ 24×24px; reflow at 320px / 400% zoom.
   Colour tokens live only in `apps/web/src/app/globals.css` (OKLCH, `:root` + `.dark`); `theme-contrast.test.ts`
   checks every text pair (4.5:1) and the focus ring and input border (3:1) in both themes, so a token change that
