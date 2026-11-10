@@ -204,13 +204,14 @@ project and a case study about it, so the Project aggregate is covered before th
 
 ## Commands
 
-| Command                                         | What it does                                                            |
-| ----------------------------------------------- | ----------------------------------------------------------------------- |
-| `pnpm --filter @mirelnan/db db:generate --name` | Writes a new SQL migration from the schema changes (no database needed) |
-| `pnpm --filter @mirelnan/db db:check`           | Checks that the migrations and their snapshots are consistent           |
-| `pnpm --filter @mirelnan/db test`               | Runs the seed and repository tests on PGlite (in-memory Postgres)       |
-| `pnpm --filter @mirelnan/db db:migrate`         | Applies the migrations not applied yet (owner URL from `.env.local`)    |
-| `pnpm --filter @mirelnan/db db:seed`            | Rebuilds every table from `cv-data` in one transaction (owner URL)      |
+| Command                                         | What it does                                                                              |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `pnpm --filter @mirelnan/db db:generate --name` | Writes a new SQL migration from the schema changes (no database needed)                   |
+| `pnpm --filter @mirelnan/db db:check`           | Checks that the migrations and their snapshots are consistent                             |
+| `pnpm --filter @mirelnan/db test`               | Runs the seed and repository tests on PGlite (in-memory Postgres)                         |
+| `pnpm --filter @mirelnan/db db:migrate`         | Applies the migrations not applied yet (owner URL from `.env.local`)                      |
+| `pnpm --filter @mirelnan/db db:seed`            | Rebuilds every table from `cv-data` in one transaction (owner URL)                        |
+| `pnpm --filter @mirelnan/db db:reader`          | Creates the read-only role or rotates its password; writes its URL to `.env.reader.local` |
 
 Migrations are generated, reviewed in the pull request and committed; they are never edited by hand, and
 `drizzle-kit push` is never used against production.
@@ -220,4 +221,13 @@ Migrations are generated, reviewed in the pull request and committed; they are n
 Copy `.env.example` to `.env.local` (git-ignored) and set `DATABASE_ADMIN_URL`: the owner role's direct
 connection string (pooling off), with `sslmode=verify-full`. Only `db:migrate` and `db:seed` read it, on your
 machine; the scripts use node-postgres (`src/client.ts`) and never print the URL. The web app gets a read-only
-role instead (step 3b).
+role instead.
+
+### The read-only role
+
+The web app connects as `portfolio_reader`, which can `SELECT` the tables in `public` and nothing else: no
+writes, no DDL, no access to the `drizzle` schema. It is created with SQL, because Neon makes console-created
+roles members of `neon_superuser`. `db:reader` creates it, or gives it a new password if it exists, logs in
+as it to check that it can read, and writes `DATABASE_URL` to `.env.reader.local` (git-ignored, mode 600)
+instead of printing it. `ALTER DEFAULT PRIVILEGES` covers the tables added by later migrations. Rotating the
+password breaks the running app until its `DATABASE_URL` is updated.
