@@ -22,6 +22,10 @@ next-env.d.ts
 
 # Claude Code — personal settings only (shared settings and commands are committed)
 .claude/settings.local.json
+CLAUDE.local.md
+
+# private content denylist, read by the `private terms` pre-commit job
+.private-terms.local
 
 # tooling
 .vercel/

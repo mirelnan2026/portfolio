@@ -2,15 +2,31 @@
 
 Guidance for Claude Code when working in this repository.
 
+## Working in this repo
+
+Per-machine instructions (how the owner and Claude split the work, how explanations are written, local paths and
+the private content denylist) live in `CLAUDE.local.md`, which is git-ignored and loads right after this file.
+Follow both; where they differ, `CLAUDE.local.md` wins.
+
+- **Commits:** Conventional Commits (commitlint: header ≤ 72 characters, scopes = the packages + `tooling`, `ci`,
+  `deps`). One coherent step or feature per commit; stage exact paths (`git add <paths>`, never `git add .`);
+  empty placeholder files are committed with the step that fills them.
+- **Keep `CLAUDE.md` and `README.md` in sync with decisions.** Whenever an architecture, tooling, convention,
+  security or accessibility decision is made or changed, update both in the same step: `CLAUDE.md` (rules and
+  reasoning for future sessions) and `README.md` (what a reader or contributor needs). Significant decisions
+  also get an ADR in `docs/adr/` (`NNNN-kebab-title.md`; Status, Date, Context, Decision, Alternatives considered,
+  Consequences with + and −). ADRs are immutable: a changed decision gets a new ADR with
+  `Supersedes: [NNNN…](…)`, and the old one only has its status changed to `Superseded by [NNNN…](…)`.
+  Numbers are never reused.
+
 ## What this is
 
 Personal portfolio for Mirel Nan (Senior Frontend Engineer), built from the CV, plus:
 an "Ask about me" chat with Claude using tool use (must never invent experience), a job-match feature
-with structured output, and an MCP server exposing the CV. Stages follow Anthropic Academy:
+with structured output, and an MCP server exposing the CV. Stages:
 0 foundation + portfolio page → 1 Claude API → 2 tool use + structured output → 3 MCP → 4 Claude Code.
-Domain: `mirelnan.dev` (registrar Porkbun; connected to Vercel at step 6; `.dev` is HTTPS-only via HSTS preload).
+Domain: `mirelnan.dev` (connected to Vercel at step 6; `.dev` is HTTPS-only via HSTS preload).
 The "portfolio" project enters `cv-data` only once the site is live on it (see "Personal projects").
-Full plan: (a local file).
 
 ## Architecture
 
@@ -36,8 +52,17 @@ docs/adr           Architecture Decision Records
 
 Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `apps/*`.
 
-- Apps never import `drizzle-orm` directly; they use repository interfaces from `domain`,
-  wired in `apps/web/src/server/container.ts` (composition root).
+- Apps never import `drizzle-orm`, `pg` or `@mirelnan/cv-data`; they use repository interfaces from `domain`,
+  wired in `apps/web/src/server/container.ts` (composition root). Enforced by `no-restricted-imports` in
+  `@mirelnan/eslint-config/next`.
+- `apps/web` data flow (step 4e): `server/env.ts` validates `DATABASE_URL` with zod (the error names the
+  variable, never its value); `server/container.ts` (`server-only`) opens one module-scoped pool with
+  `connectToPostgres`, passes it to `attachDatabasePool` from `@vercel/functions` (releases idle clients before
+  Fluid compute suspends; a no-op elsewhere) and exports `repositories`; `features/<feature>/queries.ts`
+  (`server-only`) wraps each read in `"use cache"` + `cacheLife("max")`. Pages are therefore prerendered at build
+  from the database (`○ /`, revalidate 30d): the CV changes only through a reseed, which ships with a deploy.
+  `next build` needs `DATABASE_URL` (turbo.json declares it in `env` and hashes `.env*.local`), so CI needs a
+  database for the build (decided at step 6). No `transpilePackages`: Turbopack compiles workspace packages.
 - Packages expose only what is listed in `exports` in their `package.json` (no deep imports).
 - Modules touching the DB or secrets import `server-only`.
 - `apps/web/src`: `app/` is routing only; feature code lives in `features/<feature>/`;
@@ -83,7 +108,7 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   and a case study about it) for aggregates `cv-data` does not have yet.
 - **Neon access** (step 3): node-postgres (`pg`, `drizzle-orm/node-postgres`) over TCP for scripts and, at step 4,
   for the app (Neon's recommendation for Node.js and Vercel Fluid compute; the HTTP driver has no interactive
-  transactions, which the seed needs). `src/client.ts` → `connectToPostgres(url)` returns `{ db, close }`.
+  transactions, which the seed needs). `src/client.ts` → `connectToPostgres(url)` returns `{ db, pool, close }`.
   Command-line scripts live in `src/cli/` (`no-console` off there only), run with `tsx --env-file-if-exists=.env.local`
   (in CI the variables come from the environment). Migrations run through `drizzle-orm`'s `migrate()` (same API
   as the PGlite tests), so `drizzle.config.ts` never holds credentials and drizzle-kit stays offline
@@ -97,8 +122,8 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   `packages/db/.env.reader.local` (mode 600, git-ignored), never to the terminal. Grants are tested on PGlite with
   `has_table_privilege` and `SET ROLE`.
 - **`@mirelnan/db` public API:** `exports: { ".": "./src/index.ts" }` + `sideEffects: false`; `index.ts` exports
-  only `createDrizzleRepositories(db): Repositories` and the `Database` type. Tables, ids and `writeCvData` stay
-  internal.
+  only `connectToPostgres(url)` (+ `PostgresConnection`), `createDrizzleRepositories(db): Repositories` and the
+  `Database` type. Tables, ids and `writeCvData` stay internal.
 - UI: light + dark + system themes via `next-themes`; colors only through CSS tokens (no hardcoded colors);
   no invented metrics, no skill progress bars. English only (`<html lang="en">`).
 
@@ -216,15 +241,21 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
 Claims about the owner come **only** from registered sources (ADR 0006). Each source is a record in
 `cv-data` (`{ slug, kind, title }`); every claim points to one with `sourceSlug`. The kinds are fixed in `domain`:
 
-| Kind               | Document                                                                                                                                                                                                                                                                                                                      | Rules                                    |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `cv`               | the CV — (a local file)                                                                                                                                                                                                                                                               | used as written                          |
-| `employment-brief` | owner's notes on client work — today `jwx-brief` = (a local file); `… - Printable - Extended.pdf` is the old version with three phases and is not a source (the JWX work and its phases, the four case studies, owned vs contributed, "Technical range" context notes, the AI workflow) | exclusions + confidentiality rules below |
-| `project-brief`    | owner's notes on a personal project they fully own (a private Claude artifact)                                                                                                                                                                                                                                                | only released, public facts              |
+| Kind               | Document                                                                                                                                                   | Rules                                    |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `cv`               | the owner's CV                                                                                                                                             | used as written                          |
+| `employment-brief` | owner's notes on client work, today `jwx-brief` (the JWX work and its phases, the four case studies, owned vs contributed, context notes, the AI workflow) | exclusions + confidentiality rules below |
+| `project-brief`    | owner's notes on a personal project they fully own                                                                                                         | only released, public facts              |
 
 Documents are transcription material only: the app and the AI never read them, and their location is never
 stored in the data. Adding a source is approving it, so it goes through review. Never add a claim without a
 `sourceSlug` that points to a registered source.
+
+**Excluded topics.** The owner keeps a list of topics from the employment brief that never go into the data, the UI
+or chat answers. The list is private (`CLAUDE.local.md`), because the terms themselves would reveal what they
+exclude. It is enforced by the `private terms` pre-commit job, which greps staged `cv-data` files against the
+git-ignored pattern file `.private-terms.local`; the public `cv-data` content tests check only what reveals nothing
+(phone numbers, change counts).
 
 ### Personal projects
 
@@ -271,15 +302,15 @@ does not mention; its details on work the CV already lists go into the case stud
 - No internal product codenames, no feature-flag names.
 - No unreleased roadmap, no business figures (revenue, customer counts, pricing).
 - No architecture detail precise enough to reproduce — describe the shape of the problem, not the internals.
-- Client codebases ((a local folder), (a local folder), (a local folder)) are **not** a content source.
+- Code from client work is **never** a content source (the local paths are in `CLAUDE.local.md`).
 - The chat declines such requests with: "That's covered by a confidentiality agreement, so I can describe the
   shape of the problem instead."
 
 ### Always
 
 - **Never include the phone number** anywhere (data, seed, UI, PDFs, fixtures). The `Profile` type has no `phone` field.
-  The only CV PDF allowed in the repo is the no-phone export
-  ((a local file) → `apps/web/public/mirel-nan-cv.pdf`);
+  The only CV PDF allowed in the repo is the no-phone export, as `apps/web/public/mirel-nan-cv.pdf`
+  (its source file is named in `CLAUDE.local.md`);
   re-check any new export for phone traces (text, `tel:` links, metadata) before committing it.
 - The chat, job match and MCP server answer **only** from registered sources (the CV, employment briefs, project
   briefs), through tool results over the database, with the exclusions and confidentiality rules above applied,

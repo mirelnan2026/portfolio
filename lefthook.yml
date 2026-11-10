@@ -8,6 +8,13 @@ pre-commit:
     - name: secrets
       run: gitleaks git --pre-commit --staged --redact --verbose
 
+    # Topics the owner excluded from the published data. The patterns live in a git-ignored file, because
+    # they would reveal what they exclude; without that file (a fresh clone) the job passes.
+    - name: private terms
+      root: packages/cv-data/
+      glob: "*.ts"
+      run: test ! -f ../../.private-terms.local || ! grep -n -i -E -f ../../.private-terms.local {staged_files}
+
     - name: format
       glob: "*"
       run: pnpm exec prettier --write --ignore-unknown {staged_files}

@@ -115,11 +115,12 @@ describe("content rules", () => {
     expect(phoneLike.filter((match) => match.replace(/\D/g, "").length >= 9)).toEqual([]);
   });
 
-  it.each([
-    ["change counts", /\b\d+\s+changes\b/i],
-  ])("leaves out %s", (_rule, pattern) => {
-    expect(texts.filter((text) => pattern.test(text))).toEqual([]);
+  it("contains no change counts", () => {
+    expect(texts.filter((text) => /\b\d+\s+changes\b/i.test(text))).toEqual([]);
   });
+
+  // The other excluded topics are checked by the `private terms` pre-commit job: their patterns would reveal
+  // what they exclude, so they stay out of the repository.
 
   it("lists only projects released by the current month", () => {
     // Months compare as strings because they are all YYYY-MM.
