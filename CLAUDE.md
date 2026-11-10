@@ -111,8 +111,12 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
 - Semantic HTML first, ARIA only where HTML is not enough; one `h1`, no skipped heading levels.
 - Full keyboard support, visible focus (`:focus-visible`), skip link, focus never hidden by the sticky header.
 - Contrast ≥ 4.5:1 for text (≥ 3:1 for large text and UI parts); targets ≥ 24×24px; reflow at 320px / 400% zoom.
+  Colour tokens live only in `apps/web/src/app/globals.css` (OKLCH, `:root` + `.dark`); `theme-contrast.test.ts`
+  checks every text pair (4.5:1) and the focus ring and input border (3:1) in both themes, so a token change that
+  breaks AA fails the tests. shadcn's defaults failed four of these (muted text on muted, light ring, both inputs).
 - Respect `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`. Never convey state by color alone.
-- Use Radix primitives (via shadcn/ui) for dialogs, menus, tabs — don't hand-roll them.
+- Use Base UI primitives (via shadcn/ui, base `base`, style `base-nova`) for dialogs, menus, tabs — don't hand-roll
+  them. shadcn copies component source into `components/ui/`: we own it and fix its accessibility gaps there.
 - Streaming chat output goes through an `aria-live="polite"` region; dialogs move and restore focus.
 
 ## Responsive (first-class requirement)
@@ -300,6 +304,8 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
 - `apps/web` `typecheck` is `next typegen && tsc`: typegen writes the route types (`LayoutProps<"/">`,
   `PageProps`) into `.next/types`, which `tsconfig.json` includes.
 - Before picking any version: check latest, **support/EOL status** and peer ranges; test in a scratch dir if unsure.
+  A new dependency version must be at least 7 days old (the planned `minimumReleaseAge`), unless it is a
+  security fix; pin it exact when the package is pre-1.0 or releases daily.
 - Dependency install scripts are blocked by pnpm; decisions are recorded in `allowBuilds` in
   `pnpm-workspace.yaml` (`lefthook: false` — hooks are installed by our own root `prepare` script instead;
   `esbuild: false` — drizzle-kit needs it, and its platform binary arrives as an optional dependency).
