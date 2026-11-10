@@ -5,11 +5,14 @@
   "type": "module",
   "exports": {
     "./base": "./base.js",
-    "./library": "./library.js"
+    "./library": "./library.js",
+    "./next": "./next.js"
   },
   "dependencies": {
     "@eslint/js": "catalog:",
+    "eslint-config-next": "16.4.5",
     "eslint-config-prettier": "catalog:",
+    "eslint-plugin-jsx-a11y": "6.10.2",
     "typescript-eslint": "catalog:"
   },
   "devDependencies": {
