@@ -117,6 +117,16 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
 - Respect `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`. Never convey state by color alone.
 - Use Base UI primitives (via shadcn/ui, base `base`, style `base-nova`) for dialogs, menus, tabs — don't hand-roll
   them. shadcn copies component source into `components/ui/`: we own it and fix its accessibility gaps there.
+  Fixes applied after every `shadcn add` (step 4c): focus is a solid `outline-ring` outline on `:focus-visible`
+  (not `ring-ring/50`, which halves the contrast, and not a box-shadow ring, which forced-colors mode removes);
+  menu items get the same outline, because their `bg-accent` highlight is only 1.07:1 against the popover;
+  interactive parts get `pointer-coarse:min-h-11` (44px on touch). Components import `cn` from the `cn`
+  package directly, so there is no `src/lib/utils.ts`.
+- Theme: `next-themes` (`attribute="class"`, `defaultTheme="system"`, `disableTransitionOnChange`) in the root
+  layout, `suppressHydrationWarning` on `<html>` only. Its inline script sets the class before paint (no flash)
+  and needs a CSP hash or nonce at the security-headers step. The toggle is a menu of radio items
+  (Light / Dark / System, `closeOnClick` so focus returns to the trigger); the trigger icon switches through
+  `dark:` CSS, never through `theme`, so server and client render the same markup.
 - Streaming chat output goes through an `aria-live="polite"` region; dialogs move and restore focus.
 
 ## Responsive (first-class requirement)
