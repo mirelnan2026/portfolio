@@ -88,6 +88,13 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   A new package means a new scope. `docs:` for prose only, `chore(tooling):` for shared tool config,
   `build:` for dependencies and build orchestration.
 - Migrations via `drizzle-kit generate` + `migrate` (never `push` against production). Seed is idempotent.
+  **A new `NOT NULL` column on a table that has rows** (first case: `profiles.intro`, step 4f) is two generated
+  migrations shipped together: add it with `.default("")` and generate, then drop the default and generate
+  again; the seed then writes the real value. A single `ADD COLUMN … NOT NULL` fails on existing rows
+  ("contains null values"). **Order on every deploy: `db:migrate` → `db:seed` → `next build`**, because the
+  build prerenders from the database and reads the new columns.
+- `Profile.intro` is the opening of `summary`, word for word (a `profileSchema` refinement): the hero shows it, so
+  the first screen stays short without rewording the CV.
 - **Seed** (`packages/db/src/seed/write-cv-data.ts`): `writeCvData(db, data)` parses with `cvDataSchema` first,
   then one transaction: `TRUNCATE … RESTART IDENTITY CASCADE` on every table, inserts in dependency order, slug →
   id maps that throw on an unknown slug (in Drizzle an `undefined` value means DEFAULT, so a silent miss would
@@ -145,6 +152,27 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   checks every text pair (4.5:1) and the focus ring and input border (3:1) in both themes, so a token change that
   breaks AA fails the tests. shadcn's defaults failed four of these (muted text on muted, light ring, both inputs).
 - Respect `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`. Never convey state by color alone.
+- **One accent: teal** (owner decision, 2026-11-10; light ≈ teal-700 `#0f766e`, dark ≈ teal-300 `#5eead4`). It marks
+  information only (availability badge, "Owned", phase numbers, the selected skill together with a check mark),
+  never decoration. It becomes its own tokens in `globals.css`, separate from shadcn's `--accent` (which is the
+  neutral hover background), with its pairs added to `theme-contrast.test.ts`.
+- **Experience timeline** (owner decision, 2026-11-10): each experience shows its first 5 highlights, the rest behind
+  a "Show all" button (`aria-expanded`); the JWX phases are cards on the muted background, each with its period,
+  industry, summary and, where linked, its product card.
+- **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
+  durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
+  20 → 24px; section titles 13px, uppercase, tracked, muted; body 16px, line-height 1.6. Reading width ~760px,
+  content container 1040px.
+- **No copy without a source** (owner decision, 2026-11-10): every visible sentence about the owner comes from the
+  data. "How I work" is three steps (Specify → Implement → Own the result) worded from the spec-driven highlight;
+  the footer holds only email, LinkedIn and the accessibility statement link.
+- **AI in the UI** (owner decision, 2026-11-10): the chat opens from an "Ask about me" button in the header (text
+  plus the `⌘K` shortcut) and from the hero, as a 460px side sheet on desktop and full screen on phones. It speaks
+  in the third person, by name ("Mirel worked…"), never as the owner, and every answer ends with source chips that
+  link to the experience or phase in the timeline. Job match is its own route, `/job-match` (linked from the header
+  and the hero as "Match me to your role"), so the home page stays static; requirement → linked evidence → level,
+  where the level is shown as text and dots (Strong / Partial / Gap), never by colour alone. Until stage 1 the
+  entry points are in the layout but marked "coming soon".
 - Use Base UI primitives (via shadcn/ui, base `base`, style `base-nova`) for dialogs, menus, tabs — don't hand-roll
   them. shadcn copies component source into `components/ui/`: we own it and fix its accessibility gaps there.
   Fixes applied after every `shadcn add` (step 4c): focus is a solid `outline-ring` outline on `:focus-visible`
@@ -401,4 +429,4 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
 | `pnpm exec lefthook validate`                                            | validate `lefthook.yml`                                                                  |
 | `gitleaks git --redact .`                                                | scan the whole git history for secrets                                                   |
 
-To be added later: `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:seed`.
+Database: `pnpm --filter @mirelnan/db db:generate --name <name>`, `db:check`, `db:migrate`, `db:seed`, `db:reader` (see `packages/db/README.md`).
