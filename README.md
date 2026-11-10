@@ -201,7 +201,7 @@ Git hooks are installed automatically by `pnpm install` (run `pnpm run prepare` 
 ```bash
 pnpm install
 cp apps/web/.env.example apps/web/.env.local   # the read-only DATABASE_URL (see packages/db/README.md)
-pnpm db:migrate && pnpm db:seed       # once the db package is ready
+pnpm --filter @mirelnan/db db:migrate && pnpm --filter @mirelnan/db db:seed   # owner URL in packages/db/.env.local
 pnpm dev
 ```
 

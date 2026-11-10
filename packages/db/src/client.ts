@@ -4,6 +4,8 @@ import * as tables from "./schema";
 
 export interface PostgresConnection {
   db: NodePgDatabase<typeof tables>;
+  /** The connection pool, for a host that manages it (e.g. Vercel's `attachDatabasePool`). */
+  pool: Pool;
   /** Closes the pool, so a script can exit. */
   close: () => Promise<void>;
 }
@@ -15,5 +17,5 @@ export interface PostgresConnection {
 export function connectToPostgres(url: string): PostgresConnection {
   const pool = new Pool({ connectionString: url });
   const db = drizzle({ client: pool, schema: tables, casing: "snake_case" });
-  return { db, close: () => pool.end() };
+  return { db, pool, close: () => pool.end() };
 }

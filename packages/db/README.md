@@ -9,13 +9,16 @@ this package sees a table or a database id; consumers get `domain` types through
 `package.json` exports only `src/index.ts`, so nothing else can be imported (no deep imports):
 
 ```ts
-import { createDrizzleRepositories, type Database } from "@mirelnan/db";
+import { connectToPostgres, createDrizzleRepositories, type Database } from "@mirelnan/db";
 
-const repositories = createDrizzleRepositories(db); // every domain port, read from Postgres
+const connection = connectToPostgres(url); // { db, pool, close }: node-postgres pool + Drizzle
+const repositories = createDrizzleRepositories(connection.db); // every domain port, read from Postgres
 ```
 
-The composition root of each app calls it once. `writeCvData` stays internal: only the seed script in this
-package uses it.
+The composition root of each app calls both once (`apps/web/src/server/container.ts`). `pool` is exposed so the
+host can manage it (on Vercel, `attachDatabasePool` releases idle clients before an instance is suspended); the
+package itself stays platform-agnostic. `close` is for scripts that must exit. `writeCvData` stays internal: only
+the seed script in this package uses it.
 
 ## Data model
 
