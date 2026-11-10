@@ -88,6 +88,14 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   (in CI the variables come from the environment). Migrations run through `drizzle-orm`'s `migrate()` (same API
   as the PGlite tests), so `drizzle.config.ts` never holds credentials and drizzle-kit stays offline
   (`generate`, `check`).
+- **Read-only role** (step 3b): `pnpm --filter @mirelnan/db db:reader` creates `portfolio_reader` with SQL (roles
+  made in the Neon console join `neon_superuser`), or rotates its password when it exists; grants `CONNECT`,
+  `USAGE` on `public`, `SELECT` on every table and `ALTER DEFAULT PRIVILEGES` for tables future migrations
+  create (migrations run as the owner). It gets nothing on the `drizzle` schema. The password is 256 random bits
+  in base64url, checked against `^[\w-]{32,}$` before it goes into the SQL text (`CREATE ROLE` takes no bind
+  parameters). The script logs in as the reader and reads a table, then writes `DATABASE_URL` to
+  `packages/db/.env.reader.local` (mode 600, git-ignored), never to the terminal. Grants are tested on PGlite with
+  `has_table_privilege` and `SET ROLE`.
 - **`@mirelnan/db` public API:** `exports: { ".": "./src/index.ts" }` + `sideEffects: false`; `index.ts` exports
   only `createDrizzleRepositories(db): Repositories` and the `Database` type. Tables, ids and `writeCvData` stay
   internal.
