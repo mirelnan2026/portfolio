@@ -286,8 +286,19 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
 - Shared versions live in the pnpm **catalog** (`pnpm-workspace.yaml`); packages use `"catalog:"`.
   Internal packages use `workspace:*`. Tool-config packages declare the tool as a `peerDependency`.
 - **TypeScript 6.0.x**, not 7: Next.js, typescript-eslint and drizzle-kit need the JS compiler API.
-- **ESLint 10** (v9 is EOL since 2026-08-06). Plugins that still use removed APIs (e.g. `eslint-plugin-react`,
-  `jsx-a11y` via `eslint-config-next`) get wrapped with `@eslint/compat` `fixupPluginRules()` at step 4.
+- **ESLint 10** (v9 is EOL since 2026-08-06). `eslint-config-next` 16.4 wraps `eslint-plugin-react` and
+  `eslint-plugin-import` for ESLint 10 itself, and `jsx-a11y` works unwrapped, so no `@eslint/compat` (checked at
+  step 4a with a deliberately bad component). Their peer ranges stop at ESLint 9: `peerDependencyRules.allowedVersions`
+  in `pnpm-workspace.yaml` allows 10 for exactly those three plugins.
+- **Next.js 16.4.x** (exact, `eslint-config-next` the same version, in `@mirelnan/eslint-config`), React 19.3.x
+  exact, Tailwind 4.3.x exact with `@tailwindcss/turbopack` (Tailwind as a Turbopack loader, no PostCSS config).
+  `next.config.ts`: `cacheComponents: true` (the Next 16 model: prerendered by default, `"use cache"` for cached
+  data, instead of route-level ISR `revalidate`) with `partialPrefetching: true` (Next recommends both for new
+  projects; both become the default in the next major), `agentRules: false` (no generated `AGENTS.md`). The docs for the
+  installed version are in `apps/web/node_modules/next/dist/docs/`: read the relevant guide there before writing
+  Next.js code, because APIs changed after the model's training data.
+- `apps/web` `typecheck` is `next typegen && tsc`: typegen writes the route types (`LayoutProps<"/">`,
+  `PageProps`) into `.next/types`, which `tsconfig.json` includes.
 - Before picking any version: check latest, **support/EOL status** and peer ranges; test in a scratch dir if unsure.
 - Dependency install scripts are blocked by pnpm; decisions are recorded in `allowBuilds` in
   `pnpm-workspace.yaml` (`lefthook: false` — hooks are installed by our own root `prepare` script instead;
@@ -299,7 +310,7 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
   (`piped`); commit-msg = commitlint. ESLint is a `group` with one parallel job per package that has an
   `eslint.config.js` (`root: packages/<name>/`, `glob: "*.{ts,tsx,js,mjs,cjs}"`, `pnpm exec eslint {staged_files}`):
   the same command as `pnpm lint`, no `--fix` (only Prettier rewrites staged files). A new package or app adds
-  its job when it gets its ESLint config (`apps/web` at step 4).
+  its job when it gets its ESLint config (`apps/web` has one since step 4a).
   Hooks are a convenience, not a control — CI re-runs everything.
 - gitleaks is a system binary (`~/.local/bin`, installed from the official release with checksum check), not an npm package.
 - **Package template** (set by `packages/domain`): `exports` points at TS source (`./src/index.ts`, no build),
