@@ -10,6 +10,7 @@ export function createDrizzleProfileRepository(db: Database): ProfileRepository 
         .select({
           name: profiles.name,
           headline: profiles.headline,
+          intro: profiles.intro,
           summary: profiles.summary,
           location: profiles.location,
           availability: profiles.availability,

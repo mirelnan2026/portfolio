@@ -3,6 +3,10 @@ import type { Profile } from "@mirelnan/domain";
 export const profile = {
   name: "Mirel Nan",
   headline: "Senior Frontend Engineer · Spec-Driven Delivery with AI Agents",
+  intro:
+    "Frontend engineer with 15+ years of experience building and scaling production web applications, " +
+    "working fully remote since 2020. Specialised in large Angular and React codebases, covering feature " +
+    "delivery, framework migrations and design-system work.",
   summary:
     "Frontend engineer with 15+ years of experience building and scaling production web applications, " +
     "working fully remote since 2020. Specialised in large Angular and React codebases, covering feature " +

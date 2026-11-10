@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "intro" text DEFAULT '' NOT NULL;

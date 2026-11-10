@@ -4,7 +4,8 @@ import { profileSchema } from "./profile";
 const profile = {
   name: "Jane Doe",
   headline: "Frontend Engineer",
-  summary: "Builds web applications.",
+  intro: "Builds web applications.",
+  summary: "Builds web applications. Likes accessible ones.",
   location: "Bucharest, Romania",
   availability: "Open to remote",
   email: "jane@example.com",
@@ -32,6 +33,14 @@ describe("profileSchema", () => {
 
   it("rejects an invalid email", () => {
     expect(profileSchema.safeParse({ ...profile, email: "jane" }).success).toBe(false);
+  });
+
+  it.each([
+    ["a rewrite", "Writes web apps."],
+    ["a later sentence", "Likes accessible ones."],
+  ])("rejects an intro that is %s of the summary", (_case, intro) => {
+    const result = profileSchema.safeParse({ ...profile, intro });
+    expect(result.error?.issues).toMatchObject([{ path: ["intro"] }]);
   });
 
   it("rejects a sourceSlug that is not a slug", () => {

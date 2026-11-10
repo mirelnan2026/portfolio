@@ -7,6 +7,7 @@ export const profiles = pgTable("profiles", {
   id: id(),
   name: text().notNull(),
   headline: text().notNull(),
+  intro: text().notNull(),
   summary: text().notNull(),
   location: text().notNull(),
   availability: text().notNull(),

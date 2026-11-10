@@ -7,6 +7,7 @@ import { createInMemoryRepositories } from "./in-memory-repositories";
 const profile = {
   name: "Jane Doe",
   headline: "Frontend Engineer",
+  intro: "Builds web applications.",
   summary: "Builds web applications.",
   location: "Bucharest, Romania",
   availability: "Open to remote",
