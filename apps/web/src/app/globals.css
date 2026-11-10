@@ -58,6 +58,7 @@
   --input: oklch(0.62 0 0);
   --ring: oklch(0.58 0 0);
   --radius: 0.625rem;
+  --header-height: 3.5rem;
 }
 
 .dark {
@@ -88,7 +89,18 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* One visible focus style for every element; components only override it where it must sit inside. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring outline-solid;
+  }
   html {
     @apply font-sans;
+    /* Anchor jumps and focus scrolling stop below the sticky header instead of under it. */
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 }
