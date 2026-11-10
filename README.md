@@ -11,6 +11,9 @@ Personal portfolio built from my CV, with an AI layer on top:
 Built to **WCAG 2.2 AA**, in light and dark themes, to the **OWASP** security baselines and to modern **SEO**
 practice — all enforced by tooling and tests, not only promised.
 
+It is deliberately a small app built on the architecture of a large one, delivered in stages
+(Claude API → tool use → MCP → Claude Code).
+
 > Status: stage 0 — foundation and portfolio page.
 
 ## Tech stack
@@ -197,7 +200,7 @@ Git hooks are installed automatically by `pnpm install` (run `pnpm run prepare` 
 
 ```bash
 pnpm install
-cp .env.example apps/web/.env.local   # fill in the values
+cp apps/web/.env.example apps/web/.env.local   # the read-only DATABASE_URL (see packages/db/README.md)
 pnpm db:migrate && pnpm db:seed       # once the db package is ready
 pnpm dev
 ```
