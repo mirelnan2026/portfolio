@@ -1,4 +1,4 @@
 {
   "extends": "@mirelnan/tsconfig/library.json",
-  "include": ["src"]
+  "include": ["src", "vitest.config.ts"]
 }

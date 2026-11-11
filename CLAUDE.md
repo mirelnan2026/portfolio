@@ -457,7 +457,8 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
 - gitleaks is a system binary (`~/.local/bin`, installed from the official release with checksum check), not an npm package.
 - **Package template** (set by `packages/domain`): `exports` points at TS source (`./src/index.ts`, no build),
   `sideEffects: false`, scripts `lint: eslint .`, `typecheck: tsc`, `test: vitest run`; `tsconfig.json` extends a
-  preset with `include: ["src"]`; `eslint.config.js` extends a preset and sets `tsconfigRootDir: import.meta.dirname`
+  preset with `include: ["src", "vitest.config.ts"]`; `vitest.config.ts` sets `test.name` to the package's short name
+  (it labels the output and the GitHub Actions job summary, "(db) Vitest Test Report"); `eslint.config.js` extends a preset and sets `tsconfigRootDir: import.meta.dirname`
   (needed when ESLint runs over several packages at once). `index.ts` lists public exports by name (no `export *`).
 - **Vitest 5** for unit tests: explicit `import { describe, it, expect } from "vitest"` (no globals, so library
   packages need no extra `types`), tests next to the code, table-driven with `it.each`; test through the public API.
