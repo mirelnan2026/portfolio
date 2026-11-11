@@ -54,6 +54,10 @@ const pairs: [foreground: string, background: string, minimum: number][] = [
   ["ring", "card", nonText],
   ["input", "background", nonText],
   ["input", "card", nonText],
+  ["brand", "background", text],
+  ["brand", "brand-soft", text],
+  ["brand", "muted", text],
+  ["brand", "card", text],
 ];
 
 describe.each([

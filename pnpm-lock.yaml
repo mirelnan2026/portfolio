@@ -232,6 +232,9 @@ importers:
       '@mirelnan/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@mirelnan/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@vercel/functions':
         specifier: 3.10.6
         version: 3.10.6

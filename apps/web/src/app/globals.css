@@ -28,6 +28,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -35,6 +37,13 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Fluid type, 390px → 1280px viewports; the rem part keeps it growing with the user's zoom. */
+  --text-display: clamp(2.5rem, 2.062rem + 1.798vw, 3.5rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.035em;
+  --text-headline: clamp(1.25rem, 1.141rem + 0.449vw, 1.5rem);
+  --text-headline--line-height: 1.35;
+  --text-headline--letter-spacing: -0.015em;
 }
 
 /* Colour tokens, light theme. Contrast is checked by theme-contrast.test.ts (WCAG 2.2 AA). */
@@ -57,6 +66,9 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.62 0 0);
   --ring: oklch(0.58 0 0);
+  /* The one accent, teal: information only (availability, "Owned", phase numbers, the selected skill). */
+  --brand: oklch(0.511 0.096 186.391);
+  --brand-soft: oklch(0.984 0.014 180.72);
   --radius: 0.625rem;
   --header-height: 3.5rem;
 }
@@ -80,6 +92,8 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 40%);
   --ring: oklch(0.556 0 0);
+  --brand: oklch(0.855 0.138 181.071);
+  --brand-soft: oklch(0.28 0.04 185);
 }
 
 @layer base {

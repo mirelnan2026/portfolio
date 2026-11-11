@@ -155,6 +155,9 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   checks every text pair (4.5:1) and the focus ring and input border (3:1) in both themes, so a token change that
   breaks AA fails the tests. shadcn's defaults failed four of these (muted text on muted, light ring, both inputs).
 - Respect `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`. Never convey state by color alone.
+- Links to the owner's external profiles (LinkedIn) open in a new tab (owner decision, 2026-11-11):
+  `target="_blank" rel="noopener noreferrer"`, a visible ↗ (`aria-hidden`) and an `sr-only` "(opens in a new tab)",
+  so the change of context is announced (WCAG G201). Other links open in the same tab.
 - **One accent: teal** (owner decision, 2026-11-10; light ≈ teal-700 `#0f766e`, dark ≈ teal-300 `#5eead4`). It marks
   information only (availability badge, "Owned", phase numbers, the selected skill together with a check mark),
   never decoration. It becomes its own tokens in `globals.css`, separate from shadcn's `--accent` (which is the
