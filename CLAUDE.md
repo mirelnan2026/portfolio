@@ -11,6 +11,11 @@ Follow both; where they differ, `CLAUDE.local.md` wins.
 - **Commits:** Conventional Commits (commitlint: header ≤ 72 characters, scopes = the packages + `tooling`, `ci`,
   `deps`). One coherent step or feature per commit; stage exact paths (`git add <paths>`, never `git add .`);
   empty placeholder files are committed with the step that fills them.
+- **Branches and pull requests, from step 6c on** (owner decision, 2026-11-11): once Vercel is connected, a push to
+  `main` is a production deploy. So every step gets its own branch (`feat/<step>`, `fix/<what>`); commits and pushes
+  go there as often as needed (each push runs CI and builds a protected Vercel preview); a pull request into `main`
+  is merged only after the preview looks right and CI is green, and the merge is what deploys to production.
+  Step 6e makes it mandatory with branch protection.
 - **Every folder in `packages/` and `tooling/` has a `README.md`** (what it is, its public API or presets, the
   rules it holds); `apps/web` gets one once its sections exist, by step 6 at the latest. A change to a package's
   API, structure, presets or rules updates its README in the same commit.
