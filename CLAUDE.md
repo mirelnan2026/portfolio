@@ -441,6 +441,14 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
   the same command as `pnpm lint`, no `--fix` (only Prettier rewrites staged files). A new package or app adds
   its job when it gets its ESLint config (`apps/web` has one since step 4a).
   Hooks are a convenience, not a control — CI re-runs everything.
+- **CI** (`.github/workflows/ci.yml`, step 6a): one job on `ubuntu-24.04` with a throwaway Postgres 18 service (image
+  pinned by digest, `trust` auth, no secrets: it only ever holds the seeded public data), because `next build`
+  prerenders from a database. Steps: `pnpm install --frozen-lockfile --ignore-scripts` → `pnpm audit --audit-level=high`
+  → `format:check` → `db:check` → `db:migrate` → `db:seed` → `turbo run lint typecheck test build`. Actions are pinned
+  to a commit SHA (release in a comment, ≥ 7 days old), `permissions: contents: read`, `persist-credentials: false`,
+  `concurrency` cancels superseded runs. CI never touches Neon.
+- `packages/db/vitest.config.ts` raises `hookTimeout` (60s) and `testTimeout` (30s): booting PGlite takes ~3s on two
+  free cores and over Vitest's 10s default on a CI runner busy with the other packages' tasks.
 - gitleaks is a system binary (`~/.local/bin`, installed from the official release with checksum check), not an npm package.
 - **Package template** (set by `packages/domain`): `exports` points at TS source (`./src/index.ts`, no build),
   `sideEffects: false`, scripts `lint: eslint .`, `typecheck: tsc`, `test: vitest run`; `tsconfig.json` extends a
