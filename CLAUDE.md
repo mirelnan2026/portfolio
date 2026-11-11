@@ -245,6 +245,16 @@ Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at ste
   canonical, robots, and a JSON-LD that parses and contains the `Person`; `robots.txt`, `sitemap.xml` and
   `llms.txt` return 200. Google Search Console and Bing Webmaster Tools at step 6, verified by DNS TXT record
   (no script), with the sitemap submitted.
+- **Implemented at step 4j:** `features/portfolio/metadata.ts` (`portfolioMetadata(profile)`, a tested pure function:
+  title "<name> · <role> · Portfolio", description = the intro's first sentence; it throws, failing the build,
+  above 60 / 160 characters instead of letting search engines cut them), the root layout's `generateMetadata`
+  (`metadataBase` as a string, because cached values must be serialisable, and the title template
+  `%s · <name>`), `app/robots.ts`, `app/sitemap.ts` and `app/not-found.tsx` (our own 404: Next's default one adds a
+  second `<title>`). The canonical origin lives in `lib/site.ts`. Still to come: JSON-LD, the OG image, `llms.txt`,
+  the Playwright test, ADR 0007.
+- **Indexing only on production:** `lib/deployment.ts` → `isProductionDeployment()` = `VERCEL_ENV === "production"`,
+  read at build. Anything else (previews, local builds) gets `robots.txt` → `Disallow: /` and `X-Robots-Tag: noindex`.
+  `VERCEL_ENV` is declared in turbo.json `build.env` (strict env mode would drop it, and it splits the cache).
 - No tracking or analytics script for SEO (privacy rule). Search impact is measured in Search Console.
 
 ## Security (first-class requirement)
@@ -253,7 +263,10 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
 
 - **HTTP headers** (set in `next.config.ts` / `proxy.ts`): CSP (`default-src 'self'`, `frame-ancestors 'none'`,
   `object-src 'none'`, `base-uri 'self'`), HSTS, `X-Content-Type-Options: nosniff`,
-  `Referrer-Policy: strict-origin-when-cross-origin`, restrictive `Permissions-Policy`. Nonce vs hash CSP is decided at step 4
+  `Referrer-Policy: strict-origin-when-cross-origin`, restrictive `Permissions-Policy`. Since step 4j they come from
+  `apps/web/src/lib/security-headers.ts` (`securityHeaders({ production })`, tested), applied to `/:path*` in
+  `next.config.ts`, with `poweredByHeader: false`; the CSP so far has only `frame-ancestors 'none'`, `base-uri`,
+  `form-action` and `object-src` (plus `X-Frame-Options: DENY`), and gains `script-src` with the next-themes hash later. Nonce vs hash CSP is decided at step 4
   (nonces force dynamic rendering, which conflicts with ISR). Target: Mozilla Observatory A+.
 - **Input**: every API input validated with zod (types + max lengths) at the boundary; body size limits;
   rate limiting (Upstash) on every `/api/*` route; generic error messages, no stack traces to the client.

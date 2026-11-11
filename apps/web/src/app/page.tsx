@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { Hero } from "@/features/portfolio/components/hero";
+import { portfolioMetadata } from "@/features/portfolio/metadata";
 import { getProfile } from "@/features/portfolio/queries";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return portfolioMetadata(await getProfile());
+}
 
 export default async function HomePage() {
   const profile = await getProfile();

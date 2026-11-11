@@ -188,7 +188,7 @@ Baseline: **OWASP Top 10** and the **OWASP Top 10 for LLM Applications**, applie
 | Database     | Read-only role for the app, separate role for migrations and seed; TLS; parameterized queries only (Drizzle)                                                                           |
 | Supply chain | Frozen lockfile in CI, `pnpm audit`, Dependabot, minimum release age for new versions, install scripts allow-listed, GitHub Actions pinned to commit SHA with minimal permissions      |
 | Repository   | Protected `main` (pull request + green CI), CodeQL scanning, protected preview deployments                                                                                             |
-| Privacy      | No tracking cookies, no third-party scripts                                                                                                                                            |
+| Privacy      | No tracking cookies, so no consent banner; cookieless, first-party analytics (Vercel Web Analytics); no third-party scripts                                                            |
 
 Security headers are checked by an end-to-end test, and prompt-injection attempts are part of the AI evaluations.
 Vulnerabilities can be reported as described in [`SECURITY.md`](SECURITY.md) (also at `/.well-known/security.txt`).
