@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The workflow can read the code and nothing else; a job that needs more asks for it.
+permissions:
+  contents: read
+
+# A newer push to the same branch or pull request cancels the run in progress.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    services:
+      # A throwaway Postgres that exists only for this job: the seed fills it and the build prerenders from it.
+      # Version 18, as on Neon and in the PGlite tests; the image is pinned by digest, like the actions.
+      postgres:
+        image: postgres:18-alpine@sha256:123b17998ccaf47e53b502e8c6a1e79afd8f579c6f3eec83c563da026f957395
+        env:
+          POSTGRES_DB: portfolio
+          # No password: the database is reachable only from this job and holds only public CV data.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_ADMIN_URL: postgresql://postgres@localhost:5432/portfolio?sslmode=disable
+      DATABASE_URL: postgresql://postgres@localhost:5432/portfolio?sslmode=disable
+
+    steps:
+      # Third-party actions are pinned to a commit SHA (a tag can be moved); the comment names the release.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Installs the pnpm version from `packageManager` in package.json.
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # The lockfile must match package.json exactly, and no install script runs (the git hooks are for laptops).
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Audit dependencies (fails on high or critical)
+        run: pnpm audit --audit-level=high
+
+      - run: pnpm format:check
+
+      - name: Check migrations match the schema
+        run: pnpm --filter @mirelnan/db db:check
+
+      # The order of every deploy: the build prerenders from the database, so it must hold the new data.
+      - name: Migrate and seed
+        run: |
+          pnpm --filter @mirelnan/db db:migrate
+          pnpm --filter @mirelnan/db db:seed
+
+      - run: pnpm turbo run lint typecheck test build
