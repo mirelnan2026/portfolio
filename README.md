@@ -195,7 +195,7 @@ Vulnerabilities can be reported as described in [`SECURITY.md`](SECURITY.md) (al
 
 ## Getting started
 
-Requirements: Node 24 (`nvm use`), pnpm 12 (`corepack enable`),
+Requirements: Node 26 (`nvm use`), pnpm 12 (Node 26 no longer ships Corepack: `npm install -g corepack && corepack enable pnpm`),
 [gitleaks](https://github.com/gitleaks/gitleaks) 8.30+ on your `PATH` (used by the pre-commit hook).
 
 Git hooks are installed automatically by `pnpm install` (run `pnpm run prepare` to reinstall them).

@@ -19,7 +19,7 @@
   "devDependencies": {
     "@mirelnan/eslint-config": "workspace:*",
     "@mirelnan/tsconfig": "workspace:*",
-    "@types/node": "^24.19.2",
+    "@types/node": "catalog:",
     "eslint": "catalog:",
     "tsx": "4.23.15",
     "typescript": "catalog:",

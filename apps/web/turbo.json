@@ -1,0 +1,11 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      // `next build` empties .next/ when it starts, and `typecheck` reads the route types that `next typegen`
+      // writes there: run in parallel, tsc can find them deleted (TS6053). So the build waits for it.
+      "dependsOn": ["^build", "typecheck"]
+    }
+  }
+}

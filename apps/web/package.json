@@ -2,6 +2,9 @@
   "name": "@mirelnan/web",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": "26.x"
+  },
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -31,7 +34,7 @@
     "@mirelnan/tsconfig": "workspace:*",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/culori": "4.0.1",
-    "@types/node": "^24.19.2",
+    "@types/node": "catalog:",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "culori": "4.0.2",

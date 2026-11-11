@@ -24,6 +24,6 @@ Shared TypeScript configs. A package's `tsconfig.json` extends one preset and ad
   without a build step), `verbatimModuleSyntax` and `isolatedModules` (type-only imports are written as
   `import type`, so each file can be compiled on its own by Turbopack, tsx or Vitest).
 - **No output:** `noEmit`. `tsc` only checks types; the tools that run the code compile it themselves.
-- **Target:** ES2024, what Node 24 and current browsers support.
+- **Target:** ES2024, supported by Node 26 and by current browsers (the browsers set the floor).
 
 TypeScript is 6.0.x (not 7), because Next.js, typescript-eslint and drizzle-kit need the JavaScript compiler API.

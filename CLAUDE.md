@@ -417,6 +417,12 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
 
 - Shared versions live in the pnpm **catalog** (`pnpm-workspace.yaml`); packages use `"catalog:"`.
   Internal packages use `workspace:*`. Tool-config packages declare the tool as a `peerDependency`.
+- **Node 26** (Active LTS since 2026-10-28, end of life 2029-04-30; owner decision, 2026-11-11, replacing 24, which
+  moved to maintenance). One source per tool: `.nvmrc` (`nvm use`, CI's `setup-node`), `engines.node` in the root
+  `package.json` (`>=26`) and in `apps/web/package.json` (`26.x`, which Vercel reads from the Root Directory; its
+  default would be another major), `@types/node` 26 from the catalog. Node 26 no longer ships Corepack:
+  `npm install -g corepack && corepack enable pnpm` locally; CI installs pnpm with `pnpm/action-setup`. The TypeScript
+  target stays ES2024 (browsers, not Node, set that floor).
 - **TypeScript 6.0.x**, not 7: Next.js, typescript-eslint and drizzle-kit need the JS compiler API.
 - **ESLint 10** (v9 is EOL since 2026-08-06). `eslint-config-next` 16.4 wraps `eslint-plugin-react` and
   `eslint-plugin-import` for ESLint 10 itself, and `jsx-a11y` works unwrapped, so no `@eslint/compat` (checked at
@@ -430,7 +436,9 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
   installed version are in `apps/web/node_modules/next/dist/docs/`: read the relevant guide there before writing
   Next.js code, because APIs changed after the model's training data.
 - `apps/web` `typecheck` is `next typegen && tsc`: typegen writes the route types (`LayoutProps<"/">`,
-  `PageProps`) into `.next/types`, which `tsconfig.json` includes.
+  `PageProps`) into `.next/types`, which `tsconfig.json` includes. `apps/web/turbo.json` (a Turbo package configuration,
+  `extends: ["//"]`) makes the web `build` depend on `typecheck`: `next build` empties `.next/` when it starts, so run in
+  parallel, `tsc` could find the route types deleted (TS6053, seen in CI on 2026-11-11).
 - Before picking any version: check latest, **support/EOL status** and peer ranges; test in a scratch dir if unsure.
   A new dependency version must be at least 7 days old (the planned `minimumReleaseAge`), unless it is a
   security fix; pin it exact when the package is pre-1.0 or releases daily.
