@@ -205,12 +205,13 @@ pnpm --filter @mirelnan/db db:migrate && pnpm --filter @mirelnan/db db:seed   # 
 pnpm dev
 ```
 
-| Script                                       | What it does                                                            |
-| -------------------------------------------- | ----------------------------------------------------------------------- |
-| `pnpm dev`                                   | Runs all apps in development mode                                       |
-| `pnpm build`                                 | Builds everything, in dependency order, with Turborepo caching          |
-| `pnpm lint` / `pnpm typecheck` / `pnpm test` | Quality checks across the workspace (lint includes accessibility rules) |
-| `pnpm format` / `pnpm format:check`          | Formats the repo with Prettier / checks formatting (used in CI)         |
+| Script                                            | What it does                                                              |
+| ------------------------------------------------- | ------------------------------------------------------------------------- |
+| `pnpm dev`                                        | Runs all apps in development mode                                         |
+| `pnpm build`                                      | Builds everything, in dependency order, with Turborepo caching            |
+| `pnpm lint` / `pnpm typecheck` / `pnpm test`      | Quality checks across the workspace (lint includes accessibility rules)   |
+| `pnpm format` / `pnpm format:check`               | Formats the repo with Prettier / checks formatting (used in CI)           |
+| `pnpm --filter @mirelnan/cv-data generate:skills` | Regenerates the skills from the CV and the skills matrix (see its README) |
 
 ## Environment variables
 
@@ -225,8 +226,11 @@ Secrets live only in `.env.local` (git-ignored) and in the Vercel project settin
 
 ## Content rules
 
-- Every claim about the owner points to a registered source: the CV, an employment brief, or a personal
-  project's brief (see [ADR 0006](docs/adr/0006-content-sources-and-projects.md)).
+- Every claim about the owner points to a registered source: the CV, an employment brief, a personal
+  project's brief, or the skills matrix (see [ADR 0006](docs/adr/0006-content-sources-and-projects.md) and
+  [ADR 0008](docs/adr/0008-skills-matrix-source.md)).
+- Skills and their links to the roles are generated from the CV and the skills matrix, never edited by hand
+  ([`packages/cv-data/scripts`](packages/cv-data/scripts/README.md)); every skill is linked to at least one role.
 - The chat, job match and MCP server answer only from those sources, through the data, never from general
   model knowledge; anything else gets "not in the CV".
 - Only released projects are listed; their links are shown only while the project is online.

@@ -298,6 +298,13 @@ stored in the data. Adding a source is approving it, so it goes through review. 
 - Years per skill come from these links: the union of the periods (the phase's when there is one), so overlaps
   count once. Never state years that the links don't give.
 - Slugs can still change until the site is released; after that they are stable (`?skill=` links).
+- **Generated, never edited by hand:** `src/skills.ts` and each experience's `skills` block come from
+  `packages/cv-data/scripts/generate-skills.ts` (`pnpm --filter @mirelnan/cv-data generate:skills`; runbook in
+  `scripts/README.md`). It reads the CV PDF (`pdftotext`) and the CSV from `scripts/input/` (git-ignored, so the
+  private inputs cannot be committed); the ranking, aliases, broad terms and slug overrides are in
+  `scripts/skills-config.ts`. It computes every file before writing any, so a failed check changes nothing, then
+  runs Prettier. A brief link keeps its source and note. `scripts/` has its own `tsconfig.json` (node preset,
+  checked by `typecheck`) and an ESLint override that allows Node built-ins and `console` there only.
 
 **Excluded topics.** The owner keeps a list of topics from the employment brief that never go into the data, the UI
 or chat answers. The list is private (`CLAUDE.local.md`), because the terms themselves would reveal what they
