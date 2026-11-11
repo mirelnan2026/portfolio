@@ -231,6 +231,7 @@ Secrets live only in `.env.local` (git-ignored) and in the Vercel project settin
   [ADR 0008](docs/adr/0008-skills-matrix-source.md)).
 - Skills and their links to the roles are generated from the CV and the skills matrix, never edited by hand
   ([`packages/cv-data/scripts`](packages/cv-data/scripts/README.md)); every skill is linked to at least one role.
+  How to add a skill, an experience or a product: [`packages/cv-data/README.md`](packages/cv-data/README.md).
 - The chat, job match and MCP server answer only from those sources, through the data, never from general
   model knowledge; anything else gets "not in the CV".
 - Only released projects are listed; their links are shown only while the project is online.

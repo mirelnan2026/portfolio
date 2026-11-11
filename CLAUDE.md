@@ -298,6 +298,9 @@ stored in the data. Adding a source is approving it, so it goes through review. 
 - Years per skill come from these links: the union of the periods (the phase's when there is one), so overlaps
   count once. Never state years that the links don't give.
 - Slugs can still change until the site is released; after that they are stable (`?skill=` links).
+- **`packages/cv-data/README.md`** is the how-to for new content (a skill, an experience, a product) and the
+  list of checks that catch mistakes. Update it in the same change whenever that workflow changes: a new
+  collection or source, a new generator, a new content test or schema rule, a changed deploy order.
 - **Generated, never edited by hand:** `src/skills.ts` and each experience's `skills` block come from
   `packages/cv-data/scripts/generate-skills.ts` (`pnpm --filter @mirelnan/cv-data generate:skills`; runbook in
   `scripts/README.md`). It reads the CV PDF (`pdftotext`) and the CSV from `scripts/input/` (git-ignored, so the
