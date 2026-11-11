@@ -50,6 +50,8 @@ portfolio/
 └─ .github/workflows/       CI: lint, typecheck, test, build
 ```
 
+Each package and tooling folder has its own `README.md` with its API, presets and rules.
+
 ### Why `apps/`, `packages/` and `tooling/`
 
 - **`apps/`** contains things that are deployed or executed. Each one is a composition of packages

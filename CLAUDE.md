@@ -11,6 +11,9 @@ Follow both; where they differ, `CLAUDE.local.md` wins.
 - **Commits:** Conventional Commits (commitlint: header ≤ 72 characters, scopes = the packages + `tooling`, `ci`,
   `deps`). One coherent step or feature per commit; stage exact paths (`git add <paths>`, never `git add .`);
   empty placeholder files are committed with the step that fills them.
+- **Every folder in `packages/` and `tooling/` has a `README.md`** (`apps/web` gets one once its sections exist, by
+  step 6 at the latest) (what it is, its public API or presets, the
+  rules it holds). A change to a package's API, structure, presets or rules updates its README in the same commit.
 - **Keep `CLAUDE.md` and `README.md` in sync with decisions.** Whenever an architecture, tooling, convention,
   security or accessibility decision is made or changed, update both in the same step: `CLAUDE.md` (rules and
   reasoning for future sessions) and `README.md` (what a reader or contributor needs). Significant decisions
