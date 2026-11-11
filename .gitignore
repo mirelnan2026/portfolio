@@ -35,3 +35,7 @@ test-results/
 # misc
 *.log
 .DS_Store
+
+# private inputs of the cv-data generators (the CV and the skills matrix)
+packages/cv-data/scripts/input/*
+!packages/cv-data/scripts/input/.gitkeep

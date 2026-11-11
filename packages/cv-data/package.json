@@ -9,8 +9,9 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "tsc",
-    "test": "vitest run"
+    "typecheck": "tsc && tsc -p scripts",
+    "test": "vitest run",
+    "generate:skills": "tsx scripts/generate-skills.ts"
   },
   "dependencies": {
     "@mirelnan/domain": "workspace:*"
@@ -18,7 +19,9 @@
   "devDependencies": {
     "@mirelnan/eslint-config": "workspace:*",
     "@mirelnan/tsconfig": "workspace:*",
+    "@types/node": "^24.19.2",
     "eslint": "catalog:",
+    "tsx": "4.23.15",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
