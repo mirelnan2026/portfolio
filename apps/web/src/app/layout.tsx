@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
@@ -41,6 +42,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SiteHeader />
           <main id="main">{children}</main>
         </ThemeProvider>
+
+        {/* Cookieless page views, served first-party from /_vercel/insights (no consent banner needed). */}
+        <Analytics />
       </body>
     </html>
   );

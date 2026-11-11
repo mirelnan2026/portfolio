@@ -33,7 +33,8 @@ Personal portfolio for Mirel Nan (Senior Frontend Engineer), built from the CV, 
 an "Ask about me" chat with Claude using tool use (must never invent experience), a job-match feature
 with structured output, and an MCP server exposing the CV. Stages:
 0 foundation + portfolio page → 1 Claude API → 2 tool use + structured output → 3 MCP → 4 Claude Code.
-Domain: `mirelnan.dev` (connected to Vercel at step 6; `.dev` is HTTPS-only via HSTS preload).
+Domain: `mirelnan.dev`, live since 2026-11-11 (DNS at the registrar: `A @` and `CNAME www` from Vercel; `www` and
+`http://` 308-redirect to `https://mirelnan.dev`; `.dev` is HTTPS-only via HSTS preload).
 The "portfolio" project enters `cv-data` only once the site is live on it (see "Personal projects").
 
 ## Architecture
@@ -289,7 +290,8 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
   `SECURITY.md` + `/.well-known/security.txt`.
 - **Privacy**: no tracking cookies, so no consent banner; no third-party scripts without a reason. Analytics =
   Vercel Web Analytics (cookieless, served first-party from `/_vercel/insights`, so the CSP stays `'self'`),
-  added with the deploy at step 6; Google Analytics is ruled out (cookies → consent banner, a third-party
+  added at step 6d (`<Analytics />` from `@vercel/analytics/next` in the root layout, enabled in the Vercel
+  dashboard; it sends nothing outside Vercel deployments); Google Analytics is ruled out (cookies → consent banner, a third-party
   script that costs INP/LCP, partial data).
 
 ## Content rules
@@ -409,6 +411,16 @@ it, listing only the variables that process needs (least privilege: the web app 
 | `apps/web/.env.local` + Vercel (4) | `DATABASE_URL`                                                            | read-only role `portfolio_reader` (step 3b), pooled                          |
 | `apps/web` + Vercel (5, stage 1+)  | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `ANTHROPIC_API_KEY` | rate limit (Upstash created at step 5, when first used), Claude API          |
 
+On Vercel, a secret is saved as a **Sensitive** environment variable (its value can no longer be read back, only
+replaced), for Production and Preview only; a plain one makes Vercel flag it as "Needs attention". A variable
+cannot be switched to Sensitive: delete it and add it again. Tick both Production and Preview: a pull request's preview build
+runs with the Preview variables, and without `DATABASE_URL` it fails with the `env.ts` error (seen on the first PR
+preview, 2026-11-11). Rotating the reader (`db:reader` again, owner decision
+2026-11-11 after the first value had been stored as plain text): the old password stops working at once, so update
+`apps/web/.env.local` (the script writes the direct host: add `-pooler`) and the Vercel variable, then redeploy. The
+live static page keeps working meanwhile; only new builds need the new URL. Delete `packages/db/.env.reader.local`
+once copied.
+
 Connection strings use `sslmode=verify-full` (node-postgres treats `require` as an alias and warns). Errors about
 a variable never echo its value. When the Neon integration is connected to the Vercel project (step 6), it must
 not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or use a variable prefix).
@@ -454,6 +466,16 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
   the same command as `pnpm lint`, no `--fix` (only Prettier rewrites staged files). A new package or app adds
   its job when it gets its ESLint config (`apps/web` has one since step 4a).
   Hooks are a convenience, not a control — CI re-runs everything.
+- **Vercel** (step 6c, set in the dashboard): Root Directory `apps/web` ("Include files outside the root directory"
+  on), framework Next.js with the default commands; Vercel detects `turbo.json` and runs `turbo run build`, so
+  `apps/web/turbo.json` applies there too (typecheck, then build). Node comes from `engines` (26.x). pnpm comes from
+  `packageManager` through Corepack (`ENABLE_EXPERIMENTAL_COREPACK=1`; without it Vercel picks pnpm 9/10 from the
+  lockfile version). `DATABASE_URL` = the reader's pooled URL, set by hand for Production and Preview; the Neon
+  store is never connected to the project (it would inject the owner URL). Standard Deployment Protection (previews
+  need a Vercel login, production is public). Function region `fra1`, next to Neon in Frankfurt, for the dynamic
+  routes of stages 1–2 (the home page is static and reads Neon only at build). `ENABLE_EXPERIMENTAL_COREPACK` is in turbo.json
+  `globalPassThroughEnv` (it reaches every task without changing the cache hash); the remaining Vercel warning that
+  `typecheck` does not get `DATABASE_URL` is intended (it does not need it).
 - **CI** (`.github/workflows/ci.yml`, step 6a): one job on `ubuntu-24.04` with a throwaway Postgres 18 service (image
   pinned by digest, `trust` auth, no secrets: it only ever holds the seeded public data), because `next build`
   prerenders from a database. Steps: `pnpm install --frozen-lockfile --ignore-scripts` → `pnpm audit --audit-level=high`
