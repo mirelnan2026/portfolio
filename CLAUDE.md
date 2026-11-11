@@ -179,7 +179,10 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   (not `ring-ring/50`, which halves the contrast, and not a box-shadow ring, which forced-colors mode removes);
   menu items get the same outline, because their `bg-accent` highlight is only 1.07:1 against the popover;
   interactive parts get `pointer-coarse:min-h-11` (44px on touch). Components import `cn` from the `cn`
-  package directly, so there is no `src/lib/utils.ts`.
+  package directly, so there is no `src/lib/utils.ts`. The outline variant uses `border-input` (3:1 against the
+  background), not `border-border`. A link styled as a button uses `className={cn(buttonVariants(...))}`:
+  `cva` only concatenates, so the base `border-transparent` and the variant's `border-input` both stay and the
+  stylesheet order picks the winner (the border disappears); `cn` resolves the conflict in favour of the variant.
 - Theme: `next-themes` (`attribute="class"`, `defaultTheme="system"`, `disableTransitionOnChange`) in the root
   layout, `suppressHydrationWarning` on `<html>` only. Its inline script sets the class before paint (no flash)
   and needs a CSP hash or nonce at the security-headers step. The toggle is a menu of radio items
@@ -226,7 +229,7 @@ Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at ste
   OAI-SearchBot, ClaudeBot, PerplexityBot, Google-Extended); `app/sitemap.ts` lists the URLs from the data; an
   unknown URL returns a real 404.
 - **Structured data:** JSON-LD `ProfilePage` with `mainEntity: Person` (name, job title, location, `sameAs`
-  LinkedIn, `knowsAbout` from skills, `alumniOf`), built from the repositories. `<` is escaped in the JSON
+  LinkedIn, `knowsAbout` from the top skills and `profile.competencies`, `alumniOf`), built from the repositories. `<` is escaped in the JSON
   (XSS), and the inline script gets a CSP hash or nonce (decided with the CSP at step 4).
 - **Content:** facts only from the data (E-E-A-T comes from sourced, specific claims); one `h1`, descriptive
   headings and link text, meaningful `alt` (the same rules as accessibility).
@@ -236,7 +239,7 @@ Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at ste
   canonical, robots, and a JSON-LD that parses and contains the `Person`; `robots.txt`, `sitemap.xml` and
   `llms.txt` return 200. Google Search Console and Bing Webmaster Tools at step 6, verified by DNS TXT record
   (no script), with the sitemap submitted.
-- No tracking or analytics script for SEO (privacy rule).
+- No tracking or analytics script for SEO (privacy rule). Search impact is measured in Search Console.
 
 ## Security (first-class requirement)
 
@@ -260,7 +263,10 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
   allowed only via `onlyBuiltDependencies`; GitHub Actions pinned to commit SHA with minimal `permissions:`.
 - **Repo / platform**: protected `main` (PR + green CI), CodeQL, Vercel Deployment Protection on previews,
   `SECURITY.md` + `/.well-known/security.txt`.
-- **Privacy**: no tracking cookies (cookieless analytics only), no third-party scripts without a reason.
+- **Privacy**: no tracking cookies, so no consent banner; no third-party scripts without a reason. Analytics =
+  Vercel Web Analytics (cookieless, served first-party from `/_vercel/insights`, so the CSP stays `'self'`),
+  added with the deploy at step 6; Google Analytics is ruled out (cookies → consent banner, a third-party
+  script that costs INP/LCP, partial data).
 
 ## Content rules
 
@@ -274,10 +280,24 @@ Claims about the owner come **only** from registered sources (ADR 0006). Each so
 | `cv`               | the owner's CV                                                                                                                                             | used as written                          |
 | `employment-brief` | owner's notes on client work, today `jwx-brief` (the JWX work and its phases, the four case studies, owned vs contributed, context notes, the AI workflow) | exclusions + confidentiality rules below |
 | `project-brief`    | owner's notes on a personal project they fully own                                                                                                         | only released, public facts              |
+| `skills-matrix`    | owner's list of the technologies used in each role (ADR 0008), the full version of the CV's "Technologies" lines                                           | names as in the CV                       |
 
 Documents are transcription material only: the app and the AI never read them, and their location is never
 stored in the data. Adding a source is approving it, so it goes through review. Never add a claim without a
 `sourceSlug` that points to a registered source.
+
+**Skills** (ADR 0008):
+
+- The skill list is the CV's "Technical skills": the CV's names and groups, in the owner's ranking (`position` =
+  importance; the page orders categories by their best skill, then skills by position). No versions in names
+  ("Angular", not "Angular 12+"); AngularJS is a separate skill. Broad terms ("Web Development") are not skills:
+  they are `profile.competencies`, used only for SEO (`knowsAbout`).
+- Every skill is linked to at least one experience (a content test). A link's source is `cv` when the role's
+  "Technologies" line names it (that line is also the card order), the JWX brief when the brief states it (with
+  its context note), otherwise `skills-matrix`. JWX links carry the phase where the skill was used in only one.
+- Years per skill come from these links: the union of the periods (the phase's when there is one), so overlaps
+  count once. Never state years that the links don't give.
+- Slugs can still change until the site is released; after that they are stable (`?skill=` links).
 
 **Excluded topics.** The owner keeps a list of topics from the employment brief that never go into the data, the UI
 or chat answers. The list is private (`CLAUDE.local.md`), because the terms themselves would reveal what they
@@ -411,7 +431,8 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
   the `cv-data` tests and again by the seed before it writes. `cv-data` holds one file per collection (one per
   experience) and `cv.ts` assembles them. Data files end in `satisfies X[]` (checked, inferred type kept);
   `cv.ts` annotates `cvData: CvData` (the exported contract; an empty list is `Project[]`, not `never[]`). Its tests check schemas, unique slugs, every `*Slug` reference, no
-  phone-like number, the excluded brief topics and no future release dates.
+  phone-like number, the excluded brief topics, no future release dates, every skill linked to an experience and
+  no competency that is also a skill.
 - **Repositories (ports)**: one read-only interface per aggregate root (10, including `sources` and `projects`) in `domain/src/repositories/`, bundled in
   `Repositories`. Methods return promises; a missing item is `null`, not an exception. Only methods a known
   consumer needs (no generic CRUD; the seed writes through `db` directly). Consumers take only the ports they
