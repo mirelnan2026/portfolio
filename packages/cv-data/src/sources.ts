@@ -4,4 +4,5 @@ import type { Source } from "@mirelnan/domain";
 export const sources = [
   { slug: "cv", kind: "cv", title: "CV: Senior Frontend Engineer" },
   { slug: "jwx-brief", kind: "employment-brief", title: "JWX engagement brief, 2023–2026" },
+  { slug: "skills-matrix", kind: "skills-matrix", title: "Skills matrix: technologies per role" },
 ] satisfies Source[];

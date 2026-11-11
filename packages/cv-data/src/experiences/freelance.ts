@@ -19,7 +19,7 @@ export const freelance = {
       sourceSlug: "cv",
     },
   ],
-  skills: usedSkills("cv", ["html4", "xhtml", "css2"]),
+  skills: [...usedSkills("cv", ["css", "html"])],
   products: [],
   sourceSlug: "cv",
 } satisfies Experience;

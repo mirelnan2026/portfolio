@@ -13,6 +13,7 @@ const profile = {
   availability: "Open to remote",
   email: "jane@example.com",
   linkedinUrl: "https://www.linkedin.com/in/jane-doe",
+  competencies: [],
   interests: [],
   sourceSlug: "cv",
 } satisfies Profile;

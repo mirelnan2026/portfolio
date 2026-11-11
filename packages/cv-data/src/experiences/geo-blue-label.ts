@@ -21,7 +21,7 @@ export const geoBlueLabel = {
       sourceSlug: "cv",
     },
   ],
-  skills: usedSkills("cv", ["javascript", "jquery"]),
+  skills: [...usedSkills("cv", ["javascript", "css", "jquery", "ajax", "html"])],
   products: [],
   sourceSlug: "cv",
 } satisfies Experience;

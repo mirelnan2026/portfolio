@@ -17,6 +17,6 @@ export const upgradeSequencing = {
     phaseSlug: "content-management-suite",
   },
   url: null,
-  skillSlugs: ["angular", "apollo-client", "graphql"],
+  skillSlugs: ["angular", "apollo-graphql", "graphql"],
   sourceSlug: "jwx-brief",
 } satisfies CaseStudy;

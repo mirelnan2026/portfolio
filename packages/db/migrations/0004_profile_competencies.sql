@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" ADD COLUMN "competencies" text[] DEFAULT '{}'::text[] NOT NULL;

@@ -13,6 +13,7 @@ export const profiles = pgTable("profiles", {
   availability: text().notNull(),
   email: text().notNull(),
   linkedinUrl: text().notNull(),
+  competencies: text().array().notNull(),
   interests: text().array().notNull(),
   sourceId: integer()
     .notNull()

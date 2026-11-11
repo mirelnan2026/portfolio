@@ -17,6 +17,11 @@ export const profileSchema = z
     availability: textSchema,
     email: z.email(),
     linkedinUrl: httpsUrlSchema,
+    /**
+     * The CV's "Core competencies": broad terms such as "Web Development", kept for search engines
+     * (JSON-LD `knowsAbout`). They are not skills: no roles, no years, not shown on the page.
+     */
+    competencies: z.array(textSchema),
     interests: z.array(textSchema),
     sourceSlug: slugSchema,
   })

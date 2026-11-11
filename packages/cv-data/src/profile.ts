@@ -17,6 +17,13 @@ export const profile = {
   availability: "Open to remote",
   email: "nan.mirel@gmail.com",
   linkedinUrl: "https://www.linkedin.com/in/mirelnan",
+  competencies: [
+    "Front-End Development",
+    "Web Development",
+    "Software Development",
+    "Agile Web Development",
+    "Code Review",
+  ],
   interests: ["Full-stack technologies", "Reading", "Chess", "Football"],
   sourceSlug: "cv",
 } satisfies Profile;

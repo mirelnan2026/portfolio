@@ -16,6 +16,7 @@ export function createDrizzleProfileRepository(db: Database): ProfileRepository 
           availability: profiles.availability,
           email: profiles.email,
           linkedinUrl: profiles.linkedinUrl,
+          competencies: profiles.competencies,
           interests: profiles.interests,
           sourceSlug: sources.slug,
         })

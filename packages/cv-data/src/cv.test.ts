@@ -62,6 +62,20 @@ describe("cvData", () => {
     expect(repeated).toEqual([]);
   });
 
+  it("links every skill to at least one experience", () => {
+    // The CV's "Technical skills" are the union of the roles' skills, so each has years and roles to show.
+    const used = new Set(
+      cvData.experiences.flatMap((experience) => experience.skills.map((usage) => usage.skillSlug)),
+    );
+    expect(slugs(cvData.skills).filter((slug) => !used.has(slug))).toEqual([]);
+  });
+
+  it("keeps competencies apart from skills", () => {
+    // A broad term that is also a skill would be counted twice: once for search, once with years.
+    const names = new Set(cvData.skills.map((skill) => skill.name.toLowerCase()));
+    expect(cvData.profile.competencies.filter((term) => names.has(term.toLowerCase()))).toEqual([]);
+  });
+
   it("lists experiences newest first", () => {
     const starts = cvData.experiences.map((experience) => experience.period.start);
     expect(starts).toEqual(starts.toSorted().reverse());
