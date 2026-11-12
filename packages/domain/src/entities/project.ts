@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { featuredSchema } from "../values/featured";
 import { isWithin, periodSchema } from "../values/period";
 import { slugSchema } from "../values/slug";
 import { httpsUrlSchema, textSchema } from "../values/text";
@@ -28,7 +29,7 @@ export const projectLinksSchema = z.strictObject({
 export const projectHighlightSchema = z.strictObject({
   body: textSchema,
   /** Set when the highlight is shown as a card in the Highlights section. */
-  featured: z.strictObject({ title: textSchema }).nullable(),
+  featured: featuredSchema.nullable(),
   sourceSlug: slugSchema,
 });
 

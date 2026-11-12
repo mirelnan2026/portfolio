@@ -1,4 +1,6 @@
 // Values
+export { featuredSchema } from "./values/featured";
+export type { Featured } from "./values/featured";
 export { periodSchema } from "./values/period";
 export type { Period } from "./values/period";
 export { slugSchema } from "./values/slug";

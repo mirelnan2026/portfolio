@@ -1,4 +1,4 @@
-import type { CaseStudySubject, MobileApp, Period, YearMonth } from "@mirelnan/domain";
+import type { CaseStudySubject, Featured, MobileApp, Period, YearMonth } from "@mirelnan/domain";
 
 /*
  * Pure functions that turn column values back into domain values: the reverse of what the seed
@@ -16,9 +16,18 @@ export function toPeriod(startedOn: string, endedOn: string | null): Period {
   return { start: toMonth(startedOn), end: toMonth(endedOn) };
 }
 
-/** `featured_title` as the domain's `featured`: a card title, or null when not featured. */
-export function toFeatured(title: string | null): { title: string } | null {
-  return title === null ? null : { title };
+/**
+ * `featured_title` and `featured_rank` as the domain's `featured`, or null when not featured. The seed writes both
+ * or neither; a title without a rank means the seed has not run since the column was added.
+ */
+export function toFeatured(title: string | null, rank: number | null): Featured | null {
+  if (title === null) {
+    return null;
+  }
+  if (rank === null) {
+    throw new Error(`Featured highlight "${title}" has no rank: run the seed`);
+  }
+  return { title, rank };
 }
 
 /** The two store columns as one `mobileApp`, which the domain allows only with at least one store. */

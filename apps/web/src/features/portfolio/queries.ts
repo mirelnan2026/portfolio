@@ -10,3 +10,9 @@ export async function getProfile() {
   cacheLife("max");
   return repositories.profile.get();
 }
+
+export async function getExperiences() {
+  "use cache";
+  cacheLife("max");
+  return repositories.experiences.list();
+}

@@ -23,7 +23,7 @@ const experience = {
     {
       body: "Led the frontend of a new product.",
       ownership: "owned",
-      featured: { title: "New product build-out" },
+      featured: { title: "New product build-out", rank: 1 },
       phaseSlug: "first-product",
       sourceSlug: "cv",
     },

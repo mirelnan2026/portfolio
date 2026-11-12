@@ -53,8 +53,8 @@ No migration is needed for new content; only a change to the shape of the data (
 3. Import it in `src/cv.ts` and place it in `experiences`, newest first (a test checks the order, and the
    generator matches the CV's "Technologies" lines to the roles in that order).
 4. Add the role's rows to the skills matrix, with its slug as `experienceSlug`, and run the generator.
-5. Exactly four highlights are `featured` (one card each in Highlights): to feature a new one, unfeature
-   another.
+5. Exactly four highlights are `featured` (one card each in Highlights), with ranks 1 to 4 that set the cards'
+   order: to feature a new one, unfeature another and keep the ranks 1 to 4.
 
 ### A new product
 

@@ -84,6 +84,7 @@ erDiagram
         text body
         ownership ownership
         text featured_title "nullable"
+        int featured_rank "nullable"
         int source_id FK
     }
     experience_skills {
@@ -197,7 +198,7 @@ One factory per port in [`src/repositories`](src/repositories), `createDrizzle<E
 - An aggregate (experience, project, case study) is read in a fixed number of queries, however many rows there
   are: one for the roots, then one per list, filtered with `inArray(parent_id, ids)` and run in parallel. The rows
   are grouped by parent (keeping `position` order) and turned back into domain values by the pure functions in
-  `to-domain.ts`, the reverse of the seed (dates → months and periods, `featured_title` → `featured`, the store
+  `to-domain.ts`, the reverse of the seed (dates → months and periods, `featured_title` + `featured_rank` → `featured`, which throws when a title has no rank, i.e. the seed has not run, the store
   columns → `mobileApp`, the three references → `about`).
 - `list()` and `getBySlug()` share the same loader; `getBySlug` only adds a `where`, and returns `null` when
   nothing matches.

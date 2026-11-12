@@ -81,11 +81,11 @@ describe("cvData", () => {
     expect(starts).toEqual(starts.toSorted().reverse());
   });
 
-  it("features four highlights, one card each in the Highlights grid", () => {
-    const featured = cvData.experiences.flatMap((experience) =>
-      experience.highlights.filter((highlight) => highlight.featured !== null),
-    );
-    expect(featured).toHaveLength(4);
+  it("features four highlights, ranked 1 to 4: one card each in the Highlights grid", () => {
+    const ranks = [...cvData.experiences, ...cvData.projects]
+      .flatMap((record) => record.highlights)
+      .flatMap((highlight) => (highlight.featured === null ? [] : [highlight.featured.rank]));
+    expect(ranks.toSorted((a, b) => a - b)).toEqual([1, 2, 3, 4]);
   });
 });
 
