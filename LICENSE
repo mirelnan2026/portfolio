@@ -1,0 +1,16 @@
+Copyright (c) 2026 Mirel Nan. All rights reserved.
+
+This repository is public so that its code, its history and the decisions behind it can be read. No licence
+is granted: you may not copy, modify, distribute, publish, sublicense or otherwise use any part of it, in
+whole or in part, without the author's prior written permission.
+
+This covers the source code and, explicitly, the content:
+
+- the CV and every text about the author, including the data in `packages/cv-data`;
+- the CV as a PDF (`apps/web/public/mirel-nan-cv.pdf`);
+- the visual design of the site.
+
+Viewing the repository, and forking it on GitHub, are possible only to the extent GitHub's Terms of Service
+require for public repositories. A fork grants no other right.
+
+Third-party packages used by this project keep their own licences.
