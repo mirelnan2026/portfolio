@@ -30,8 +30,8 @@ export const jwpConnatix = {
       period: { start: "2025-01", end: "2026-10" },
       industrySlug: "video-tech",
       summary:
-        "Owning product surfaces end to end: the frontend of a new AI media-transformation product, " +
-        "and metering and billing.",
+        "Owned the metering and billing surface end to end, and built the frontend of a new AI " +
+        "media-transformation product as part of a team.",
       sourceSlug: "jwx-brief",
     },
   ],
@@ -47,10 +47,10 @@ export const jwpConnatix = {
     },
     {
       body:
-        "Led the frontend build-out of a new AI media-transformation product, delivered incrementally " +
-        "behind feature flags and released without disrupting the flow it replaced.",
-      ownership: "owned",
-      featured: { title: "AI media product build-out" },
+        "Built the frontend of a new AI media-transformation product as part of a team, delivered " +
+        "incrementally behind feature flags and released without disrupting the flow it replaced.",
+      ownership: "contributed",
+      featured: { title: "AI media product build-out", rank: 3 },
       phaseSlug: "video-platform-dashboard",
       sourceSlug: "cv",
     },
@@ -59,7 +59,7 @@ export const jwpConnatix = {
         "Owned the metering and billing surface end to end, including consumption reporting, " +
         "contract-period tracking and invoice access.",
       ownership: "owned",
-      featured: { title: "Metering and billing, end to end" },
+      featured: { title: "Metering and billing, end to end", rank: 4 },
       phaseSlug: "video-platform-dashboard",
       sourceSlug: "cv",
     },
@@ -70,7 +70,7 @@ export const jwpConnatix = {
         "them across the platform applications, removing duplicated UI code and giving the teams a single " +
         "source for shared UI.",
       ownership: "owned",
-      featured: { title: "Shared frontend foundation" },
+      featured: { title: "Shared frontend foundation", rank: 2 },
       phaseSlug: "content-management-suite",
       sourceSlug: "cv",
     },
@@ -99,7 +99,7 @@ export const jwpConnatix = {
         "specification, drove implementation through the agent, and owned review, verification and " +
         "release of the result.",
       ownership: "owned",
-      featured: { title: "Spec-driven delivery with AI agents" },
+      featured: { title: "Spec-driven delivery with AI agents", rank: 1 },
       phaseSlug: "video-platform-dashboard",
       sourceSlug: "cv",
     },

@@ -86,8 +86,9 @@ export const experienceHighlights = pgTable(
     phaseId: integer(),
     body: text().notNull(),
     ownership: ownership().notNull(),
-    /** Not null when the highlight is shown as a card in the Highlights section. */
+    /** Not null when the highlight is shown as a card in the Highlights section, with its place there. */
     featuredTitle: text(),
+    featuredRank: integer(),
     position: position(),
     sourceId: integer()
       .notNull()

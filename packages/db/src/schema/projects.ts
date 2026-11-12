@@ -53,6 +53,7 @@ export const projectHighlights = pgTable("project_highlights", {
     .references(() => projects.id, { onDelete: "cascade" }),
   body: text().notNull(),
   featuredTitle: text(),
+  featuredRank: integer(),
   position: position(),
   sourceId: integer()
     .notNull()

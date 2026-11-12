@@ -7,7 +7,8 @@ depends only on zod.
 
 ```
 src/
-├─ values/        small value objects: slug, text, https URL, YearMonth, Period { start, end }
+├─ values/        small value objects: slug, text, https URL, YearMonth, Period { start, end },
+│                 Featured { title, rank } (a Highlights card and its place)
 ├─ entities/      one schema per entity or aggregate: profile, experience (phases, highlights, skill and
 │                 product links), project, case study, skill, product, industry, education, language,
 │                 source, and cv-data (the whole snapshot the seed loads)

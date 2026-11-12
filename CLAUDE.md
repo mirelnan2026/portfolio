@@ -38,7 +38,8 @@ with structured output, and an MCP server exposing the CV. Stages:
 0 foundation + portfolio page → 1 Claude API → 2 tool use + structured output → 3 MCP → 4 Claude Code.
 Domain: `mirelnan.dev`, live since 2026-11-11 (DNS at the registrar: `A @` and `CNAME www` from Vercel; `www` and
 `http://` 308-redirect to `https://mirelnan.dev`; `.dev` is HTTPS-only via HSTS preload).
-The "portfolio" project enters `cv-data` only once the site is live on it (see "Personal projects").
+The "portfolio" project enters `cv-data` last, after the AI features of stages 1–2 (owner decision, 2026-11-12;
+see "Personal projects").
 The repository is public, but **all rights reserved** (`LICENSE`): code and content may be read, not reused. The
 public `README.md` is written for engineers and hiring managers (what the site does, the live link, features with
 their real status, architecture highlights); keep each status honest (✅ only when it is live).
@@ -383,10 +384,10 @@ job match and MCP server cannot use them (owner decision, 2026-11-05).
 
 ### Ownership
 
-Highlights carry `ownership: "owned" | "contributed"`. Owned: metering & billing, the AI media-transformation
-frontend, both framework upgrades, the shared-library extraction, the CI/CD pipeline for the shared libraries and
+Highlights carry `ownership: "owned" | "contributed"`. Owned: metering & billing, both framework upgrades, the shared-library extraction, the CI/CD pipeline for the shared libraries and
 the spec-driven delivery of the 2026 feature work (the last two because the CV says "owned"; owner decision,
-2026-11-07). Never present `contributed` as `owned`, never claim a whole product.
+2026-11-07). The AI media-transformation build-out is `contributed`: it was team work (owner decision, 2026-11-12,
+replacing the brief's "owned"). Never present `contributed` as `owned`, never claim a whole product.
 
 ### JWX phases
 

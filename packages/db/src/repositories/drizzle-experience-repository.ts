@@ -64,6 +64,7 @@ async function loadExperiences(db: Database, where?: SQL): Promise<Experience[]>
         body: experienceHighlights.body,
         ownership: experienceHighlights.ownership,
         featuredTitle: experienceHighlights.featuredTitle,
+        featuredRank: experienceHighlights.featuredRank,
         phaseSlug: experiencePhases.slug,
         sourceSlug: sources.slug,
       })
@@ -123,7 +124,7 @@ async function loadExperiences(db: Database, where?: SQL): Promise<Experience[]>
     highlights: (highlightsOf.get(root.id) ?? []).map((highlight) => ({
       body: highlight.body,
       ownership: highlight.ownership,
-      featured: toFeatured(highlight.featuredTitle),
+      featured: toFeatured(highlight.featuredTitle, highlight.featuredRank),
       phaseSlug: highlight.phaseSlug,
       sourceSlug: highlight.sourceSlug,
     })),

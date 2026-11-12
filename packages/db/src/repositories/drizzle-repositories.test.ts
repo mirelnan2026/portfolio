@@ -30,7 +30,7 @@ const exampleProject: Project = {
   highlights: [
     {
       body: "Built the whole app.",
-      featured: { title: "Example card" },
+      featured: { title: "Example card", rank: 5 },
       sourceSlug: "example-brief",
     },
     { body: "Shipped it to the store.", featured: null, sourceSlug: "example-brief" },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupBy, toCaseStudySubject, toMobileApp, toMonth } from "./to-domain";
+import { groupBy, toCaseStudySubject, toFeatured, toMobileApp, toMonth } from "./to-domain";
 
 // The round-trip test covers every valid row; these cover the shapes the database never returns.
 describe("row to domain mappers", () => {
@@ -14,6 +14,14 @@ describe("row to domain mappers", () => {
       appStore: null,
       playStore: "https://play.example.com",
     });
+  });
+
+  it("needs a rank for a featured title, so a database that was not seeded fails loudly", () => {
+    expect(toFeatured(null, null)).toBeNull();
+    expect(toFeatured("A card", 2)).toEqual({ title: "A card", rank: 2 });
+    expect(() => toFeatured("A card", null)).toThrow(
+      'Featured highlight "A card" has no rank: run the seed',
+    );
   });
 
   it("rejects a case study that is about nothing", () => {

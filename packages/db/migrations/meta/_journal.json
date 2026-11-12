@@ -43,6 +43,13 @@
       "when": 1794393708114,
       "tag": "0005_profile_competencies_no_default",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794512254734,
+      "tag": "0006_highlight_featured_rank",
+      "breakpoints": true
     }
   ]
 }

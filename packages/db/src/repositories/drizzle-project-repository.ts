@@ -38,6 +38,7 @@ async function loadProjects(db: Database, where?: SQL): Promise<Project[]> {
         projectId: projectHighlights.projectId,
         body: projectHighlights.body,
         featuredTitle: projectHighlights.featuredTitle,
+        featuredRank: projectHighlights.featuredRank,
         sourceSlug: sources.slug,
       })
       .from(projectHighlights)
@@ -76,7 +77,7 @@ async function loadProjects(db: Database, where?: SQL): Promise<Project[]> {
     },
     highlights: (highlightsOf.get(root.id) ?? []).map((highlight) => ({
       body: highlight.body,
-      featured: toFeatured(highlight.featuredTitle),
+      featured: toFeatured(highlight.featuredTitle, highlight.featuredRank),
       sourceSlug: highlight.sourceSlug,
     })),
     skills: (skillsOf.get(root.id) ?? []).map((usage) => ({
