@@ -23,3 +23,11 @@ peerDependencyRules:
     eslint-plugin-import>eslint: "10"
     eslint-plugin-jsx-a11y>eslint: "10"
     eslint-plugin-react>eslint: "10"
+# A version must be 7 days old before pnpm installs it (time for a compromised release to be caught).
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  # Browser data published almost daily, read only by build tools.
+  - caniuse-lite
+  - electron-to-chromium
+  # Pulled in by the shadcn CLI; 7.2.0 was released on 2026-11-08, so it is old enough on 2026-11-15: remove it then.
+  - postcss-selector-parser@7.2.0

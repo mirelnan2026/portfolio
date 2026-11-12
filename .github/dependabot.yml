@@ -1,0 +1,33 @@
+# Dependabot opens pull requests for outdated dependencies; each one runs CI and gets a Vercel preview, and is
+# merged only when both are green (the ruleset on main). Security updates are separate and not delayed.
+version: 2
+updates:
+  - package-ecosystem: npm # pnpm workspaces are read from pnpm-lock.yaml and pnpm-workspace.yaml (catalog)
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # The same rule as pnpm's minimumReleaseAge: a version must be 7 days old before it is proposed.
+    cooldown:
+      default-days: 7
+    groups:
+      # One pull request a week for everything that should not break the code.
+      minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: build
+      include: scope
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions # keeps the SHA-pinned actions in ci.yml current
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
