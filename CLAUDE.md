@@ -15,7 +15,10 @@ Follow both; where they differ, `CLAUDE.local.md` wins.
   `main` is a production deploy. So every step gets its own branch (`feat/<step>`, `fix/<what>`); commits and pushes
   go there as often as needed (each push runs CI and builds a protected Vercel preview); a pull request into `main`
   is merged only after the preview looks right and CI is green, and the merge is what deploys to production.
-  Step 6e makes it mandatory with branch protection.
+  Enforced since step 6e by a GitHub ruleset on `main` (2026-11-12): no deletion, no force push, linear history,
+  changes only through a pull request (0 approvals, the owner works alone; squash is the only merge method), and the
+  required checks `Lint, typecheck, test, build` (CI) and `Vercel`, on a branch that is up to date with `main`. Repo
+  settings: squash merging only, with the pull request title as the default message; head branches deleted after merge.
 - **Every folder in `packages/` and `tooling/` has a `README.md`** (what it is, its public API or presets, the
   rules it holds); `apps/web` gets one once its sections exist, by step 6 at the latest. A change to a package's
   API, structure, presets or rules updates its README in the same commit.
@@ -289,7 +292,14 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
 - **Database**: the runtime uses a read-only Postgres role; migrations/seed use a separate role; TLS required;
   queries only through Drizzle (parameterized), no string-built SQL.
 - **Supply chain**: frozen lockfile in CI, `pnpm audit`, Dependabot, pnpm `minimumReleaseAge`, install scripts
-  allowed only via `onlyBuiltDependencies`; GitHub Actions pinned to commit SHA with minimal `permissions:`.
+  allowed only via `allowBuilds`; GitHub Actions pinned to commit SHA with minimal `permissions:`. Since step 6e:
+  `minimumReleaseAge: 10080` (7 days) in `pnpm-workspace.yaml`, which pnpm 12 also enforces on the lockfile (a
+  `--frozen-lockfile` install fails on a too-young entry), with `minimumReleaseAgeExclude` only for the daily
+  browser-data packages (`caniuse-lite`, `electron-to-chromium`) and, temporarily, exact versions with a dated
+  comment saying when to remove them. `.github/dependabot.yml`: weekly npm and github-actions updates with a 7-day
+  `cooldown` (the same rule), minor and patch grouped in one pull request, Conventional titles (`build(deps): …`,
+  `ci: …`); security updates are not delayed. In the repository settings: Dependabot alerts and security updates,
+  secret scanning with push protection, CodeQL default setup (free because the repository is public).
 - **Repo / platform**: protected `main` (PR + green CI), CodeQL, Vercel Deployment Protection on previews,
   `SECURITY.md` + `/.well-known/security.txt`.
 - **Privacy**: no tracking cookies, so no consent banner; no third-party scripts without a reason. Analytics =
