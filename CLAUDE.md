@@ -36,6 +36,9 @@ with structured output, and an MCP server exposing the CV. Stages:
 Domain: `mirelnan.dev`, live since 2026-11-11 (DNS at the registrar: `A @` and `CNAME www` from Vercel; `www` and
 `http://` 308-redirect to `https://mirelnan.dev`; `.dev` is HTTPS-only via HSTS preload).
 The "portfolio" project enters `cv-data` only once the site is live on it (see "Personal projects").
+The repository is public, but **all rights reserved** (`LICENSE`): code and content may be read, not reused. The
+public `README.md` is written for engineers and hiring managers (what the site does, the live link, features with
+their real status, architecture highlights); keep each status honest (✅ only when it is live).
 
 ## Architecture
 
@@ -249,8 +252,9 @@ Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at ste
   from the site; content written as self-contained, quotable statements.
 - **Verified by:** Lighthouse SEO = 100 (desktop and mobile presets); a Playwright test for title, description,
   canonical, robots, and a JSON-LD that parses and contains the `Person`; `robots.txt`, `sitemap.xml` and
-  `llms.txt` return 200. Google Search Console and Bing Webmaster Tools at step 6, verified by DNS TXT record
-  (no script), with the sitemap submitted.
+  `llms.txt` return 200. Google Search Console (a Domain property, verified by a DNS TXT record at the registrar, no
+  script; the record must stay) and Bing Webmaster Tools (imported from Search Console), with the sitemap submitted:
+  done at step 6d (2026-11-11).
 - **Implemented at step 4j:** `features/portfolio/metadata.ts` (`portfolioMetadata(profile)`, a tested pure function:
   title "<name> · <role> · Portfolio", description = the intro's first sentence; it throws, failing the build,
   above 60 / 160 characters instead of letting search engines cut them), the root layout's `generateMetadata`
