@@ -18,7 +18,7 @@ export function securityHeaders({ production }: { production: boolean }): Header
     // Browser features the site never uses stay off, even for injected code.
     {
       key: "Permissions-Policy",
-      value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+      value: "camera=(), microphone=(), geolocation=()",
     },
     // No other site may show this one in a frame (clickjacking): the old header and its CSP successor.
     { key: "X-Frame-Options", value: "DENY" },
