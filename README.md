@@ -129,6 +129,9 @@ pnpm dev
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/); git hooks run gitleaks, Prettier and
 ESLint before each commit, and CI runs every check again.
 
+How the site is operated (deploys, data changes, credential rotation, rollbacks) is in
+[`docs/runbook.md`](docs/runbook.md); how to report a vulnerability is in [`SECURITY.md`](SECURITY.md).
+
 ## Licence
 
 All rights reserved: the code and the content can be read here, but not reused. See [`LICENSE`](LICENSE).
