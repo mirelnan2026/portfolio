@@ -1,0 +1,7 @@
+# Security contact for mirelnan.dev (RFC 9116). How to report: see Policy.
+Contact: https://github.com/mirelnan2026/portfolio/security/advisories/new
+Contact: mailto:nan.mirel@gmail.com
+Expires: 2027-11-12T00:00:00.000Z
+Preferred-Languages: en, ro
+Canonical: https://mirelnan.dev/.well-known/security.txt
+Policy: https://github.com/mirelnan2026/portfolio/blob/main/SECURITY.md

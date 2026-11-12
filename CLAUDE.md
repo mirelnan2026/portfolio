@@ -301,7 +301,12 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
   `ci: …`); security updates are not delayed. In the repository settings: Dependabot alerts and security updates,
   secret scanning with push protection, CodeQL default setup (free because the repository is public).
 - **Repo / platform**: protected `main` (PR + green CI), CodeQL, Vercel Deployment Protection on previews,
-  `SECURITY.md` + `/.well-known/security.txt`.
+  `SECURITY.md` + `/.well-known/security.txt`. Since step 6e: `SECURITY.md` (scope, private reporting through GitHub
+  private vulnerability reporting or email, a 7-day answer, good-faith limits) and
+  `apps/web/public/.well-known/security.txt` (RFC 9116, served as a static file), whose `Expires` is checked by
+  `apps/web/src/lib/security-txt.test.ts`: it fails 30 days before the date, so CI asks for the yearly renewal.
+- **Runbook:** `docs/runbook.md` (deploying, changing the database, rotating the reader, rolling back,
+  dependencies, the yearly tasks). Update it in the same change whenever one of those procedures changes.
 - **Privacy**: no tracking cookies, so no consent banner; no third-party scripts without a reason. Analytics =
   Vercel Web Analytics (cookieless, served first-party from `/_vercel/insights`, so the CSP stays `'self'`),
   added at step 6d (`<Analytics />` from `@vercel/analytics/next` in the root layout, enabled in the Vercel
