@@ -18,6 +18,11 @@ updates:
       prefix: build
       include: scope
     open-pull-requests-limit: 5
+    ignore:
+      # TypeScript 7 is the Go rewrite and has no JavaScript compiler API yet, which Next.js, typescript-eslint
+      # and drizzle-kit need (see "Tooling decisions" in CLAUDE.md). Stay on 6.x until they support it.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions # keeps the SHA-pinned actions in ci.yml current
     directory: /
