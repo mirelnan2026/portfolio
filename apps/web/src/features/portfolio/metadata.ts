@@ -5,19 +5,22 @@ import type { Metadata } from "next";
 export const titleMaxLength = 60;
 export const descriptionMaxLength = 160;
 
-/** The text up to the first full stop, question or exclamation mark that ends a sentence. */
-function firstSentence(text: string): string {
-  return /^.*?[.!?](?=\s|$)/s.exec(text)?.[0] ?? text;
+/** A text's sentences: it splits after a full stop, question or exclamation mark followed by a space. */
+function sentences(text: string): string[] {
+  return text.split(/(?<=[.!?])\s+/);
 }
 
 /**
- * The home page's metadata, from the profile only: "<name> · <role> · Portfolio" and the intro's first
- * sentence. Too long a value fails the build, instead of being cut mid-word by the search engine.
+ * The home page's metadata, from the data only. The title is the name and the current role, which names the
+ * main stack ("Senior Frontend Engineer (Angular, React)"); the description is the headline's role and the
+ * intro's second sentence, the one with the stack. Too long a value fails the build, instead of being cut
+ * mid-word by the search engine.
  */
-export function portfolioMetadata(profile: Profile): Metadata {
-  const [role] = profile.headline.split(" · ");
-  const title = `${profile.name} · ${role ?? profile.headline} · Portfolio`;
-  const description = firstSentence(profile.intro);
+export function portfolioMetadata(profile: Profile, currentRole: string | undefined): Metadata {
+  const [role = profile.headline] = profile.headline.split(" · ");
+  const title = `${profile.name} · ${currentRole ?? role}`;
+  const [first = "", second] = sentences(profile.intro);
+  const description = `${role}. ${second ?? first}`;
   if (title.length > titleMaxLength) {
     throw new Error(
       `The page title is ${String(title.length)} characters, over ${String(titleMaxLength)}`,

@@ -17,18 +17,31 @@ const profile = {
 } satisfies Profile;
 
 describe("portfolioMetadata", () => {
-  it("builds the title from the name and the role, and the description from the intro", () => {
-    expect(portfolioMetadata(profile)).toMatchObject({
-      title: { absolute: "Jane Doe · Frontend Engineer · Portfolio" },
-      description: "Builds web applications for 10+ years.",
+  it("builds the title from the name and the current role, the description from the role and the intro", () => {
+    expect(portfolioMetadata(profile, "Senior Frontend Engineer (Vue)")).toMatchObject({
+      title: { absolute: "Jane Doe · Senior Frontend Engineer (Vue)" },
+      description: "Frontend Engineer. Likes accessible ones.",
       alternates: { canonical: "/" },
     });
   });
 
+  it("falls back to the headline's role and the intro's only sentence", () => {
+    expect(
+      portfolioMetadata({ ...profile, intro: "Builds web applications." }, undefined),
+    ).toMatchObject({
+      title: { absolute: "Jane Doe · Frontend Engineer" },
+      description: "Frontend Engineer. Builds web applications.",
+    });
+  });
+
   it.each([
-    ["title", { ...profile, headline: `${"Very ".repeat(12)}Senior Engineer` }],
-    ["description", { ...profile, intro: `${"Builds web applications ".repeat(8)}today.` }],
-  ])("fails when the %s is too long for search results", (_field, longer) => {
-    expect(() => portfolioMetadata(longer)).toThrow(/characters, over/);
+    ["title", profile, `${"Very ".repeat(12)}Senior Engineer`],
+    [
+      "description",
+      { ...profile, intro: `First. ${"Builds web applications ".repeat(8)}today.` },
+      "Engineer",
+    ],
+  ])("fails when the %s is too long for search results", (_field, longer, currentRole) => {
+    expect(() => portfolioMetadata(longer, currentRole)).toThrow(/characters, over/);
   });
 });

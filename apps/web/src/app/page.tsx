@@ -16,7 +16,9 @@ import {
 import { skillGroups } from "@/features/portfolio/skills";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return portfolioMetadata(await getProfile());
+  const [profile, experiences] = await Promise.all([getProfile(), getExperiences()]);
+  // Experiences come newest first, so the first one is the current role.
+  return portfolioMetadata(profile, experiences[0]?.role);
 }
 
 export default async function HomePage() {

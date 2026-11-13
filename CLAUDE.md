@@ -285,7 +285,10 @@ Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at ste
   script; the record must stay) and Bing Webmaster Tools (imported from Search Console), with the sitemap submitted:
   done at step 6d (2026-11-11).
 - **Implemented at step 4j:** `features/portfolio/metadata.ts` (`portfolioMetadata(profile)`, a tested pure function:
-  title "<name> · <role> · Portfolio", description = the intro's first sentence; it throws, failing the build,
+  since 2026-11-13 (owner decision, so the stack is in the most important tag) the title is "<name> · <current
+  role>" from the newest experience, "Mirel Nan · Senior Frontend Engineer (Angular, React)", and the description is
+  the headline's role plus the intro's second sentence, the one naming the stack, both word for word from the data;
+  `og:site_name` stays "<name> · Portfolio"; it throws, failing the build,
   above 60 / 160 characters instead of letting search engines cut them), the root layout's `generateMetadata`
   (`metadataBase` as a string, because cached values must be serialisable, and the title template
   `%s · <name>`), `app/robots.ts`, `app/sitemap.ts` and `app/not-found.tsx` (our own 404: Next's default one adds a
