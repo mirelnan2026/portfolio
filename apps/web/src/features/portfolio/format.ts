@@ -1,6 +1,11 @@
 import type { Experience, Period, YearMonth } from "@mirelnan/domain";
 import { formatDuration, monthsBetween, toDuration } from "@mirelnan/domain";
 
+/** A text's sentences: it splits after a full stop, question or exclamation mark followed by a space. */
+export function sentences(text: string): string[] {
+  return text.split(/(?<=[.!?])\s+/);
+}
+
 /** "2023–2024", "2024" when it starts and ends in the same year, "2025–present" while it is ongoing. */
 export function yearRange(period: Period): string {
   const start = period.start.slice(0, 4);

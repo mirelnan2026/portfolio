@@ -42,6 +42,12 @@ export async function getCaseStudies() {
   return repositories.caseStudies.list();
 }
 
+export async function getWorkflow() {
+  "use cache";
+  cacheLife("max");
+  return repositories.workflow.list();
+}
+
 /** The month the page was built in: durations of ongoing roles and the "earlier" cut-off count up to it. */
 // eslint-disable-next-line @typescript-eslint/require-await -- a "use cache" function has to be async
 export async function getCurrentMonth() {

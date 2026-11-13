@@ -222,6 +222,10 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   the page. Each card (`#case-study-<slug>`) shows the title and the context; the approach, the outcome and what it
   shows are a `<dl>` in a native `<details>`, so the page stays static and every word is in the HTML. The mockup's
   category labels ("Architecture") are not in the data, so they are left out.
+- **How I work** (step 7f.2, 2026-11-13): `components/how-i-work.tsx` shows the CV summary's sentence about
+  spec-driven development, word for word (`workflowIntro`, tested; `sentences` lives in `format.ts`, shared with the
+  metadata), then the `workflow` steps as an `<ol>` of muted cards, each titled "1 · Specify" in mono teal (the number
+  `aria-hidden`, since the list already numbers it), three columns from `@2xl`.
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below
