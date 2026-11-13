@@ -196,8 +196,26 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   names in a `Record<SkillCategory, string>`), groups in the order of their most important skill and skills by
   `position`; each skill shows its tenure from `skillTenure` in `domain/rules` (the union of the periods of its links,
   a phase's period when the link has one, overlaps once), rounded **down** to whole years by `tenureLabel`
-  ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim never overstates. Skills are plain list items
-  until the `?skill=` filter (step 7d) gives them an action.
+  ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim never overstates.
+- **Skill filter** (step 7d, owner decision 2026-11-13, kept over a no-JS `<details>` version because the chat and
+  job match will link to a skill): each skill is a `<button aria-pressed>`; `?skill=<slug>` is the state, so a
+  selection is a shareable link. The page stays static: `components/skills.tsx` (server) wraps the client
+  `SkillFilter` (`useSearchParams`) in `<Suspense>` whose fallback is the same `SkillList` with nothing selected, so
+  every skill is in the prerendered HTML; a press calls `window.history.replaceState` (Next syncs it with
+  `useSearchParams`; no request, and Back does not step through skills). The "Where it was used" panel
+  (`SkillUsage`: tenure, roles with the phase when the link has one, linked to `#experience-<slug>`, and the sources'
+  context notes) is a sticky `aside` with `aria-live="polite"` on large screens and sits under the selected skill's
+  group on small ones. The timeline's roles carry `data-experience`; each shows a client `SkillMatch` under its
+  dates (in its own `<Suspense fallback={null}>`), "✓ <skill>" read as "Uses <skill>", styled like the pressed skill in
+  Skills (teal border, `brand-soft`, check) at 12px and centred on the dates' row on phones, from every skill the role used (the same links as the panel). That label is the only highlight: the years and the vertical rule keep their colours
+  (owner decision, 2026-11-13), and non-matching roles are not dimmed. An effect, scoped to `#experience`, opens a
+  closed "Earlier experience" when a matching role is inside it (the timeline is static server HTML outside the
+  filter's tree, so it is reached through the DOM). On the first render only, a `?skill=` link scrolls (a shared link
+  would otherwise open at the top): to its fragment when it has one (`?skill=ngxs#experience-sware`, the shape the
+  chat's source chips will use), otherwise the pressed skill to the centre of the screen, through a `pressedRef` that
+  `SkillList` puts on the pressed button (an element in our own tree is reached by a ref); this effect is declared
+  after the timeline one, because opening "Earlier experience" moves everything below it. Pure helpers `toggledSkillSearch` and
+  `selectedSkill` are tested; `SkillList` is `"use client"` because its buttons take `onClick`.
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below
