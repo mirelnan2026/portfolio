@@ -222,6 +222,10 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   the page. Each card (`#case-study-<slug>`) shows the title and the context; the approach, the outcome and what it
   shows are a `<dl>` in a native `<details>`, so the page stays static and every word is in the HTML. The mockup's
   category labels ("Architecture") are not in the data, so they are left out.
+- **How I work** (step 7f.2, 2026-11-13): `components/how-i-work.tsx` shows the CV summary's sentence about
+  spec-driven development, word for word (`workflowIntro`, tested; `sentences` lives in `format.ts`, shared with the
+  metadata), then the `workflow` steps as an `<ol>` of muted cards, each titled "1 · Specify" in mono teal (the number
+  `aria-hidden`, since the list already numbers it), three columns from `@2xl`.
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below
@@ -232,7 +236,10 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   `<summary>` toggles get `py-0.5` (24px target) and 44px under `pointer-coarse`, through padding: a `display: flex`
   summary loses its disclosure marker.
 - **No copy without a source** (owner decision, 2026-11-10): every visible sentence about the owner comes from the
-  data. "How I work" is three steps (Specify → Implement → Own the result) worded from the spec-driven highlight;
+  data. "How I work" is three steps (Specify → Implement → Own the result) stored as data (`workflow`, step 7f,
+  owner decision 2026-11-13): `WorkflowStep { slug, title, body, sourceSlug }`, table `workflow_steps`, port
+  `WorkflowRepository`, worded in the first person from the employment brief's answer on AI tools (the brief was
+  updated to match), so the chat can answer "How do you work with AI tools?" from the same records;
   the footer holds only email, LinkedIn and the accessibility statement link.
 - **AI in the UI** (owner decision, 2026-11-10): the chat opens from an "Ask about me" button in the header (text
   plus the `⌘K` shortcut) and from the hero, as a 460px side sheet on desktop and full screen on phones. It speaks
@@ -578,7 +585,7 @@ not inject the owner `DATABASE_URL` into the app: set the reader URL by hand (or
   `cv.ts` annotates `cvData: CvData` (the exported contract; an empty list is `Project[]`, not `never[]`). Its tests check schemas, unique slugs, every `*Slug` reference, no
   phone-like number, the excluded brief topics, no future release dates, every skill linked to an experience and
   no competency that is also a skill.
-- **Repositories (ports)**: one read-only interface per aggregate root (10, including `sources` and `projects`) in `domain/src/repositories/`, bundled in
+- **Repositories (ports)**: one read-only interface per aggregate root (11, including `sources`, `projects` and `workflow`) in `domain/src/repositories/`, bundled in
   `Repositories`. Methods return promises; a missing item is `null`, not an exception. Only methods a known
   consumer needs (no generic CRUD; the seed writes through `db` directly). Consumers take only the ports they
   need (`Pick<Repositories, …>`); the AI layer never gets `products`. The in-memory adapter is a separate entry

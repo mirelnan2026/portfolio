@@ -18,6 +18,7 @@ import { products } from "./products";
 import { profile } from "./profile";
 import { skills } from "./skills";
 import { sources } from "./sources";
+import { workflow } from "./workflow";
 
 /**
  * The whole CV, in display order. The seed validates it with `cvDataSchema` and loads it.
@@ -48,4 +49,5 @@ export const cvData: CvData = {
   products,
   education,
   languages,
+  workflow,
 };

@@ -47,6 +47,7 @@ describe("cvData", () => {
     ["case studies", slugs(cvData.caseStudies)],
     ["education", slugs(cvData.education)],
     ["languages", cvData.languages.map((language) => language.code)],
+    ["workflow steps", slugs(cvData.workflow)],
   ])("has unique %s", (_name, values) => {
     expect(duplicates(values)).toEqual([]);
   });

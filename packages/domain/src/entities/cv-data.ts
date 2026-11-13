@@ -9,6 +9,7 @@ import { profileSchema } from "./profile";
 import { projectSchema } from "./project";
 import { skillSchema } from "./skill";
 import { sourceSchema } from "./source";
+import { workflowStepSchema } from "./workflow-step";
 
 /**
  * The whole CV as one snapshot: every aggregate, in display order.
@@ -27,6 +28,7 @@ export const cvDataSchema = z.strictObject({
   products: z.array(productSchema),
   education: z.array(educationSchema),
   languages: z.array(languageSchema),
+  workflow: z.array(workflowStepSchema),
 });
 
 export type CvData = z.infer<typeof cvDataSchema>;

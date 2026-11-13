@@ -15,6 +15,7 @@ src/
 ├─ experiences/        one file per role: phases, highlights, products, skills (generated)
 ├─ skills.ts           generated: every skill, most important first
 ├─ products.ts         public products, site context only
+├─ workflow.ts         how the owner works with AI agents, three steps (employment brief)
 ├─ industries.ts, case-studies/, education.ts, languages.ts, sources.ts
 └─ cv.test.ts          content tests
 scripts/               generators and their runbook (scripts/README.md)

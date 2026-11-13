@@ -1,14 +1,10 @@
 import type { Profile } from "@mirelnan/domain";
 import type { Metadata } from "next";
+import { sentences } from "./format";
 
 /** Search engines cut longer titles and descriptions. */
 export const titleMaxLength = 60;
 export const descriptionMaxLength = 160;
-
-/** A text's sentences: it splits after a full stop, question or exclamation mark followed by a space. */
-function sentences(text: string): string[] {
-  return text.split(/(?<=[.!?])\s+/);
-}
 
 /**
  * The home page's metadata, from the data only. The title is the name and the current role, which names the

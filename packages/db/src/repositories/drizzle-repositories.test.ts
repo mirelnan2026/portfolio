@@ -110,6 +110,10 @@ describe("Drizzle repositories, after the seed", () => {
   it("read the languages", async () => {
     expect(await repositories.languages.list()).toStrictEqual(data.languages);
   });
+
+  it("read the workflow, in order", async () => {
+    expect(await repositories.workflow.list()).toStrictEqual(data.workflow);
+  });
 });
 
 describe("Drizzle repositories, by slug", () => {

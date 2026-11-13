@@ -23,6 +23,7 @@ async function rowCounts() {
       profiles: tables.profiles,
       education: tables.education,
       languages: tables.languages,
+      workflowSteps: tables.workflowSteps,
       experiences: tables.experiences,
       experiencePhases: tables.experiencePhases,
       experienceHighlights: tables.experienceHighlights,
@@ -53,6 +54,7 @@ describe("writeCvData", () => {
       experienceHighlights: cvData.experiences.flatMap((item) => item.highlights).length,
       caseStudies: cvData.caseStudies.length,
       caseStudySkills: cvData.caseStudies.flatMap((item) => item.skillSlugs).length,
+      workflowSteps: cvData.workflow.length,
     });
   });
 
