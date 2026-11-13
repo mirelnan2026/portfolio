@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SkipLink } from "@/components/layout/skip-link";
 import { getProfile } from "@/features/portfolio/queries";
+import { pageSections } from "@/features/portfolio/sections";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -42,7 +43,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           <SkipLink />
-          <SiteHeader />
+          <SiteHeader sections={pageSections} />
           <main id="main">{children}</main>
           <SiteFooter name={profile.name} email={profile.email} linkedinUrl={profile.linkedinUrl} />
         </ThemeProvider>
