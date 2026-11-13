@@ -1,6 +1,6 @@
 import type { Experience } from "@mirelnan/domain";
 import { describe, expect, it } from "vitest";
-import { durationLabel, employmentLine, yearRange } from "./format";
+import { durationLabel, employmentLine, tenureLabel, yearRange } from "./format";
 
 describe("yearRange", () => {
   it.each([
@@ -35,5 +35,17 @@ describe("employmentLine", () => {
     expect(
       employmentLine({ ...role, employmentType: "freelance", workMode: null, location: "Romania" }),
     ).toBe("Example Corp · Freelance · Romania");
+  });
+});
+
+describe("tenureLabel", () => {
+  it.each([
+    [123, "10+ yrs", "over 10 years"],
+    [120, "10 yrs", "10 years"],
+    [21, "1+ yr", "over 1 year"],
+    [12, "1 yr", "1 year"],
+    [8, "<1 yr", "under a year"],
+  ])("labels %i months", (months, text, spoken) => {
+    expect(tenureLabel(months)).toEqual({ text, spoken });
   });
 });
