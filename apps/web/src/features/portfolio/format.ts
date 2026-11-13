@@ -27,3 +27,19 @@ export function employmentLine(experience: Experience): string {
     .filter((part) => part !== null)
     .join(" · ");
 }
+
+/**
+ * A skill's time in whole years, never rounded up: 123 months → "10+ yrs", read as "over 10 years".
+ * `text` is the compact visible label; `spoken` is what a screen reader says instead.
+ */
+export function tenureLabel(months: number): { text: string; spoken: string } {
+  const years = Math.floor(months / 12);
+  if (years === 0) {
+    return { text: "<1 yr", spoken: "under a year" };
+  }
+  const unit = years === 1 ? "yr" : "yrs";
+  const word = years === 1 ? "year" : "years";
+  return months % 12 === 0
+    ? { text: `${String(years)} ${unit}`, spoken: `${String(years)} ${word}` }
+    : { text: `${String(years)}+ ${unit}`, spoken: `over ${String(years)} ${word}` };
+}

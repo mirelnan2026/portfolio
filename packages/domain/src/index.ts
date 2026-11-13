@@ -80,3 +80,5 @@ export type { SourceRepository } from "./repositories/source-repository";
 export { formatDuration, monthsBetween, toDuration } from "./rules/duration";
 export type { Duration } from "./rules/duration";
 export { visibleLinks } from "./rules/project-links";
+export { monthsCovered, skillTenure } from "./rules/skill-tenure";
+export type { SkillTenure } from "./rules/skill-tenure";

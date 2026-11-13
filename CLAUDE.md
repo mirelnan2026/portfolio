@@ -192,6 +192,12 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   "Earlier experience" disclosure (`splitByAge`; the month comes from a `"use cache"` query, since the domain reads
   no clock). Each role is `#experience-<slug>`, the anchor the Highlights cards link to. Helpers are pure and tested
   (`features/portfolio/format.ts`, `timeline.ts`); product links open in a new tab (see the external-links rule).
+- **Skills** (step 7c, 2026-11-13): grouped by the CV's categories (`features/portfolio/skills.ts` → `skillGroups`,
+  names in a `Record<SkillCategory, string>`), groups in the order of their most important skill and skills by
+  `position`; each skill shows its tenure from `skillTenure` in `domain/rules` (the union of the periods of its links,
+  a phase's period when the link has one, overlaps once), rounded **down** to whole years by `tenureLabel`
+  ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim never overstates. Skills are plain list items
+  until the `?skill=` filter (step 7d) gives them an action.
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below

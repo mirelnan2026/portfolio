@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Experience } from "@/features/portfolio/components/experience";
 import { Hero } from "@/features/portfolio/components/hero";
 import { Highlights } from "@/features/portfolio/components/highlights";
+import { Skills } from "@/features/portfolio/components/skills";
 import { highlightCards } from "@/features/portfolio/highlights";
 import { portfolioMetadata } from "@/features/portfolio/metadata";
 import {
@@ -12,6 +13,7 @@ import {
   getProfile,
   getSkills,
 } from "@/features/portfolio/queries";
+import { skillGroups } from "@/features/portfolio/skills";
 
 export async function generateMetadata(): Promise<Metadata> {
   return portfolioMetadata(await getProfile());
@@ -38,6 +40,7 @@ export default async function HomePage() {
         skills={skills}
         currentMonth={currentMonth}
       />
+      <Skills groups={skillGroups(skills, experiences, currentMonth)} />
     </div>
   );
 }
