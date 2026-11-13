@@ -10,7 +10,7 @@ export function HowIWork({ intro, steps }: { intro: string | null; steps: Workfl
   return (
     <section id="how-i-work" aria-labelledby="how-i-work-title" className="@container pb-24">
       <SectionHeading id="how-i-work-title">How I work</SectionHeading>
-      {intro !== null && <p className="mb-6 max-w-prose">{intro}</p>}
+      {intro !== null && <p className="mb-6 text-pretty">{intro}</p>}
       <ol className="grid gap-4 @2xl:grid-cols-3">
         {steps.map((step, index) => (
           <li key={step.slug} className="flex flex-col gap-1.5 rounded-xl bg-muted p-5">
