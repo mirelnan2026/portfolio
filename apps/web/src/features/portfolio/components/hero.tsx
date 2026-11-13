@@ -15,7 +15,7 @@ export function Hero({ profile }: { profile: Profile }) {
 
   return (
     <section aria-labelledby="hero-title" className="flex max-w-3xl flex-col gap-5 py-16 sm:py-24">
-      <p className="inline-flex items-center gap-2 self-start rounded-full bg-brand-soft px-3 py-1 text-[0.8125rem] font-medium text-brand">
+      <p className="inline-flex items-center gap-2 self-start rounded-full bg-brand-soft px-3 py-1 text-xs font-medium text-brand">
         <span aria-hidden="true" className="size-1.5 rounded-full bg-brand" />
         {profile.availability} · {profile.location}
       </p>
@@ -31,7 +31,7 @@ export function Hero({ profile }: { profile: Profile }) {
           </>
         )}
       </p>
-      <p className="max-w-[42rem] text-[1.0625rem] text-muted-foreground">{profile.intro}</p>
+      <p className="max-w-[42rem] text-muted-foreground">{profile.intro}</p>
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <a href={cvHref} download className={cn(buttonVariants({ size: "lg" }))}>
           <DownloadIcon aria-hidden="true" />

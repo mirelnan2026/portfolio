@@ -14,8 +14,8 @@ export function Highlights({ cards }: { cards: HighlightCard[] }) {
         {cards.map((card) => (
           <li key={card.title}>
             <article className="flex h-full flex-col gap-2.5 rounded-xl border bg-card p-6 text-card-foreground">
-              <h3 className="text-lg font-semibold tracking-tight">{card.title}</h3>
-              <p className="text-[0.9375rem] text-muted-foreground">{card.body}</p>
+              <h3 className="text-xl font-semibold tracking-tight">{card.title}</h3>
+              <p className="text-muted-foreground">{card.body}</p>
               <p className="mt-auto flex flex-wrap items-center gap-x-2.5 pt-1.5 font-mono text-xs text-muted-foreground">
                 {card.owned && (
                   <>
@@ -23,9 +23,12 @@ export function Highlights({ cards }: { cards: HighlightCard[] }) {
                     <span aria-hidden="true">·</span>
                   </>
                 )}
-                <span>
+                <a
+                  href={`#experience-${card.experienceSlug}`}
+                  className="underline-offset-4 hover:underline"
+                >
                   {card.company}, {card.years}
-                </span>
+                </a>
               </p>
             </article>
           </li>

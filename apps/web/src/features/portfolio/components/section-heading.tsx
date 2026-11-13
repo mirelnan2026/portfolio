@@ -5,7 +5,7 @@ export function SectionHeading({ id, children }: { id: string; children: ReactNo
   return (
     <h2
       id={id}
-      className="mb-6 font-mono text-[0.8125rem] font-medium tracking-[0.08em] text-muted-foreground uppercase"
+      className="mb-6 font-mono text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase"
     >
       {children}
     </h2>
