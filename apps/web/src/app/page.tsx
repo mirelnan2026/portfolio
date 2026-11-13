@@ -18,7 +18,7 @@ import {
   getSkills,
   getWorkflow,
 } from "@/features/portfolio/queries";
-import { skillGroups } from "@/features/portfolio/skills";
+import { skillGroups, topSkills } from "@/features/portfolio/skills";
 import { workflowIntro } from "@/features/portfolio/workflow";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,6 +40,8 @@ export default async function HomePage() {
       getCurrentMonth(),
     ]);
 
+  const groups = skillGroups(skills, experiences, currentMonth);
+
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6">
       <Hero profile={profile} />
@@ -51,7 +53,7 @@ export default async function HomePage() {
         skills={skills}
         currentMonth={currentMonth}
       />
-      <Skills groups={skillGroups(skills, experiences, currentMonth)} />
+      <Skills groups={groups} top={topSkills(groups, skills, 12)} />
       <CaseStudies cards={caseStudyCards(caseStudies, experiences, skills)} />
       <HowIWork intro={workflowIntro(profile.summary)} steps={workflow} />
     </div>

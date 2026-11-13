@@ -1,6 +1,6 @@
 import type { Experience, Skill } from "@mirelnan/domain";
 import { describe, expect, it } from "vitest";
-import { selectedSkill, skillGroups, toggledSkillSearch } from "./skills";
+import { selectedSkill, skillGroups, toggledSkillSearch, topSkills } from "./skills";
 
 const skill = (slug: string, category: Skill["category"]): Skill => ({
   slug,
@@ -71,6 +71,15 @@ describe("skillGroups", () => {
   it("names the phase and its years when the skill was used in one phase", () => {
     expect(groups[1]?.skills[0]?.roles).toEqual([
       { experienceSlug: "newer", company: "newer company", phase: "Dashboard", years: "2026" },
+    ]);
+  });
+
+  it("lists the top skills in the owner's ranking, across groups", () => {
+    const ranked = [skill("angular", "frontend"), skill("claude-code", "ai-assisted-development")];
+    expect(topSkills(groups, ranked, 1).map((item) => item.slug)).toEqual(["angular"]);
+    expect(topSkills(groups, ranked, 5).map((item) => item.slug)).toEqual([
+      "angular",
+      "claude-code",
     ]);
   });
 
