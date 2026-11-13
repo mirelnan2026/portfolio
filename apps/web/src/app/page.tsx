@@ -22,7 +22,9 @@ import {
   getWorkflow,
 } from "@/features/portfolio/queries";
 import { skillGroups, topSkills } from "@/features/portfolio/skills";
+import { jsonLdText, profilePageJsonLd } from "@/features/portfolio/structured-data";
 import { workflowIntro } from "@/features/portfolio/workflow";
+import { siteUrl } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [profile, experiences] = await Promise.all([getProfile(), getExperiences()]);
@@ -56,9 +58,21 @@ export default async function HomePage() {
   ]);
 
   const groups = skillGroups(skills, experiences, currentMonth);
+  const top = topSkills(groups, skills, 12);
+  const [role = profile.headline] = profile.headline.split(" · ");
+  const jsonLd = profilePageJsonLd({
+    profile,
+    role,
+    knowsAbout: [...top.map((skill) => skill.name), ...profile.competencies],
+    education,
+    url: siteUrl,
+  });
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      {/* Structured data for search and AI: our own records, with "<" escaped (see jsonLdText). */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdText(jsonLd) }} />
+
       <Hero profile={profile} />
       <Highlights cards={highlightCards(experiences)} />
       <Experience
@@ -68,7 +82,7 @@ export default async function HomePage() {
         skills={skills}
         currentMonth={currentMonth}
       />
-      <Skills groups={groups} top={topSkills(groups, skills, 12)} />
+      <Skills groups={groups} top={top} />
       <CaseStudies cards={caseStudyCards(caseStudies, experiences, skills)} />
       <HowIWork intro={workflowIntro(profile.summary)} steps={workflow} />
       <EducationAndLanguages education={education} languages={languages} />
