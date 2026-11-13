@@ -1,7 +1,9 @@
 import type { Experience, Industry, Product, Skill, YearMonth } from "@mirelnan/domain";
+import { Suspense } from "react";
 import { durationLabel, employmentLine, yearRange } from "../format";
 import { cardSkills } from "../timeline";
 import { ProductNote } from "./product-note";
+import { SkillMatch } from "./skill-match";
 
 /** How many highlights a role shows before "Show all" (owner decision). */
 const visibleHighlights = 5;
@@ -27,6 +29,11 @@ export function ExperienceCard({ experience, products, industries, skills, curre
     experience.highlights.slice(visibleHighlights),
   ];
   const technologies = cardSkills(experience).flatMap((usage) => skills.get(usage.skillSlug) ?? []);
+  // Every skill the role used (the skills matrix rows too), so the filter's label matches its "Where it was used".
+  const usedSkills = experience.skills.flatMap((usage) => {
+    const skill = skills.get(usage.skillSlug);
+    return skill === undefined ? [] : [{ slug: skill.slug, name: skill.name }];
+  });
   // Phases newest first, numbered in the order they happened.
   const phases = experience.phases
     .map((phase, index) => ({ phase, number: index + 1 }))
@@ -35,11 +42,15 @@ export function ExperienceCard({ experience, products, industries, skills, curre
   return (
     <article
       id={`experience-${experience.slug}`}
+      data-experience={experience.slug}
       className="grid gap-x-8 gap-y-3 pb-12 md:grid-cols-[11rem_minmax(0,1fr)]"
     >
-      <p className="flex gap-3 font-mono text-xs text-muted-foreground md:flex-col md:gap-0.5 md:pt-1">
+      <p className="flex flex-wrap items-center gap-x-3 font-mono text-xs text-muted-foreground md:flex-col md:items-start md:gap-0.5 md:pt-1">
         <span className="text-foreground">{yearRange(experience.period)}</span>
         <span>{durationLabel(experience.period, currentMonth)}</span>
+        <Suspense fallback={null}>
+          <SkillMatch skills={usedSkills} />
+        </Suspense>
       </p>
 
       <div className="flex flex-col gap-4 md:border-l md:pl-8">

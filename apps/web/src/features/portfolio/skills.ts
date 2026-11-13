@@ -1,5 +1,6 @@
 import type { Experience, Skill, SkillCategory, YearMonth } from "@mirelnan/domain";
 import { skillTenure } from "@mirelnan/domain";
+import { yearRange } from "./format";
 
 /** The group names of the CV's "Technical skills". */
 const categoryNames: Record<SkillCategory, string> = {
@@ -12,17 +13,43 @@ const categoryNames: Record<SkillCategory, string> = {
   practices: "Practices",
 };
 
+/** A role that used a skill, as the "Where it was used" panel lists it. */
+export interface SkillRole {
+  experienceSlug: string;
+  company: string;
+  /** The phase's title when the skill was used in one phase only, otherwise null. */
+  phase: string | null;
+  /** "2025–2026": the phase's years when there is one, otherwise the role's. */
+  years: string;
+}
+
 export interface SkillItem {
   slug: string;
   name: string;
   /** Months covered by the roles that used it, each month once. */
   months: number;
+  /** The roles that used it, newest first. */
+  roles: SkillRole[];
+  /** The sources' notes on how it was used, from the skill links. */
+  notes: string[];
 }
 
 export interface SkillGroup {
   category: SkillCategory;
   name: string;
   skills: SkillItem[];
+}
+
+/** One role in a skill's panel: a link with a phase names the phase and its years. */
+function skillRole(experience: Experience, skillSlug: string): SkillRole {
+  const link = experience.skills.find((candidate) => candidate.skillSlug === skillSlug);
+  const phase = experience.phases.find((candidate) => candidate.slug === link?.phaseSlug);
+  return {
+    experienceSlug: experience.slug,
+    company: experience.company,
+    phase: phase?.title ?? null,
+    years: yearRange(phase?.period ?? experience.period),
+  };
 }
 
 /**
@@ -35,6 +62,7 @@ export function skillGroups(
   currentMonth: YearMonth,
 ): SkillGroup[] {
   const tenure = skillTenure(experiences, currentMonth);
+  const bySlug = new Map(experiences.map((experience) => [experience.slug, experience]));
   const groups = new Map<SkillCategory, SkillGroup>();
   for (const skill of skills) {
     const usage = tenure.get(skill.slug);
@@ -46,8 +74,38 @@ export function skillGroups(
       name: categoryNames[skill.category],
       skills: [],
     };
-    group.skills.push({ slug: skill.slug, name: skill.name, months: usage.months });
+    group.skills.push({
+      slug: skill.slug,
+      name: skill.name,
+      months: usage.months,
+      roles: usage.experienceSlugs.flatMap((slug) => {
+        const experience = bySlug.get(slug);
+        return experience === undefined ? [] : [skillRole(experience, skill.slug)];
+      }),
+      notes: experiences.flatMap((experience) =>
+        experience.skills.flatMap((link) =>
+          link.skillSlug === skill.slug && link.contextNote !== null ? [link.contextNote] : [],
+        ),
+      ),
+    });
     groups.set(skill.category, group);
   }
   return [...groups.values()];
+}
+
+/** The page's query string after a skill is pressed: it selects the skill, or clears it when already selected. */
+export function toggledSkillSearch(search: string, slug: string): string {
+  const params = new URLSearchParams(search);
+  if (params.get("skill") === slug) {
+    params.delete("skill");
+  } else {
+    params.set("skill", slug);
+  }
+  const query = params.toString();
+  return query === "" ? "" : `?${query}`;
+}
+
+/** The skill a query string selects; an unknown slug selects nothing. */
+export function selectedSkill(groups: SkillGroup[], slug: string | null): SkillItem | null {
+  return groups.flatMap((group) => group.skills).find((skill) => skill.slug === slug) ?? null;
 }
