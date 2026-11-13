@@ -16,6 +16,7 @@ const allTables = [
   tables.experienceHighlights,
   tables.experiencePhases,
   tables.experiences,
+  tables.workflowSteps,
   tables.languages,
   tables.education,
   tables.profiles,
@@ -136,6 +137,16 @@ export async function writeCvData(db: Database, input: CvData): Promise<void> {
       tables.languages,
       data.languages.map(({ sourceSlug, ...language }, position) => ({
         ...language,
+        position,
+        sourceId: sourceId(sourceSlug),
+      })),
+    );
+
+    await insertRows(
+      tx,
+      tables.workflowSteps,
+      data.workflow.map(({ sourceSlug, ...step }, position) => ({
+        ...step,
         position,
         sourceId: sourceId(sourceSlug),
       })),

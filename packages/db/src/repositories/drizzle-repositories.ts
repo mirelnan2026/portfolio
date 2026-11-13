@@ -10,6 +10,7 @@ import { createDrizzleProfileRepository } from "./drizzle-profile-repository";
 import { createDrizzleProjectRepository } from "./drizzle-project-repository";
 import { createDrizzleSkillRepository } from "./drizzle-skill-repository";
 import { createDrizzleSourceRepository } from "./drizzle-source-repository";
+import { createDrizzleWorkflowRepository } from "./drizzle-workflow-repository";
 
 /** Every port, read from Postgres. The composition root calls this once with its database. */
 export function createDrizzleRepositories(db: Database): Repositories {
@@ -24,5 +25,6 @@ export function createDrizzleRepositories(db: Database): Repositories {
     products: createDrizzleProductRepository(db),
     education: createDrizzleEducationRepository(db),
     languages: createDrizzleLanguageRepository(db),
+    workflow: createDrizzleWorkflowRepository(db),
   };
 }

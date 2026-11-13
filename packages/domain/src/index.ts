@@ -62,6 +62,8 @@ export { skillCategorySchema, skillSchema } from "./entities/skill";
 export type { Skill, SkillCategory } from "./entities/skill";
 export { sourceKindSchema, sourceSchema } from "./entities/source";
 export type { Source, SourceKind } from "./entities/source";
+export { workflowStepSchema } from "./entities/workflow-step";
+export type { WorkflowStep } from "./entities/workflow-step";
 
 // Repositories (ports)
 export type { CaseStudyRepository } from "./repositories/case-study-repository";
@@ -75,6 +77,7 @@ export type { ProjectRepository } from "./repositories/project-repository";
 export type { Repositories } from "./repositories/repositories";
 export type { SkillRepository } from "./repositories/skill-repository";
 export type { SourceRepository } from "./repositories/source-repository";
+export type { WorkflowRepository } from "./repositories/workflow-repository";
 
 // Rules
 export { formatDuration, monthsBetween, toDuration } from "./rules/duration";

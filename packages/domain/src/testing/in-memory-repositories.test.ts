@@ -44,6 +44,7 @@ const data: CvData = {
   products: [],
   education: [],
   languages: [],
+  workflow: [],
 };
 
 describe("createInMemoryRepositories", () => {

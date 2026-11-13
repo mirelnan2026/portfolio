@@ -11,7 +11,7 @@ src/
 │                 Featured { title, rank } (a Highlights card and its place)
 ├─ entities/      one schema per entity or aggregate: profile, experience (phases, highlights, skill and
 │                 product links), project, case study, skill, product, industry, education, language,
-│                 source, and cv-data (the whole snapshot the seed loads)
+│                 workflow step, source, and cv-data (the whole snapshot the seed loads)
 ├─ repositories/  the ports: one read-only interface per aggregate root, bundled in `Repositories`
 ├─ rules/         pure functions: durations ("3 years 8 months"), a skill's tenure (the union of the
 │                 periods that used it), the links a project shows

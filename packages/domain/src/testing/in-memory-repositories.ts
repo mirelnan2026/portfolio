@@ -29,5 +29,6 @@ export function createInMemoryRepositories(data: CvData): Repositories {
     products: { list: () => Promise.resolve(data.products) },
     education: { list: () => Promise.resolve(data.education) },
     languages: { list: () => Promise.resolve(data.languages) },
+    workflow: { list: () => Promise.resolve(data.workflow) },
   };
 }

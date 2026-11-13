@@ -154,8 +154,8 @@ erDiagram
 ```
 
 `||--o{` reads "one to zero or more"; `|o--o{` is the same with an optional parent (a nullable foreign key).
-Not drawn, to keep the diagram readable: `profiles`, `education` and `languages` (simple tables with a
-`source_id`), the `source_id` link of every table except `experiences`, and the `position` column that every
+Not drawn, to keep the diagram readable: `profiles`, `education`, `languages` and `workflow_steps` (simple
+tables with a `source_id`), the `source_id` link of every table except `experiences`, and the `position` column that every
 list has. The full definition is in [`src/schema`](src/schema) and the SQL in [`migrations`](migrations).
 
 ## Rules the database enforces
