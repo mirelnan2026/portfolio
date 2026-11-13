@@ -36,6 +36,12 @@ export async function getSkills() {
   return repositories.skills.list();
 }
 
+export async function getCaseStudies() {
+  "use cache";
+  cacheLife("max");
+  return repositories.caseStudies.list();
+}
+
 /** The month the page was built in: durations of ongoing roles and the "earlier" cut-off count up to it. */
 // eslint-disable-next-line @typescript-eslint/require-await -- a "use cache" function has to be async
 export async function getCurrentMonth() {

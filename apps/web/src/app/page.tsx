@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { caseStudyCards } from "@/features/portfolio/case-studies";
+import { CaseStudies } from "@/features/portfolio/components/case-studies";
 import { Experience } from "@/features/portfolio/components/experience";
 import { Hero } from "@/features/portfolio/components/hero";
 import { Highlights } from "@/features/portfolio/components/highlights";
@@ -6,6 +8,7 @@ import { Skills } from "@/features/portfolio/components/skills";
 import { highlightCards } from "@/features/portfolio/highlights";
 import { portfolioMetadata } from "@/features/portfolio/metadata";
 import {
+  getCaseStudies,
   getCurrentMonth,
   getExperiences,
   getIndustries,
@@ -22,14 +25,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [profile, experiences, products, industries, skills, currentMonth] = await Promise.all([
-    getProfile(),
-    getExperiences(),
-    getProducts(),
-    getIndustries(),
-    getSkills(),
-    getCurrentMonth(),
-  ]);
+  const [profile, experiences, products, industries, skills, caseStudies, currentMonth] =
+    await Promise.all([
+      getProfile(),
+      getExperiences(),
+      getProducts(),
+      getIndustries(),
+      getSkills(),
+      getCaseStudies(),
+      getCurrentMonth(),
+    ]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6">
@@ -43,6 +48,7 @@ export default async function HomePage() {
         currentMonth={currentMonth}
       />
       <Skills groups={skillGroups(skills, experiences, currentMonth)} />
+      <CaseStudies cards={caseStudyCards(caseStudies, experiences, skills)} />
     </div>
   );
 }

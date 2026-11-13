@@ -216,6 +216,12 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   `SkillList` puts on the pressed button (an element in our own tree is reached by a ref); this effect is declared
   after the timeline one, because opening "Earlier experience" moves everything below it. Pure helpers `toggledSkillSearch` and
   `selectedSkill` are tested; `SkillList` is `"use client"` because its buttons take `onClick`.
+- **Case studies** (step 7e, 2026-11-13): `features/portfolio/case-studies.ts` → `caseStudyCards` (pure, tested)
+  resolves each story's subject to its role and phase, "JWP Connatix · Content management suite · 2023–2024",
+  the company linked to `#experience-<slug>`; a story about a personal project has no subject until projects are on
+  the page. Each card (`#case-study-<slug>`) shows the title and the context; the approach, the outcome and what it
+  shows are a `<dl>` in a native `<details>`, so the page stays static and every word is in the HTML. The mockup's
+  category labels ("Architecture") are not in the data, so they are left out.
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below
