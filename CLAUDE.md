@@ -186,8 +186,9 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   highlights in CV order, the rest behind a native `<details>`/`<summary>` ("Show all N" / "Show fewer"), which
   announces its expanded state and needs no JavaScript, so the page stays static; the JWX phases are cards on the
   muted background, newest first and numbered in the order they happened, each with its period, industry, summary
-  and product; every product note names the product's own industry, also inside a phase (it can differ from
-  the phase's: JWX Portal). Badges show only the skills from the CV's "Technologies" line and the brief (`cardSkills`), not the
+  and product; a product is one line, "Product · <industry> · <name> ↗", without its description (owner decision,
+  2026-11-13, to cut text: the link leads to the product's page), naming the product's own industry, also inside a
+  phase (it can differ from the phase's: JWX Portal). Badges show only the skills from the CV's "Technologies" line and the brief (`cardSkills`), not the
   skills matrix rows (36 at JWX). Roles that ended more than 10 years before the build month are grouped under an
   "Earlier experience" disclosure (`splitByAge`; the month comes from a `"use cache"` query, since the domain reads
   no clock). Each role is `#experience-<slug>`, the anchor the Highlights cards link to. Helpers are pure and tested
@@ -196,7 +197,10 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   names in a `Record<SkillCategory, string>`), groups in the order of their most important skill and skills by
   `position`; each skill shows its tenure from `skillTenure` in `domain/rules` (the union of the periods of its links,
   a phase's period when the link has one, overlaps once), rounded **down** to whole years by `tenureLabel`
-  ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim never overstates.
+  ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim never overstates. Only the **top 12 skills** in
+  the owner's ranking are always visible (`topSkills`); all 62, by category, sit behind "Show all 62 skills, by
+  category" (owner decision, 2026-11-13: the section was a quarter of the page). A `?skill=` link to a skill outside
+  the top opens that disclosure, so the pressed button and its panel are visible.
 - **Skill filter** (step 7d, owner decision 2026-11-13, kept over a no-JS `<details>` version because the chat and
   job match will link to a skill): each skill is a `<button aria-pressed>`; `?skill=<slug>` is the state, so a
   selection is a shareable link. The page stays static: `components/skills.tsx` (server) wraps the client
@@ -230,9 +234,10 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below
   the hero titles (owner decision, 2026-11-13, replacing the mockup's 13/15/17/18px): 12px (`text-xs`, mono labels,
-  badges, periods, section titles uppercase and tracked), 14px (`text-sm`, secondary lines: employment line, product
+  badges, periods), 14px (`text-sm`, secondary lines: employment line, product
   note, "Show all"), 16px (`text-base`, everything meant to be read: intro, highlights, phase summaries) and 20px
-  (`text-xl`, card titles). Hierarchy comes from weight and colour, not 1px steps; no arbitrary `text-[…]` sizes.
+  (`text-xl`, card titles, and the section titles: mono, uppercase, tracked, semibold, in the text colour, owner
+  decision 2026-11-13, because the 12px muted ones did not mark where a section starts; no rules or borders added). Hierarchy comes from weight and colour, not 1px steps; no arbitrary `text-[…]` sizes.
   `<summary>` toggles get `py-0.5` (24px target) and 44px under `pointer-coarse`, through padding: a `display: flex`
   summary loses its disclosure marker.
 - **No copy without a source** (owner decision, 2026-11-10): every visible sentence about the owner comes from the

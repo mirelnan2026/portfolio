@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { type SkillGroup, selectedSkill, toggledSkillSearch } from "../skills";
+import { type SkillGroup, type SkillItem, selectedSkill, toggledSkillSearch } from "../skills";
 import { SkillList } from "./skill-list";
 
 /**
@@ -10,7 +10,7 @@ import { SkillList } from "./skill-list";
  * Pressing a skill only replaces the URL (no request: the page is static); each timeline role shows its own
  * "✓ <skill>" label (`SkillMatch`), which reads the same URL.
  */
-export function SkillFilter({ groups }: { groups: SkillGroup[] }) {
+export function SkillFilter({ groups, top }: { groups: SkillGroup[]; top: SkillItem[] }) {
   const selected = selectedSkill(groups, useSearchParams().get("skill"));
   const firstRender = useRef(true);
   const pressedRef = useRef<HTMLButtonElement>(null);
@@ -48,6 +48,12 @@ export function SkillFilter({ groups }: { groups: SkillGroup[] }) {
   }
 
   return (
-    <SkillList groups={groups} selected={selected} onToggle={toggle} pressedRef={pressedRef} />
+    <SkillList
+      groups={groups}
+      top={top}
+      selected={selected}
+      onToggle={toggle}
+      pressedRef={pressedRef}
+    />
   );
 }

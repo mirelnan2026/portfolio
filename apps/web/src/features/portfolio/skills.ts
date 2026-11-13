@@ -109,3 +109,9 @@ export function toggledSkillSearch(search: string, slug: string): string {
 export function selectedSkill(groups: SkillGroup[], slug: string | null): SkillItem | null {
   return groups.flatMap((group) => group.skills).find((skill) => skill.slug === slug) ?? null;
 }
+
+/** The most important skills, in the owner's ranking (`skills` comes most important first). */
+export function topSkills(groups: SkillGroup[], skills: Skill[], count: number): SkillItem[] {
+  const items = new Map(groups.flatMap((group) => group.skills).map((item) => [item.slug, item]));
+  return skills.flatMap((skill) => items.get(skill.slug) ?? []).slice(0, count);
+}
