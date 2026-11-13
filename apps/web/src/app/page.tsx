@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { caseStudyCards } from "@/features/portfolio/case-studies";
 import { CaseStudies } from "@/features/portfolio/components/case-studies";
+import { EducationAndLanguages } from "@/features/portfolio/components/education-languages";
 import { Experience } from "@/features/portfolio/components/experience";
 import { Hero } from "@/features/portfolio/components/hero";
 import { Highlights } from "@/features/portfolio/components/highlights";
@@ -11,8 +12,10 @@ import { portfolioMetadata } from "@/features/portfolio/metadata";
 import {
   getCaseStudies,
   getCurrentMonth,
+  getEducation,
   getExperiences,
   getIndustries,
+  getLanguages,
   getProducts,
   getProfile,
   getSkills,
@@ -28,17 +31,29 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [profile, experiences, products, industries, skills, caseStudies, workflow, currentMonth] =
-    await Promise.all([
-      getProfile(),
-      getExperiences(),
-      getProducts(),
-      getIndustries(),
-      getSkills(),
-      getCaseStudies(),
-      getWorkflow(),
-      getCurrentMonth(),
-    ]);
+  const [
+    profile,
+    experiences,
+    products,
+    industries,
+    skills,
+    caseStudies,
+    workflow,
+    education,
+    languages,
+    currentMonth,
+  ] = await Promise.all([
+    getProfile(),
+    getExperiences(),
+    getProducts(),
+    getIndustries(),
+    getSkills(),
+    getCaseStudies(),
+    getWorkflow(),
+    getEducation(),
+    getLanguages(),
+    getCurrentMonth(),
+  ]);
 
   const groups = skillGroups(skills, experiences, currentMonth);
 
@@ -56,6 +71,7 @@ export default async function HomePage() {
       <Skills groups={groups} top={topSkills(groups, skills, 12)} />
       <CaseStudies cards={caseStudyCards(caseStudies, experiences, skills)} />
       <HowIWork intro={workflowIntro(profile.summary)} steps={workflow} />
+      <EducationAndLanguages education={education} languages={languages} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SkipLink } from "@/components/layout/skip-link";
 import { getProfile } from "@/features/portfolio/queries";
@@ -22,7 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const profile = await getProfile();
+
   return (
     // next-themes sets the `dark` class on <html> before React hydrates, so the server HTML and the
     // browser DOM differ there on purpose: suppressHydrationWarning silences that one attribute only.
@@ -41,6 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SkipLink />
           <SiteHeader />
           <main id="main">{children}</main>
+          <SiteFooter name={profile.name} email={profile.email} linkedinUrl={profile.linkedinUrl} />
         </ThemeProvider>
 
         {/* Cookieless page views, served first-party from /_vercel/insights (no consent banner needed). */}

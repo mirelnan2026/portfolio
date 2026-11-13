@@ -230,6 +230,12 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   spec-driven development, word for word (`workflowIntro`, tested; `sentences` lives in `format.ts`, shared with the
   metadata), then the `workflow` steps as an `<ol>` of muted cards, each titled "1 · Specify" in mono teal (the number
   `aria-hidden`, since the list already numbers it), three columns from `@2xl`.
+- **Education, languages and footer** (step 7g, 2026-11-13): `components/education-languages.tsx` renders two short
+  sections side by side from `md` (`#education`, `#languages`; the CEFR level only when there is one).
+  `components/layout/site-footer.tsx` is rendered by the root layout, so the 404 has it too: the name, the email
+  address as text (a `mailto:` link) and LinkedIn (new tab), from the profile, passed as plain props so layout
+  components never import from `features/`. The mockup's "Let's talk." and "Built with Next.js" lines have no source
+  and are left out; the accessibility statement link comes with its page.
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below
