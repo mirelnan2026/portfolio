@@ -52,7 +52,6 @@ export function Hero({ profile }: { profile: Profile }) {
         >
           Email
         </a>
-        <p className="text-sm text-muted-foreground">Ask about me and job match: coming soon</p>
       </div>
     </section>
   );

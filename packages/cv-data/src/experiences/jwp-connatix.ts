@@ -87,7 +87,7 @@ export const jwpConnatix = {
     {
       body:
         "Drove framework modernisation on a legacy multi-app Angular workspace: Angular 18 and Apollo " +
-        "GraphQL upgrades, plus the dependency-vulnerability and static-analysis backlog.",
+        "GraphQL upgrades, plus clearing the dependency-vulnerability and static-analysis backlog.",
       ownership: "owned",
       featured: null,
       phaseSlug: "content-management-suite",
@@ -199,7 +199,7 @@ export const jwpConnatix = {
     {
       skillSlug: "vite",
       phaseSlug: "video-platform-dashboard",
-      contextNote: "Build on the video dashboard.",
+      contextNote: "Build tooling for the video dashboard.",
       sourceSlug: "jwx-brief",
     },
     {

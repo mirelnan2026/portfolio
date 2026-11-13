@@ -20,8 +20,8 @@ export const sware = {
     },
     {
       body:
-        "Implemented reactive state management with NgRx and NGXS, reusable component libraries and " +
-        "responsive layouts.",
+        "Implemented reactive state management with NgRx and NGXS, and built reusable component " +
+        "libraries and responsive layouts.",
       ownership: "contributed",
       featured: null,
       phaseSlug: null,

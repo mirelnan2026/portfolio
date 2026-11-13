@@ -82,7 +82,7 @@ export function SkillList({ groups, top, selected, onToggle, pressedRef }: Props
         </div>
         <details ref={allRef} className="group">
           <summary className="w-fit cursor-pointer py-0.5 text-sm font-medium pointer-coarse:py-3">
-            <span className="group-open:hidden">Show all {total} skills, by category</span>
+            <span className="group-open:hidden">Show all {total} skills by category</span>
             <span className="hidden group-open:inline">Show fewer</span>
           </summary>
           <div className="flex flex-col gap-6 pt-6">
