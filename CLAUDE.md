@@ -147,7 +147,7 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
 - **`@mirelnan/db` public API:** `exports: { ".": "./src/index.ts" }` + `sideEffects: false`; `index.ts` exports
   only `connectToPostgres(url)` (+ `PostgresConnection`), `createDrizzleRepositories(db): Repositories` and the
   `Database` type. Tables, ids and `writeCvData` stay internal.
-- UI: light + dark + system themes via `next-themes`; colors only through CSS tokens (no hardcoded colors);
+- UI: light + dark + system themes via `next-themes`; colours only through CSS tokens (no hardcoded colours);
   no invented metrics, no skill progress bars. English only (`<html lang="en">`).
 
 ## Accessibility (first-class requirement)
@@ -167,7 +167,7 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   Colour tokens live only in `apps/web/src/app/globals.css` (OKLCH, `:root` + `.dark`); `theme-contrast.test.ts`
   checks every text pair (4.5:1) and the focus ring and input border (3:1) in both themes, so a token change that
   breaks AA fails the tests. shadcn's defaults failed four of these (muted text on muted, light ring, both inputs).
-- Respect `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`. Never convey state by color alone.
+- Respect `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`. Never convey state by colour alone.
 - External links open in a new tab: the owner's profiles (LinkedIn, owner decision 2026-11-11) and the product links
   in the timeline (owner decision, 2026-11-13). Each has `target="_blank" rel="noopener noreferrer"`, a visible ↗
   (`aria-hidden`) and an `sr-only` "(opens in a new tab)", so the change of context is announced (WCAG G201).
@@ -198,7 +198,7 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   `position`; each skill shows its tenure from `skillTenure` in `domain/rules` (the union of the periods of its links,
   a phase's period when the link has one, overlaps once), rounded **down** to whole years by `tenureLabel`
   ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim never overstates. Only the **top 12 skills** in
-  the owner's ranking are always visible (`topSkills`); all 62, by category, sit behind "Show all 62 skills, by
+  the owner's ranking are always visible (`topSkills`); all 62, by category, sit behind "Show all 62 skills by
   category" (owner decision, 2026-11-13: the section was a quarter of the page). A `?skill=` link to a skill outside
   the top opens that disclosure, so the pressed button and its panel are visible.
 - **Skill filter** (step 7d, owner decision 2026-11-13, kept over a no-JS `<details>` version because the chat and
