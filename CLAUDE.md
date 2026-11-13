@@ -349,8 +349,16 @@ Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at ste
   above 60 / 160 characters instead of letting search engines cut them), the root layout's `generateMetadata`
   (`metadataBase` as a string, because cached values must be serialisable, and the title template
   `%s · <name>`), `app/robots.ts`, `app/sitemap.ts` and `app/not-found.tsx` (our own 404: Next's default one adds a
-  second `<title>`). The canonical origin lives in `lib/site.ts`. Still to come: JSON-LD, the OG image, `llms.txt`,
-  the Playwright test, ADR 0007.
+  second `<title>`). The canonical origin lives in `lib/site.ts`.
+- **Implemented at step 8a** ([ADR 0007](docs/adr/0007-seo-baseline.md)): a JSON-LD `ProfilePage` + `Person`
+  (`features/portfolio/structured-data.ts`: `knowsAbout` = top 12 skills + `profile.competencies`, `sameAs` LinkedIn,
+  `alumniOf`), rendered by the page as an inline script through `jsonLdText`, which escapes `<` (the one sanctioned
+  `dangerouslySetInnerHTML`: our own JSON, never model output); `app/opengraph-image.tsx`, a 1200×630 card drawn with
+  `next/og` from the profile (light-theme colours in hex, since the renderer has no OKLCH; Geist, which next/og ships;
+  alt text from the profile through `generateImageMetadata`, served at `/opengraph-image/card`) with
+  `twitter:card summary_large_image`; `app/llms.txt/route.ts`, the site as Markdown from `features/portfolio/llms.ts`
+  (owned highlights marked "(owned)", products left out). All three are prerendered from the cached reads.
+  Still to come: the CSP hash for the inline scripts (8b) and the Playwright test.
 - **Indexing only on production:** `lib/deployment.ts` → `isProductionDeployment()` = `VERCEL_ENV === "production"`,
   read at build. Anything else (previews, local builds) gets `robots.txt` → `Disallow: /` and `X-Robots-Tag: noindex`.
   `VERCEL_ENV` is declared in turbo.json `build.env` (strict env mode would drop it, and it splits the cache).
