@@ -168,16 +168,29 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   checks every text pair (4.5:1) and the focus ring and input border (3:1) in both themes, so a token change that
   breaks AA fails the tests. shadcn's defaults failed four of these (muted text on muted, light ring, both inputs).
 - Respect `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`. Never convey state by color alone.
-- Links to the owner's external profiles (LinkedIn) open in a new tab (owner decision, 2026-11-11):
-  `target="_blank" rel="noopener noreferrer"`, a visible ↗ (`aria-hidden`) and an `sr-only` "(opens in a new tab)",
-  so the change of context is announced (WCAG G201). Other links open in the same tab.
+- External links open in a new tab: the owner's profiles (LinkedIn, owner decision 2026-11-11) and the product links
+  in the timeline (owner decision, 2026-11-13). Each has `target="_blank" rel="noopener noreferrer"`, a visible ↗
+  (`aria-hidden`) and an `sr-only` "(opens in a new tab)", so the change of context is announced (WCAG G201).
+  In-page and same-site links open in the same tab.
 - **One accent: teal** (owner decision, 2026-11-10; light ≈ teal-700 `#0f766e`, dark ≈ teal-300 `#5eead4`). It marks
   information only (availability badge, "Owned", phase numbers, the selected skill together with a check mark),
   never decoration. It becomes its own tokens in `globals.css`, separate from shadcn's `--accent` (which is the
   neutral hover background), with its pairs added to `theme-contrast.test.ts`.
-- **Experience timeline** (owner decision, 2026-11-10): each experience shows its first 5 highlights, the rest behind
-  a "Show all" button (`aria-expanded`); the JWX phases are cards on the muted background, each with its period,
-  industry, summary and, where linked, its product card.
+- **Highlights** (step 7a, 2026-11-12): the featured highlights as cards (`features/portfolio/highlights.ts` →
+  `highlightCards`, a tested pure function; `components/highlights.tsx`), ordered by `featured.rank` (1–4, set in
+  the data, independent of the bullets' CV order, which the timeline keeps); each card shows the phase's years
+  when it has a phase, and "Owned" in teal only for owned highlights (contributed ones carry no label, decided by
+  the owner). Section titles use `components/section-heading.tsx`. Grids use container queries (`@container`,
+  `@2xl:grid-cols-2`).
+- **Experience timeline** (owner decision 2026-11-10, built at step 7b): each experience shows its first 5
+  highlights in CV order, the rest behind a native `<details>`/`<summary>` ("Show all N" / "Show fewer"), which
+  announces its expanded state and needs no JavaScript, so the page stays static; the JWX phases are cards on the
+  muted background, newest first and numbered in the order they happened, each with its period, industry, summary
+  and product. Badges show only the skills from the CV's "Technologies" line and the brief (`cardSkills`), not the
+  skills matrix rows (36 at JWX). Roles that ended more than 10 years before the build month are grouped under an
+  "Earlier experience" disclosure (`splitByAge`; the month comes from a `"use cache"` query, since the domain reads
+  no clock). Each role is `#experience-<slug>`, the anchor the Highlights cards link to. Helpers are pure and tested
+  (`features/portfolio/format.ts`, `timeline.ts`); product links open in a new tab (see the external-links rule).
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; section titles 13px, uppercase, tracked, muted; body 16px, line-height 1.6. Reading width ~760px,

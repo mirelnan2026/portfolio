@@ -1,6 +1,6 @@
 import type { Experience } from "@mirelnan/domain";
 import { describe, expect, it } from "vitest";
-import { highlightCards, yearRange } from "./highlights";
+import { highlightCards } from "./highlights";
 
 const experience = {
   slug: "example-corp",
@@ -68,15 +68,5 @@ describe("highlightCards", () => {
         experienceSlug: "example-corp",
       },
     ]);
-  });
-});
-
-describe("yearRange", () => {
-  it.each([
-    [{ start: "2023-03", end: "2024-12" }, "2023–2024"],
-    [{ start: "2024-01", end: "2024-10" }, "2024"],
-    [{ start: "2025-01", end: null }, "2025–present"],
-  ] as const)("formats %j as %s", (period, expected) => {
-    expect(yearRange(period)).toBe(expected);
   });
 });

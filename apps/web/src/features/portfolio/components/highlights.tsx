@@ -23,9 +23,12 @@ export function Highlights({ cards }: { cards: HighlightCard[] }) {
                     <span aria-hidden="true">·</span>
                   </>
                 )}
-                <span>
+                <a
+                  href={`#experience-${card.experienceSlug}`}
+                  className="underline-offset-4 hover:underline"
+                >
                   {card.company}, {card.years}
-                </span>
+                </a>
               </p>
             </article>
           </li>

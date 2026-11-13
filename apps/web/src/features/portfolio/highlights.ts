@@ -1,4 +1,5 @@
-import type { Experience, Period } from "@mirelnan/domain";
+import type { Experience } from "@mirelnan/domain";
+import { yearRange } from "./format";
 
 /** One card in the Highlights section. */
 export interface HighlightCard {
@@ -9,13 +10,6 @@ export interface HighlightCard {
   /** "2025–2026", from the phase when the highlight belongs to one, otherwise from the experience. */
   years: string;
   experienceSlug: string;
-}
-
-/** "2023–2024", "2024" when it starts and ends in the same year, "2025–present" while it is ongoing. */
-export function yearRange(period: Period): string {
-  const start = period.start.slice(0, 4);
-  const end = period.end === null ? "present" : period.end.slice(0, 4);
-  return start === end ? start : `${start}–${end}`;
 }
 
 /** The featured highlights, in the order of their rank. */
