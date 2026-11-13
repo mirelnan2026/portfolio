@@ -39,7 +39,7 @@ export function Experience({ experiences, products, industries, skills, currentM
       </ol>
       {earliest !== undefined && latest !== undefined && (
         <details className="group">
-          <summary className="w-fit cursor-pointer text-[0.9375rem] font-medium text-muted-foreground hover:text-foreground">
+          <summary className="w-fit cursor-pointer font-medium pointer-coarse:py-2.5 text-muted-foreground hover:text-foreground">
             Earlier experience ·{" "}
             {yearRange({ start: earliest.period.start, end: latest.period.end })} ·{" "}
             {earlier.map((experience) => experience.company).join(", ")}

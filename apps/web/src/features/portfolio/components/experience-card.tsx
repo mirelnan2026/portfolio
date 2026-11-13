@@ -37,7 +37,7 @@ export function ExperienceCard({ experience, products, industries, skills, curre
       id={`experience-${experience.slug}`}
       className="grid gap-x-8 gap-y-3 pb-12 md:grid-cols-[11rem_minmax(0,1fr)]"
     >
-      <p className="flex gap-3 font-mono text-[0.8125rem] text-muted-foreground md:flex-col md:gap-0.5 md:pt-1">
+      <p className="flex gap-3 font-mono text-xs text-muted-foreground md:flex-col md:gap-0.5 md:pt-1">
         <span className="text-foreground">{yearRange(experience.period)}</span>
         <span>{durationLabel(experience.period, currentMonth)}</span>
       </p>
@@ -45,7 +45,7 @@ export function ExperienceCard({ experience, products, industries, skills, curre
       <div className="flex flex-col gap-4 md:border-l md:pl-8">
         <div>
           <h3 className="text-xl font-semibold tracking-tight">{experience.role}</h3>
-          <p className="text-[0.9375rem] text-muted-foreground">{employmentLine(experience)}</p>
+          <p className="text-sm text-muted-foreground">{employmentLine(experience)}</p>
         </div>
 
         {phases.length > 0 && (
@@ -60,7 +60,7 @@ export function ExperienceCard({ experience, products, industries, skills, curre
                   key={phase.slug}
                   className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-3 rounded-xl bg-muted p-4"
                 >
-                  <span className="font-mono text-[0.8125rem] font-medium text-brand">
+                  <span className="font-mono text-xs font-medium text-brand">
                     {String(number).padStart(2, "0")}
                   </span>
                   <div className="flex flex-col gap-2">
@@ -70,7 +70,7 @@ export function ExperienceCard({ experience, products, industries, skills, curre
                         · {yearRange(phase.period)} · {industries.get(phase.industrySlug)?.name}
                       </span>
                     </p>
-                    <p className="text-sm text-muted-foreground">{phase.summary}</p>
+                    <p className="text-muted-foreground">{phase.summary}</p>
                     {productOf(phase.slug).map((product) => (
                       <div key={product.slug} className="mt-2">
                         <ProductNote product={product} />
@@ -94,7 +94,7 @@ export function ExperienceCard({ experience, products, industries, skills, curre
         <HighlightList items={shown} />
         {hidden.length > 0 && (
           <details className="group">
-            <summary className="w-fit cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
+            <summary className="w-fit cursor-pointer py-0.5 text-sm font-medium pointer-coarse:py-3 text-muted-foreground hover:text-foreground">
               <span className="group-open:hidden">Show all {experience.highlights.length}</span>
               <span className="hidden group-open:inline">Show fewer</span>
             </summary>
@@ -120,7 +120,7 @@ export function ExperienceCard({ experience, products, industries, skills, curre
 
 function HighlightList({ items }: { items: Experience["highlights"] }) {
   return (
-    <ul className="flex list-disc flex-col gap-2 pl-5 text-[0.9375rem] marker:text-muted-foreground">
+    <ul className="flex list-disc flex-col gap-2 pl-5 marker:text-muted-foreground">
       {items.map((highlight) => (
         <li key={highlight.body}>
           {highlight.body}

@@ -193,8 +193,13 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   (`features/portfolio/format.ts`, `timeline.ts`); product links open in a new tab (see the external-links rule).
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
-  20 → 24px; section titles 13px, uppercase, tracked, muted; body 16px, line-height 1.6. Reading width ~760px,
-  content container 1040px.
+  20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below
+  the hero titles (owner decision, 2026-11-13, replacing the mockup's 13/15/17/18px): 12px (`text-xs`, mono labels,
+  badges, periods, section titles uppercase and tracked), 14px (`text-sm`, secondary lines: employment line, product
+  note, "Show all"), 16px (`text-base`, everything meant to be read: intro, highlights, phase summaries) and 20px
+  (`text-xl`, card titles). Hierarchy comes from weight and colour, not 1px steps; no arbitrary `text-[…]` sizes.
+  `<summary>` toggles get `py-0.5` (24px target) and 44px under `pointer-coarse`, through padding: a `display: flex`
+  summary loses its disclosure marker.
 - **No copy without a source** (owner decision, 2026-11-10): every visible sentence about the owner comes from the
   data. "How I work" is three steps (Specify → Implement → Own the result) worded from the spec-driven highlight;
   the footer holds only email, LinkedIn and the accessibility statement link.
