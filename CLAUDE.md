@@ -236,6 +236,9 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   address as text (a `mailto:` link) and LinkedIn (new tab), from the profile, passed as plain props so layout
   components never import from `features/`. The mockup's "Let's talk." and "Built with Next.js" lines have no source
   and are left out; the accessibility statement link comes with its page.
+- **Under each role's title, only the company** (owner decision, 2026-11-13): the employment type, work mode and
+  location stay in the data (the chat and job match can answer "has Mirel worked remotely?") but are not shown, because
+  they were the least useful line on the card; the hero's intro already says "fully remote since 2020".
 - **Typography** (owner decision, 2026-11-10, as in the mockup): Geist Sans for text, Geist Mono for periods,
   durations, labels and section titles. `h1` fluid from 40px (phone) to 56px (desktop) with `clamp()`, headline
   20 → 24px; body 16px, line-height 1.6. Reading width ~760px, content container 1040px. **Four-step scale** below

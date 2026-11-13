@@ -1,4 +1,4 @@
-import type { Experience, Period, YearMonth } from "@mirelnan/domain";
+import type { Period, YearMonth } from "@mirelnan/domain";
 import { formatDuration, monthsBetween, toDuration } from "@mirelnan/domain";
 
 /** A text's sentences: it splits after a full stop, question or exclamation mark followed by a space. */
@@ -16,21 +16,6 @@ export function yearRange(period: Period): string {
 /** "3 years 8 months"; an ongoing period counts up to `currentMonth`. */
 export function durationLabel(period: Period, currentMonth: YearMonth): string {
   return formatDuration(toDuration(monthsBetween(period.start, period.end ?? currentMonth)));
-}
-
-const employmentTypes = { "full-time": "Full-time", contract: "Contract", freelance: "Freelance" };
-const workModes = { remote: "Remote", hybrid: "Hybrid", "on-site": "On-site" };
-
-/** "JWP Connatix · Contract · Remote", "CN Group · Full-time · Hybrid · Bucharest, Romania". */
-export function employmentLine(experience: Experience): string {
-  return [
-    experience.company,
-    employmentTypes[experience.employmentType],
-    experience.workMode === null ? null : workModes[experience.workMode],
-    experience.workMode === "remote" ? null : experience.location,
-  ]
-    .filter((part) => part !== null)
-    .join(" · ");
 }
 
 /**

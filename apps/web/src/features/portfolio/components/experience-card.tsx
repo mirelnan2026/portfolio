@@ -1,6 +1,6 @@
 import type { Experience, Industry, Product, Skill, YearMonth } from "@mirelnan/domain";
 import { Suspense } from "react";
-import { durationLabel, employmentLine, yearRange } from "../format";
+import { durationLabel, yearRange } from "../format";
 import { cardSkills } from "../timeline";
 import { ProductNote } from "./product-note";
 import { SkillMatch } from "./skill-match";
@@ -56,7 +56,7 @@ export function ExperienceCard({ experience, products, industries, skills, curre
       <div className="flex flex-col gap-4 md:border-l md:pl-8">
         <div>
           <h3 className="text-xl font-semibold tracking-tight">{experience.role}</h3>
-          <p className="text-sm text-muted-foreground">{employmentLine(experience)}</p>
+          <p className="text-sm text-muted-foreground">{experience.company}</p>
         </div>
 
         {phases.length > 0 && (
