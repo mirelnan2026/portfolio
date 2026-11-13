@@ -73,7 +73,10 @@ export function ExperienceCard({ experience, products, industries, skills, curre
                     <p className="text-muted-foreground">{phase.summary}</p>
                     {productOf(phase.slug).map((product) => (
                       <div key={product.slug} className="mt-2">
-                        <ProductNote product={product} />
+                        <ProductNote
+                          product={product}
+                          industry={industries.get(product.industrySlug)}
+                        />
                       </div>
                     ))}
                   </div>

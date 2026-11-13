@@ -186,7 +186,8 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   highlights in CV order, the rest behind a native `<details>`/`<summary>` ("Show all N" / "Show fewer"), which
   announces its expanded state and needs no JavaScript, so the page stays static; the JWX phases are cards on the
   muted background, newest first and numbered in the order they happened, each with its period, industry, summary
-  and product. Badges show only the skills from the CV's "Technologies" line and the brief (`cardSkills`), not the
+  and product; every product note names the product's own industry, also inside a phase (it can differ from
+  the phase's: JWX Portal). Badges show only the skills from the CV's "Technologies" line and the brief (`cardSkills`), not the
   skills matrix rows (36 at JWX). Roles that ended more than 10 years before the build month are grouped under an
   "Earlier experience" disclosure (`splitByAge`; the month comes from a `"use cache"` query, since the domain reads
   no clock). Each role is `#experience-<slug>`, the anchor the Highlights cards link to. Helpers are pure and tested
