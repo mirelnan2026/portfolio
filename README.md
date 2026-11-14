@@ -15,6 +15,7 @@ for every claim, and accessibility, security and SEO rules enforced by tooling a
 | ---------------------------------------------------------------------------------------- | ---------- |
 | Portfolio page rendered from Postgres, light / dark / system themes, keyboard-first      | ✅ live    |
 | Experience timeline, skills with years per skill (computed from the data), case studies  | ✅ live    |
+| A skill filter with shareable links (`?skill=react`), section navigation, a share image  | ✅ live    |
 | **Ask about me** — a Claude chat grounded in the CV through tool use, with source links  | 🚧 planned |
 | **Job match** — paste a job description, get requirement → evidence → level              | 🚧 planned |
 | **MCP server** — the same CV tools for Claude Desktop, Claude Code and other MCP clients | 🚧 planned |
@@ -105,8 +106,8 @@ portfolio/
 └─ .github/workflows/       CI: lint, typecheck, test and build against a throwaway Postgres
 ```
 
-Each package and tooling folder has its own `README.md` with its API and rules. Code in `apps/web/src` is grouped
-by feature, not by file type.
+Each app, package and tooling folder has its own `README.md` with its API and rules; the site's is
+[`apps/web/README.md`](apps/web/README.md). Code in `apps/web/src` is grouped by feature, not by file type.
 
 ## Running it locally
 

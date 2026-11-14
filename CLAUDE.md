@@ -20,7 +20,8 @@ Follow both; where they differ, `CLAUDE.local.md` wins.
   required checks `Lint, typecheck, test, build` (CI) and `Vercel`, on a branch that is up to date with `main`. Repo
   settings: squash merging only, with the pull request title as the default message; head branches deleted after merge.
 - **Every folder in `packages/` and `tooling/` has a `README.md`** (what it is, its public API or presets, the
-  rules it holds); `apps/web` gets one once its sections exist, by step 6 at the latest. A change to a package's
+  rules it holds); `apps/web/README.md` (since step 8b: structure, data flow, environment, design rules,
+  scripts) follows the same rule. A change to a package's
   API, structure, presets or rules updates its README in the same commit.
 - **Keep `CLAUDE.md` and `README.md` in sync with decisions.** Whenever an architecture, tooling, convention,
   security or accessibility decision is made or changed, update both in the same step: `CLAUDE.md` (rules and
