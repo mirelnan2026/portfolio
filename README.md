@@ -74,7 +74,8 @@ The tables, their relations and the rules the database enforces are in
 
 **Security — OWASP Top 10 and OWASP Top 10 for LLM applications**
 
-- ✅ Security headers (HSTS, `nosniff`, Referrer-Policy, Permissions-Policy, no framing) from a tested function.
+- ✅ Security headers (HSTS, `nosniff`, Referrer-Policy, Permissions-Policy, no framing, Cross-Origin-Opener-Policy)
+  from a tested function; Mozilla Observatory B+, the one deduction being `'unsafe-inline'` in the CSP.
 - ✅ A Content Security Policy that keeps the page static: same-origin only, no framing or plugins, inline scripts
   allowed because the prerendered page needs them ([ADR 0005](docs/adr/0005-security-baseline.md)).
 - ✅ The app connects with a read-only database role; secrets are validated at startup and never echoed.

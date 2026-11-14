@@ -20,6 +20,13 @@ describe("securityHeaders", () => {
     expect(new Set(keys(production)).size).toBe(keys(production).length);
   });
 
+  it("isolates the site from windows of other origins", () => {
+    expect(securityHeaders({ production: true })).toContainEqual({
+      key: "Cross-Origin-Opener-Policy",
+      value: "same-origin",
+    });
+  });
+
   it("lets only production be indexed", () => {
     expect(keys(true)).not.toContain("X-Robots-Tag");
     expect(securityHeaders({ production: false })).toContainEqual({

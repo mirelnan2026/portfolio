@@ -75,6 +75,8 @@ export function securityHeaders({
     },
     // No other site may show this one in a frame (clickjacking): the old header and its CSP successor.
     { key: "X-Frame-Options", value: "DENY" },
+    // A window this site opens, or one that opens it, gets no handle to it (no `window.opener` across origins).
+    { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
     { key: "Content-Security-Policy", value: contentSecurityPolicy({ production, development }) },
   ];
   // Previews and local builds must never appear in search results.
