@@ -1,7 +1,6 @@
-/**
- * The page's contact line: the email address and LinkedIn, from the profile. Nothing else until there is
- * something with a source to link to (the accessibility statement comes with its page).
- */
+import Link from "next/link";
+
+/** The site's contact line: the email address and LinkedIn, from the profile, and the accessibility statement. */
 export function SiteFooter({
   name,
   email,
@@ -31,6 +30,11 @@ export function SiteFooter({
               LinkedIn <span aria-hidden="true">↗</span>
               <span className="sr-only">(opens in a new tab)</span>
             </a>
+          </li>
+          <li>
+            <Link href="/accessibility" className="underline underline-offset-4">
+              Accessibility
+            </Link>
           </li>
         </ul>
       </div>

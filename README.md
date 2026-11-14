@@ -70,7 +70,8 @@ The tables, their relations and the rules the database enforces are in
 - ✅ `eslint-plugin-jsx-a11y` (strict) on every commit and in CI.
 - ✅ A unit test checks the contrast of every colour pair the design uses, in light and dark.
 - ✅ Skip link, visible focus that the sticky header never hides, reduced-motion and high-contrast support.
-- 🚧 Playwright + axe on every page in both themes, Lighthouse CI, an accessibility statement.
+- ✅ Playwright + axe check every page against WCAG 2.2 AA in CI, in both themes, at desktop and phone sizes
+  ([ADR 0004](docs/adr/0004-accessibility-wcag-2-2-aa.md)), and an [accessibility statement](https://mirelnan.dev/accessibility).
 
 **Security — OWASP Top 10 and OWASP Top 10 for LLM applications**
 

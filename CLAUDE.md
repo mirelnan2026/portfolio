@@ -157,6 +157,16 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
 
 - Enforced by tooling: `eslint-plugin-jsx-a11y` (strict), `@axe-core/playwright` on every page in light and dark
   (violations fail CI), Lighthouse Accessibility = 100. E2E tests query by role/accessible name (`getByRole`).
+  **Since step 8c** ([ADR 0004](docs/adr/0004-accessibility-wcag-2-2-aa.md)): `apps/web/playwright.config.ts` runs
+  `apps/web/e2e/` against the production build (`next start` on port 3100) as two projects, Desktop Chrome and
+  Pixel 7; `accessibility.spec.ts` runs axe with the WCAG 2.0/2.1/2.2 A and AA tags on `/`, `/?skill=php` (hidden
+  content opened), `/accessibility` and a 404, in light and dark, and lists any violation by rule and element;
+  `page.spec.ts` covers the h1, the section navigation (the sheet on phones), `?skill=`, the security headers, the
+  SEO tags and JSON-LD, `robots.txt`/`sitemap.xml`/`llms.txt` and the 404. CI installs Chromium
+  (`playwright install --with-deps chromium`) and runs `pnpm --filter @mirelnan/web test:e2e` after the build; Vitest
+  excludes `e2e/**`. Versions pinned exact (`@playwright/test` 1.65.0, `@axe-core/playwright` 4.14.0). The public
+  statement is `app/accessibility/page.tsx`, linked from the footer and listed in the sitemap; it claims only the
+  checks that run (no screen-reader testing is claimed). Lighthouse CI is not set up.
 - Semantic HTML first, ARIA only where HTML is not enough; one `h1`, no skipped heading levels.
 - Full keyboard support, visible focus (`:focus-visible`), skip link, focus never hidden by the sticky header.
   How (step 4d): `globals.css` gives every element one focus style (`:focus-visible` → 2px solid `outline-ring`,
@@ -359,7 +369,7 @@ Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at ste
   alt text from the profile through `generateImageMetadata`, served at `/opengraph-image/card`) with
   `twitter:card summary_large_image`; `app/llms.txt/route.ts`, the site as Markdown from `features/portfolio/llms.ts`
   (owned highlights marked "(owned)", products left out). All three are prerendered from the cached reads.
-  Still to come: the CSP hash for the inline scripts (8b) and the Playwright test.
+  The Playwright test for these tags came at step 8c (`e2e/page.spec.ts`).
 - **Indexing only on production:** `lib/deployment.ts` → `isProductionDeployment()` = `VERCEL_ENV === "production"`,
   read at build. Anything else (previews, local builds) gets `robots.txt` → `Disallow: /` and `X-Robots-Tag: noindex`.
   `VERCEL_ENV` is declared in turbo.json `build.env` (strict env mode would drop it, and it splits the cache).

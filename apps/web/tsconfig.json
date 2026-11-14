@@ -6,6 +6,7 @@
   "include": [
     "next-env.d.ts",
     "src",
+    "e2e",
     "*.ts",
     "*.js",
     ".next/types/**/*.ts",

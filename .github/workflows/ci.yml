@@ -73,3 +73,10 @@ jobs:
           pnpm --filter @mirelnan/db db:seed
 
       - run: pnpm turbo run lint typecheck test build
+
+      # The end-to-end tests run against the production build above: Chromium only, with its system libraries.
+      - name: Install the Playwright browser
+        run: pnpm --filter @mirelnan/web exec playwright install --with-deps chromium
+
+      - name: End-to-end and accessibility tests (Playwright + axe)
+        run: pnpm --filter @mirelnan/web test:e2e
