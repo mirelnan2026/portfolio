@@ -380,8 +380,10 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
   inline scripts (next-themes, the RSC payload, Suspense) that change with each build, and a nonce would make the page
   dynamic while hashes cannot reach headers fixed before the build. `'unsafe-eval'` only under `next dev`; the Vercel
   toolbar's hosts (`vercel.live`…) only off production; `upgrade-insecure-requests` only on production (it would
-  break `http://localhost`). The JSON-LD script is a data block the CSP does not govern. Observatory scores it below
-  A+ because of `'unsafe-inline'`; accepted, since no user input is rendered as HTML.
+  break `http://localhost`). The JSON-LD script is a data block the CSP does not govern. Observatory scores the site
+  B+ (80/100, 2026-11-14), the only failed test being `'unsafe-inline'`; accepted, since no user input is rendered as
+  HTML. Experimental Next SRI (+5) is not worth it yet. `Cross-Origin-Opener-Policy: same-origin` (owner decision,
+  2026-11-14) is set for isolation, not for the score.
 - **Input**: every API input validated with zod (types + max lengths) at the boundary; body size limits;
   rate limiting (Upstash) on every `/api/*` route; generic error messages, no stack traces to the client.
 - **Secrets**: validated at startup (`lib/env.ts`); never `NEXT_PUBLIC_`; modules using them import `server-only`;
