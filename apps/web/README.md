@@ -9,7 +9,8 @@ the repository interfaces of `@mirelnan/domain`, wired once in `src/server/conta
 
 ```
 src/
-├─ app/                    routing only: layout, page, 404, robots, sitemap, the share image, /llms.txt
+├─ app/                    routing only: layout, page, 404, /accessibility, robots, sitemap, the share image,
+│                          /llms.txt
 ├─ features/portfolio/     the portfolio feature
 │  ├─ queries.ts           every read, cached ("use cache" + cacheLife("max")), server-only
 │  ├─ *.ts                 pure, tested helpers: highlights, timeline, skills, case studies, metadata,
@@ -19,6 +20,7 @@ src/
 ├─ components/ui/          shadcn/ui components on Base UI, with our accessibility fixes
 ├─ lib/                    security headers, deployment flags, the canonical origin
 └─ server/                 env validation and the composition root (server-only)
+e2e/                       Playwright specs: axe on every page and theme, smoke, headers, SEO
 ```
 
 ## How data reaches the page
@@ -70,5 +72,6 @@ Adding a shadcn component: `pnpm --filter @mirelnan/web exec shadcn add <name>`,
 | `pnpm typecheck` | `next typegen && tsc`: route types first, then the compiler                  |
 | `pnpm lint`      | ESLint with the `next` preset (jsx-a11y strict, layer boundaries)            |
 | `pnpm test`      | Vitest: the helpers, the env validation, the headers and the colour contrast |
+| `pnpm test:e2e`  | Playwright + axe against the production build (run `pnpm build` first)       |
 
 Run them from the root with `pnpm --filter @mirelnan/web <script>`.

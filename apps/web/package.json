@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@base-ui/react": "1.9.0",
@@ -31,8 +32,10 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@mirelnan/eslint-config": "workspace:*",
     "@mirelnan/tsconfig": "workspace:*",
+    "@playwright/test": "1.65.0",
     "@tailwindcss/turbopack": "4.3.4",
     "@types/culori": "4.0.1",
     "@types/node": "catalog:",
