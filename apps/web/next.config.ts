@@ -15,7 +15,13 @@ const nextConfig: NextConfig = {
   // Next asks for a promise; the list is known at build time.
   headers: () =>
     Promise.resolve([
-      { source: "/:path*", headers: securityHeaders({ production: isProductionDeployment() }) },
+      {
+        source: "/:path*",
+        headers: securityHeaders({
+          production: isProductionDeployment(),
+          development: process.env.NODE_ENV === "development",
+        }),
+      },
     ]),
   // Tailwind v4 runs as a Turbopack loader on every CSS file (no PostCSS config needed).
   turbopack: {

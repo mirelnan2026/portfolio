@@ -20,7 +20,8 @@ Follow both; where they differ, `CLAUDE.local.md` wins.
   required checks `Lint, typecheck, test, build` (CI) and `Vercel`, on a branch that is up to date with `main`. Repo
   settings: squash merging only, with the pull request title as the default message; head branches deleted after merge.
 - **Every folder in `packages/` and `tooling/` has a `README.md`** (what it is, its public API or presets, the
-  rules it holds); `apps/web` gets one once its sections exist, by step 6 at the latest. A change to a package's
+  rules it holds); `apps/web/README.md` (since step 8b: structure, data flow, environment, design rules,
+  scripts) follows the same rule. A change to a package's
   API, structure, presets or rules updates its README in the same commit.
 - **Keep `CLAUDE.md` and `README.md` in sync with decisions.** Whenever an architecture, tooling, convention,
   security or accessibility decision is made or changed, update both in the same step: `CLAUDE.md` (rules and
@@ -286,7 +287,7 @@ Target **WCAG 2.2 AA**, in both themes. Every code review checks accessibility.
   stylesheet order picks the winner (the border disappears); `cn` resolves the conflict in favour of the variant.
 - Theme: `next-themes` (`attribute="class"`, `defaultTheme="system"`, `disableTransitionOnChange`) in the root
   layout, `suppressHydrationWarning` on `<html>` only. Its inline script sets the class before paint (no flash)
-  and needs a CSP hash or nonce at the security-headers step. The toggle is a menu of radio items
+  and is allowed by the CSP's `'unsafe-inline'` (see Security). The toggle is a menu of radio items
   (Light / Dark / System, `closeOnClick` so focus returns to the trigger); the trigger icon switches through
   `dark:` CSS, never through `theme`, so server and client render the same markup.
 - Streaming chat output goes through an `aria-live="polite"` region; dialogs move and restore focus.
@@ -331,7 +332,7 @@ Decided by the owner on 2026-11-07; ADR `0007-seo-baseline.md` is written at ste
   unknown URL returns a real 404.
 - **Structured data:** JSON-LD `ProfilePage` with `mainEntity: Person` (name, job title, location, `sameAs`
   LinkedIn, `knowsAbout` from the top skills and `profile.competencies`, `alumniOf`), built from the repositories. `<` is escaped in the JSON
-  (XSS), and the inline script gets a CSP hash or nonce (decided with the CSP at step 4).
+  (XSS); a JSON-LD script is a data block, which the CSP does not govern.
 - **Content:** facts only from the data (E-E-A-T comes from sourced, specific claims); one `h1`, descriptive
   headings and link text, meaningful `alt` (the same rules as accessibility).
 - **AI search:** `/llms.txt` generated from the same repositories (a static route handler), so it cannot drift
@@ -372,9 +373,15 @@ Baseline: OWASP Top 10 + OWASP Top 10 for LLM Applications. Every code review ch
   `object-src 'none'`, `base-uri 'self'`), HSTS, `X-Content-Type-Options: nosniff`,
   `Referrer-Policy: strict-origin-when-cross-origin`, restrictive `Permissions-Policy`. Since step 4j they come from
   `apps/web/src/lib/security-headers.ts` (`securityHeaders({ production })`, tested), applied to `/:path*` in
-  `next.config.ts`, with `poweredByHeader: false`; the CSP so far has only `frame-ancestors 'none'`, `base-uri`,
-  `form-action` and `object-src` (plus `X-Frame-Options: DENY`), and gains `script-src` with the next-themes hash later. Nonce vs hash CSP is decided at step 4
-  (nonces force dynamic rendering, which conflicts with ISR). Target: Mozilla Observatory A+.
+  `next.config.ts`, with `poweredByHeader: false`. **The full CSP** (step 8b, owner decision 2026-11-14,
+  [ADR 0005](docs/adr/0005-security-baseline.md)): `contentSecurityPolicy({ production, development })` gives
+  `default-src 'self'`, everything else from this origin, `frame-src`/`frame-ancestors`/`object-src 'none'`,
+  `base-uri`/`form-action 'self'`, and `'unsafe-inline'` for scripts and styles: the prerendered page carries ~47
+  inline scripts (next-themes, the RSC payload, Suspense) that change with each build, and a nonce would make the page
+  dynamic while hashes cannot reach headers fixed before the build. `'unsafe-eval'` only under `next dev`; the Vercel
+  toolbar's hosts (`vercel.live`…) only off production; `upgrade-insecure-requests` only on production (it would
+  break `http://localhost`). The JSON-LD script is a data block the CSP does not govern. Observatory scores it below
+  A+ because of `'unsafe-inline'`; accepted, since no user input is rendered as HTML.
 - **Input**: every API input validated with zod (types + max lengths) at the boundary; body size limits;
   rate limiting (Upstash) on every `/api/*` route; generic error messages, no stack traces to the client.
 - **Secrets**: validated at startup (`lib/env.ts`); never `NEXT_PUBLIC_`; modules using them import `server-only`;

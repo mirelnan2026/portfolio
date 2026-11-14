@@ -11,13 +11,14 @@ for every claim, and accessibility, security and SEO rules enforced by tooling a
 
 ## Features
 
-| Feature                                                                                  | Status         |
-| ---------------------------------------------------------------------------------------- | -------------- |
-| Portfolio page rendered from Postgres, light / dark / system themes, keyboard-first      | ✅ live        |
-| Experience timeline, skills with years per skill (computed from the data), case studies  | 🚧 in progress |
-| **Ask about me** — a Claude chat grounded in the CV through tool use, with source links  | 🚧 planned     |
-| **Job match** — paste a job description, get requirement → evidence → level              | 🚧 planned     |
-| **MCP server** — the same CV tools for Claude Desktop, Claude Code and other MCP clients | 🚧 planned     |
+| Feature                                                                                  | Status     |
+| ---------------------------------------------------------------------------------------- | ---------- |
+| Portfolio page rendered from Postgres, light / dark / system themes, keyboard-first      | ✅ live    |
+| Experience timeline, skills with years per skill (computed from the data), case studies  | ✅ live    |
+| A skill filter with shareable links (`?skill=react`), section navigation, a share image  | ✅ live    |
+| **Ask about me** — a Claude chat grounded in the CV through tool use, with source links  | 🚧 planned |
+| **Job match** — paste a job description, get requirement → evidence → level              | 🚧 planned |
+| **MCP server** — the same CV tools for Claude Desktop, Claude Code and other MCP clients | 🚧 planned |
 
 ## Architecture highlights
 
@@ -74,16 +75,19 @@ The tables, their relations and the rules the database enforces are in
 **Security — OWASP Top 10 and OWASP Top 10 for LLM applications**
 
 - ✅ Security headers (HSTS, `nosniff`, Referrer-Policy, Permissions-Policy, no framing) from a tested function.
+- ✅ A Content Security Policy that keeps the page static: same-origin only, no framing or plugins, inline scripts
+  allowed because the prerendered page needs them ([ADR 0005](docs/adr/0005-security-baseline.md)).
 - ✅ The app connects with a read-only database role; secrets are validated at startup and never echoed.
 - ✅ CI with a frozen lockfile, `pnpm audit`, no install scripts, actions pinned to a commit SHA, read-only token.
-- 🚧 A full Content Security Policy, rate limiting on the API routes, prompt-injection evaluations, CodeQL,
-  Dependabot.
+- ✅ CodeQL, Dependabot with a 7-day release age, secret scanning with push protection, a protected `main`.
+- 🚧 Rate limiting on the API routes, prompt-injection evaluations (with the AI features).
 
 **SEO**
 
 - ✅ Metadata generated from the data (the build fails if a title or description would be cut), one canonical
   origin, `robots.txt`, `sitemap.xml`, a real 404, previews never indexed.
-- 🚧 JSON-LD `ProfilePage`, Open Graph images, `/llms.txt`.
+- ✅ JSON-LD `ProfilePage`, a share image drawn from the data, `/llms.txt` for AI search
+  ([ADR 0007](docs/adr/0007-seo-baseline.md)).
 
 ## Project structure
 
@@ -102,8 +106,8 @@ portfolio/
 └─ .github/workflows/       CI: lint, typecheck, test and build against a throwaway Postgres
 ```
 
-Each package and tooling folder has its own `README.md` with its API and rules. Code in `apps/web/src` is grouped
-by feature, not by file type.
+Each app, package and tooling folder has its own `README.md` with its API and rules; the site's is
+[`apps/web/README.md`](apps/web/README.md). Code in `apps/web/src` is grouped by feature, not by file type.
 
 ## Running it locally
 
