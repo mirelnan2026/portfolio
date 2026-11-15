@@ -2,9 +2,9 @@
 
 **Live: [mirelnan.dev](https://mirelnan.dev)**
 
-My portfolio as a Senior Frontend Engineer, built from my CV, with an AI layer on top: a chat that answers
-questions about my experience only from sourced data, a job-match tool, and an MCP server that exposes the same
-tools to any AI client.
+My portfolio as a Senior Frontend Engineer, built from my CV. An AI layer is being added on top: a chat that will
+answer questions about my experience only from sourced data, a job-match tool, and an MCP server that exposes the
+same tools to any AI client.
 
 It is a small site on purpose built like a large product: a layered monorepo, a typed data model with provenance
 for every claim, and accessibility, security and SEO rules enforced by tooling and CI rather than promised.
@@ -14,7 +14,7 @@ for every claim, and accessibility, security and SEO rules enforced by tooling a
 | Feature                                                                                  | Status     |
 | ---------------------------------------------------------------------------------------- | ---------- |
 | Portfolio page rendered from Postgres, light / dark / system themes, keyboard-first      | ✅ live    |
-| Experience timeline, skills with years per skill (computed from the data), case studies  | ✅ live    |
+| Experience timeline, skills with years from roles and projects, case studies             | ✅ live    |
 | A skill filter with shareable links (`?skill=react`), section navigation, a share image  | ✅ live    |
 | **Ask about me** — a Claude chat grounded in the CV through tool use, with source links  | 🚧 planned |
 | **Job match** — paste a job description, get requirement → evidence → level              | 🚧 planned |
@@ -28,11 +28,12 @@ for every claim, and accessibility, security and SEO rules enforced by tooling a
   ([ADR 0001](docs/adr/0001-monorepo-layout.md), [ADR 0002](docs/adr/0002-layered-architecture.md)).
 - **Every claim has a source.** Each record about me points to a registered source (the CV, a brief, a skills
   matrix), and the AI features will answer only from that data
-  ([ADR 0006](docs/adr/0006-content-sources-and-projects.md), [ADR 0008](docs/adr/0008-skills-matrix-source.md)).
+  ([ADR 0006](docs/adr/0006-content-sources-and-projects.md), [ADR 0008](docs/adr/0008-skills-matrix-source.md),
+  [ADR 0009](docs/adr/0009-personal-projects-in-skill-years.md)).
 - **Data is generated and tested, not hand-edited.** Skills and their links to roles are generated from the CV;
   content tests reject unknown references, unlinked skills and anything that looks like a phone number.
-- **Static by default.** The page is prerendered at build time from the database and served from the CDN;
-  the database only gets queries from the dynamic AI routes.
+- **Static by default.** The page is prerendered at build time from the database and served from the CDN; at run
+  time only the dynamic AI routes will query it.
 - **One set of AI tools.** The chat and the MCP server will share the same tool definitions (zod schema + handler).
 
 ```
@@ -54,14 +55,14 @@ The tables, their relations and the rules the database enforces are in
 
 ## Tech stack
 
-| Area      | Choice                                                                                                 |
-| --------- | ------------------------------------------------------------------------------------------------------ |
-| Monorepo  | pnpm workspaces, Turborepo, Node 26                                                                    |
-| Web       | Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind CSS v4, shadcn/ui on Base UI |
-| Data      | PostgreSQL on Neon, Drizzle ORM, zod                                                                   |
-| AI        | Claude API, Model Context Protocol (planned)                                                           |
-| Quality   | ESLint (type-aware, jsx-a11y strict), Prettier, Vitest, commitlint, lefthook, gitleaks                 |
-| CI / host | GitHub Actions, Vercel                                                                                 |
+| Area      | Choice                                                                                                   |
+| --------- | -------------------------------------------------------------------------------------------------------- |
+| Monorepo  | pnpm workspaces, Turborepo, Node 26                                                                      |
+| Web       | Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind CSS v4, shadcn/ui on Base UI   |
+| Data      | PostgreSQL on Neon, Drizzle ORM, zod                                                                     |
+| AI        | Claude API, Model Context Protocol (planned)                                                             |
+| Quality   | ESLint (type-aware, jsx-a11y strict), Prettier, Vitest, Playwright + axe, commitlint, lefthook, gitleaks |
+| CI / host | GitHub Actions, Vercel                                                                                   |
 
 ## Quality bars
 
@@ -76,8 +77,7 @@ The tables, their relations and the rules the database enforces are in
 **Security — OWASP Top 10 and OWASP Top 10 for LLM applications**
 
 - ✅ Security headers (HSTS, `nosniff`, Referrer-Policy, Permissions-Policy, no framing, Cross-Origin-Opener-Policy)
-  from a tested function; the CSP allows inline scripts, a trade-off explained in
-  [ADR 0005](docs/adr/0005-security-baseline.md).
+  from a tested function.
 - ✅ A Content Security Policy that keeps the page static: same-origin only, no framing or plugins, inline scripts
   allowed because the prerendered page needs them ([ADR 0005](docs/adr/0005-security-baseline.md)).
 - ✅ The app connects with a read-only database role; secrets are validated at startup and never echoed.
@@ -106,7 +106,7 @@ portfolio/
 │  └─ ai/                   Claude tools and prompts, shared by the chat and MCP (planned)
 ├─ tooling/                 Shared TypeScript, ESLint and Prettier presets
 ├─ docs/adr/                Architecture Decision Records
-└─ .github/workflows/       CI: lint, typecheck, test and build against a throwaway Postgres
+└─ .github/workflows/       CI: lint, typecheck, unit tests, build and Playwright + axe against a throwaway Postgres
 ```
 
 Each app, package and tooling folder has its own `README.md` with its API and rules; the site's is
