@@ -20,6 +20,15 @@ export const thisPortfolio = {
     "used inside a reviewed, spec-driven workflow.",
   about: { kind: "project", projectSlug: "portfolio" },
   url: "https://github.com/mirelnan2026/portfolio",
-  skillSlugs: ["typescript", "react", "postgresql", "spec-driven-development", "claude-code"],
+  skillSlugs: [
+    "typescript",
+    "nextjs",
+    "react",
+    "tailwind-css",
+    "wcag",
+    "postgresql",
+    "spec-driven-development",
+    "claude-code",
+  ],
   sourceSlug: "portfolio-brief",
 } satisfies CaseStudy;
