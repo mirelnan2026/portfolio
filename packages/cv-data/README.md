@@ -13,6 +13,7 @@ src/
 ├─ cv.ts               assembles everything, in display order
 ├─ profile.ts          name, headline, intro, summary, competencies (SEO only), contact
 ├─ experiences/        one file per role: phases, highlights, products, skills (generated)
+├─ projects/           one file per released personal project: links, highlights, skills (from its brief)
 ├─ skills.ts           generated: every skill, most important first
 ├─ products.ts         public products, site context only
 ├─ workflow.ts         how the owner works with AI agents, three steps (employment brief)
@@ -36,7 +37,8 @@ No migration is needed for new content; only a change to the shape of the data (
 1. Add it to the CV's "Technical skills", in the right group, and to a role's "Technologies" line if it is
    among the most relevant ones there. Export the CV again without the phone number.
 2. Add one row per role where it was used to the skills matrix; at a role with phases, set `phaseSlug` when
-   it was used in only one phase.
+   it was used in only one phase. A skill used only in a personal project gets no matrix row: link it in the
+   project's `skills` instead (step 2 of "A new project").
 3. Add its name to `ranking` in `scripts/skills-config.ts`, where it belongs by importance, plus an alias if
    another spelling of it is used elsewhere.
 4. Run the generator: `pnpm --filter @mirelnan/cv-data generate:skills` (see [scripts/README.md](scripts/README.md)).
@@ -56,6 +58,18 @@ No migration is needed for new content; only a change to the shape of the data (
 4. Add the role's rows to the skills matrix, with its slug as `experienceSlug`, and run the generator.
 5. Exactly four highlights are `featured` (one card each in Highlights), with ranks 1 to 4 that set the cards'
    order: to feature a new one, remove `featured` from another and keep the ranks 1 to 4.
+
+### A new project
+
+Only a released project goes in (`releasedOn` is required), with public facts from its project brief.
+
+1. Register the brief in `src/sources.ts` (`kind: "project-brief"`).
+2. Create `src/projects/<slug>.ts` by hand, following `projects/portfolio.ts`: `period` (the time actually spent on
+   it: it counts in the years per skill, [ADR 0009](../../docs/adr/0009-personal-projects-in-skill-years.md)),
+   `releasedOn`, `offlineSince: null`, public links only, highlights and skills word for word from the brief, each
+   with the brief's `sourceSlug`. Its new skills go into the CV and `ranking` as in "A new skill".
+3. Import it in `src/cv.ts` and add it to `projects`. A case study about it uses
+   `about: { kind: "project", projectSlug: "<slug>" }`.
 
 ### A new product
 
@@ -84,10 +98,10 @@ pnpm --filter @mirelnan/web build             # the page is prerendered from the
 
 ## What catches mistakes
 
-| Where            | What it rejects                                                                                                 |
-| ---------------- | --------------------------------------------------------------------------------------------------------------- |
-| The generator    | an unknown skill, a "Technologies" line without matrix rows, two phases for one skill                           |
-| `domain` schemas | unknown keys (e.g. a phone field), invalid periods, phases outside their experience                             |
-| `cv.test.ts`     | unknown references, roles out of order, skills without a role, competencies that are skills, phone-like numbers |
-| The seed         | invalid data, before it touches the database                                                                    |
-| Pre-commit hooks | secrets (gitleaks) and the owner's private list of excluded topics                                              |
+| Where            | What it rejects                                                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| The generator    | an unknown skill, a "Technologies" line without matrix rows, two phases for one skill                                                       |
+| `domain` schemas | unknown keys (e.g. a phone field), invalid periods, phases outside their experience                                                         |
+| `cv.test.ts`     | unknown references, roles out of order, skills without a role or project, competencies that are skills, phone-like numbers, future releases |
+| The seed         | invalid data, before it touches the database                                                                                                |
+| Pre-commit hooks | secrets (gitleaks) and the owner's private list of excluded topics                                                                          |

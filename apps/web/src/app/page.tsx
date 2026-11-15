@@ -86,7 +86,7 @@ export default async function HomePage() {
         currentMonth={currentMonth}
       />
       <Skills groups={groups} top={top} />
-      <CaseStudies cards={caseStudyCards(caseStudies, experiences, skills)} />
+      <CaseStudies cards={caseStudyCards(caseStudies, experiences, projects, skills)} />
       <HowIWork intro={workflowIntro(profile.summary)} steps={workflow} />
       <EducationAndLanguages education={education} languages={languages} />
     </div>

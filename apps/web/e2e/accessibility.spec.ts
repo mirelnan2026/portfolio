@@ -4,8 +4,11 @@ import { expect, test } from "@playwright/test";
 /** The WCAG 2.0, 2.1 and 2.2 rules at levels A and AA. */
 const wcagAA = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-/** Every page, plus states that show hidden content: a selected skill opens its panel and "Earlier experience". */
-const pages = ["/", "/?skill=php", "/accessibility", "/no-such-page"];
+/**
+ * Every page, plus states that show hidden content: a selected skill opens its panel and "Earlier experience";
+ * one used only in a personal project (`nextjs`) opens "Show all" and lists the project.
+ */
+const pages = ["/", "/?skill=php", "/?skill=nextjs", "/accessibility", "/no-such-page"];
 
 for (const path of pages) {
   for (const colorScheme of ["light", "dark"] as const) {

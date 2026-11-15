@@ -14,7 +14,7 @@ src/
 │                 workflow step, source, and cv-data (the whole snapshot the seed loads)
 ├─ repositories/  the ports: one read-only interface per aggregate root, bundled in `Repositories`
 ├─ rules/         pure functions: durations ("3 years 8 months"), a skill's tenure (the union of the
-│                 periods that used it), the links a project shows
+│                 periods of the roles, phases and projects that used it), the links a project shows
 └─ testing/       an in-memory implementation of the ports, for tests
 ```
 

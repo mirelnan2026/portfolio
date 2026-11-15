@@ -22,9 +22,13 @@ export function CaseStudies({ cards }: { cards: CaseStudyCard[] }) {
             >
               {card.subject !== null && (
                 <p className="font-mono text-xs text-muted-foreground">
-                  <a href={card.subject.href} className="underline-offset-4 hover:underline">
-                    {card.subject.label}
-                  </a>{" "}
+                  {card.subject.href === null ? (
+                    card.subject.label
+                  ) : (
+                    <a href={card.subject.href} className="underline-offset-4 hover:underline">
+                      {card.subject.label}
+                    </a>
+                  )}{" "}
                   · <span className="whitespace-nowrap">{card.subject.period}</span>
                 </p>
               )}

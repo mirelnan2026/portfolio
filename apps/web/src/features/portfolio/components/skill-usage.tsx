@@ -1,7 +1,12 @@
 import { tenureLabel } from "../format";
 import type { SkillItem } from "../skills";
 
-/** "Where it was used": the selected skill's time, its roles (linked to the timeline) and the sources' notes. */
+const count = (n: number, word: string) => `${String(n)} ${n === 1 ? word : `${word}s`}`;
+
+/**
+ * "Where it was used": the selected skill's time, its roles (linked to the timeline), its personal projects (as
+ * text: the page has no projects section to link to) and the sources' notes.
+ */
 export function SkillUsage({ skill }: { skill: SkillItem | null }) {
   if (skill === null) {
     return (
@@ -11,15 +16,18 @@ export function SkillUsage({ skill }: { skill: SkillItem | null }) {
     );
   }
 
-  const roles = `${String(skill.roles.length)} ${skill.roles.length === 1 ? "role" : "roles"}`;
+  const summary = [
+    tenureLabel(skill.months).spoken,
+    ...(skill.roles.length > 0 ? [count(skill.roles.length, "role")] : []),
+    ...(skill.projects.length > 0 ? [count(skill.projects.length, "project")] : []),
+  ].join(" · ");
+
   return (
     <div className="flex flex-col gap-3">
       <div>
         <p className="font-mono text-xs text-muted-foreground">Where it was used</p>
         <p className="text-xl font-semibold tracking-tight">{skill.name}</p>
-        <p className="font-mono text-xs text-muted-foreground">
-          {tenureLabel(skill.months).spoken} · {roles}
-        </p>
+        <p className="font-mono text-xs text-muted-foreground">{summary}</p>
       </div>
       <ul className="flex flex-col gap-1 text-sm">
         {skill.roles.map((role) => (
@@ -33,6 +41,12 @@ export function SkillUsage({ skill }: { skill: SkillItem | null }) {
             <span className="text-muted-foreground">
               {role.phase === null ? "" : ` · ${role.phase}`} · {role.years}
             </span>
+          </li>
+        ))}
+        {skill.projects.map((project) => (
+          <li key={project.projectSlug}>
+            <span className="font-medium">{project.name}</span>
+            <span className="text-muted-foreground"> · personal project · {project.years}</span>
           </li>
         ))}
       </ul>

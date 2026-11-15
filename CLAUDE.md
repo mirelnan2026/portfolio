@@ -34,7 +34,7 @@ Follow both; where they differ, `CLAUDE.local.md` wins.
 Personal portfolio for Mirel Nan (Senior Frontend Engineer), built from the CV, plus an "Ask about me" chat with
 Claude using tool use (must never invent experience), a job-match feature with structured output, and an MCP server
 exposing the CV. Stages: 0 foundation + portfolio page → 1 Claude API → 2 tool use + structured output → 3 MCP →
-4 Claude Code. The "portfolio" project enters `cv-data` last, after the AI features of stages 1–2.
+4 Claude Code. The site itself is a personal project in `cv-data` (`portfolio`, source `portfolio-brief`).
 Domain `mirelnan.dev` (DNS at the registrar: `A @` and `CNAME www` from Vercel; `www` and `http://` 308-redirect to
 `https://mirelnan.dev`; `.dev` is HTTPS-only via HSTS preload).
 The repository is public, but **all rights reserved** (`LICENSE`): code and content may be read, not reused. The
@@ -195,7 +195,8 @@ checks accessibility.
   the company: employment type, work mode and location stay in the data (chat and job match answer from them) but are
   not shown. Helpers are pure and tested (`features/portfolio/format.ts`, `timeline.ts`).
 - **Skills:** grouped by the CV's categories (`skillGroups`), groups in the order of their most important skill, skills
-  by `position`; each skill shows its tenure from `skillTenure` in `domain/rules` (the union of the links' periods),
+  by `position`; each skill shows its tenure from `skillTenure` in `domain/rules` (the union of the periods of its role, phase and
+  project links; [ADR 0009](docs/adr/0009-personal-projects-in-skill-years.md)),
   rounded **down** to whole years by `tenureLabel` ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim
   never overstates. Only the **top 12** (`topSkills`) are always visible; all of them, by category, sit behind "Show all
   N skills by category", which a `?skill=` link to a skill outside the top opens.
@@ -204,7 +205,8 @@ checks accessibility.
   client `SkillFilter` (`useSearchParams`) in `<Suspense>` whose fallback is the same `SkillList` with nothing selected,
   so every skill is in the prerendered HTML; a press calls `window.history.replaceState` (no request, Back does not step
   through skills). The "Where it was used" panel (`SkillUsage`: tenure, roles linked to `#experience-<slug>`, the
-  sources' context notes) is a sticky `aside` with `aria-live="polite"` on large screens and sits under the selected
+  sources' context notes, and the personal projects as plain text, "<name> · personal project · <years>", since the
+  page has no projects section to link to) is a sticky `aside` with `aria-live="polite"` on large screens and sits under the selected
   skill's group on small ones. Roles carry `data-experience`; each shows a client `SkillMatch` ("✓ <skill>", read as
   "Uses <skill>", teal border, `brand-soft`, 12px) in its own `<Suspense fallback={null}>`: the only highlight (years
   and rule keep their colours, non-matching roles are not dimmed). An effect scoped to `#experience` opens a closed
@@ -214,7 +216,7 @@ checks accessibility.
   below it. `toggledSkillSearch` and `selectedSkill` are pure and tested.
 - **Case studies:** `caseStudyCards` (pure, tested) resolves each story's subject to its role and phase ("JWP Connatix ·
   Content management suite · 2023–2024", the company linked to `#experience-<slug>`); a story about a personal project
-  has no subject until projects are on the page. Each card (`#case-study-<slug>`) shows the title and the context; the
+  has the subject "<name> · Personal project · <years>", as text without a link (the page has no projects section). Each card (`#case-study-<slug>`) shows the title and the context; the
   approach, outcome and what it shows are a `<dl>` in a native `<details>`. No category labels (not in the data).
 - **How I work:** the CV summary's sentence about spec-driven development, word for word (`workflowIntro`, tested;
   `sentences` in `format.ts`, shared with the metadata), then the `workflow` steps as an `<ol>` of muted cards, each
@@ -398,11 +400,13 @@ points to a registered source.
   importance; the page orders categories by their best skill, then skills by position). No versions in names ("Angular",
   not "Angular 12+"); AngularJS is a separate skill. Broad terms ("Web Development") are not skills: they are
   `profile.competencies`, used only for SEO (`knowsAbout`) and never shown.
-- Every skill is linked to at least one experience (a content test). A link's source is `cv` when the role's
+- Every skill is linked to at least one experience or personal project (a content test). A skill used only in a
+  project (the site's own stack) is linked there, with the project brief as its source. A link's source is `cv` when the role's
   "Technologies" line names it (that line is also the card order), the JWX brief when the brief states it (with its
   context note), otherwise `skills-matrix`. JWX links carry the phase where the skill was used in only one.
-- Years per skill come from these links: the union of the periods (the phase's when there is one), so overlaps count
-  once. Never state years that the links don't give.
+- Years per skill come from these links: the union of the periods (the phase's when there is one, the project's for a
+  project link), so overlaps count once ([ADR 0009](docs/adr/0009-personal-projects-in-skill-years.md)). Never state
+  years that the links don't give.
 - Slugs are stable (`?skill=` links): change one only with a deliberate decision.
 - **`packages/cv-data/README.md`** is the how-to for new content (a skill, an experience, a product) and the list of
   checks that catch mistakes. Update it in the same change whenever that workflow changes: a new collection or source,
