@@ -39,7 +39,7 @@ describe("llmsTxt", () => {
   const text = llmsTxt({
     profile,
     experiences: [experience],
-    skills: [{ slug: "angular", name: "Angular", months: 123, roles: [], notes: [] }],
+    skills: [{ slug: "angular", name: "Angular", months: 123, roles: [], projects: [], notes: [] }],
     caseStudies: [caseStudy],
     workflow: [{ slug: "specify", title: "Specify", body: "I write it.", sourceSlug: "cv" }],
     education: [],

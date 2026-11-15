@@ -1,4 +1,4 @@
-import type { Experience, Skill, SkillCategory, YearMonth } from "@mirelnan/domain";
+import type { Experience, Project, Skill, SkillCategory, YearMonth } from "@mirelnan/domain";
 import { skillTenure } from "@mirelnan/domain";
 import { yearRange } from "./format";
 
@@ -23,13 +23,23 @@ export interface SkillRole {
   years: string;
 }
 
+/** A personal project that used a skill, as the "Where it was used" panel lists it. */
+export interface SkillProject {
+  projectSlug: string;
+  name: string;
+  /** "2026–present": the project's years. */
+  years: string;
+}
+
 export interface SkillItem {
   slug: string;
   name: string;
-  /** Months covered by the roles that used it, each month once. */
+  /** Months covered by the roles and projects that used it, each month once. */
   months: number;
   /** The roles that used it, newest first. */
   roles: SkillRole[];
+  /** The personal projects that used it. */
+  projects: SkillProject[];
   /** The sources' notes on how it was used, from the skill links. */
   notes: string[];
 }
@@ -59,10 +69,12 @@ function skillRole(experience: Experience, skillSlug: string): SkillRole {
 export function skillGroups(
   skills: Skill[],
   experiences: Experience[],
+  projects: Project[],
   currentMonth: YearMonth,
 ): SkillGroup[] {
-  const tenure = skillTenure(experiences, currentMonth);
-  const bySlug = new Map(experiences.map((experience) => [experience.slug, experience]));
+  const tenure = skillTenure(experiences, projects, currentMonth);
+  const experiencesBySlug = new Map(experiences.map((experience) => [experience.slug, experience]));
+  const projectsBySlug = new Map(projects.map((project) => [project.slug, project]));
   const groups = new Map<SkillCategory, SkillGroup>();
   for (const skill of skills) {
     const usage = tenure.get(skill.slug);
@@ -79,11 +91,17 @@ export function skillGroups(
       name: skill.name,
       months: usage.months,
       roles: usage.experienceSlugs.flatMap((slug) => {
-        const experience = bySlug.get(slug);
+        const experience = experiencesBySlug.get(slug);
         return experience === undefined ? [] : [skillRole(experience, skill.slug)];
       }),
-      notes: experiences.flatMap((experience) =>
-        experience.skills.flatMap((link) =>
+      projects: usage.projectSlugs.flatMap((slug) => {
+        const project = projectsBySlug.get(slug);
+        return project === undefined
+          ? []
+          : [{ projectSlug: project.slug, name: project.name, years: yearRange(project.period) }];
+      }),
+      notes: [...experiences, ...projects].flatMap((record) =>
+        record.skills.flatMap((link) =>
           link.skillSlug === skill.slug && link.contextNote !== null ? [link.contextNote] : [],
         ),
       ),

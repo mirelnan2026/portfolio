@@ -17,6 +17,7 @@ import {
   getIndustries,
   getLanguages,
   getProducts,
+  getProjects,
   getProfile,
   getSkills,
   getWorkflow,
@@ -36,6 +37,7 @@ export default async function HomePage() {
   const [
     profile,
     experiences,
+    projects,
     products,
     industries,
     skills,
@@ -47,6 +49,7 @@ export default async function HomePage() {
   ] = await Promise.all([
     getProfile(),
     getExperiences(),
+    getProjects(),
     getProducts(),
     getIndustries(),
     getSkills(),
@@ -57,7 +60,7 @@ export default async function HomePage() {
     getCurrentMonth(),
   ]);
 
-  const groups = skillGroups(skills, experiences, currentMonth);
+  const groups = skillGroups(skills, experiences, projects, currentMonth);
   const top = topSkills(groups, skills, 12);
   const [role = profile.headline] = profile.headline.split(" · ");
   const jsonLd = profilePageJsonLd({
@@ -83,7 +86,7 @@ export default async function HomePage() {
         currentMonth={currentMonth}
       />
       <Skills groups={groups} top={top} />
-      <CaseStudies cards={caseStudyCards(caseStudies, experiences, skills)} />
+      <CaseStudies cards={caseStudyCards(caseStudies, experiences, projects, skills)} />
       <HowIWork intro={workflowIntro(profile.summary)} steps={workflow} />
       <EducationAndLanguages education={education} languages={languages} />
     </div>

@@ -1,4 +1,4 @@
-import type { CaseStudy, Experience, Skill } from "@mirelnan/domain";
+import type { CaseStudy, Experience, Project, Skill } from "@mirelnan/domain";
 import { describe, expect, it } from "vitest";
 import { caseStudyCards } from "./case-studies";
 
@@ -37,6 +37,7 @@ describe("caseStudyCards", () => {
     const [card] = caseStudyCards(
       [story({ kind: "experience", experienceSlug: "example-corp", phaseSlug: "second-product" })],
       [experience],
+      [],
       skills,
     );
     expect(card?.subject).toEqual({
@@ -51,14 +52,35 @@ describe("caseStudyCards", () => {
     const [card] = caseStudyCards(
       [story({ kind: "experience", experienceSlug: "example-corp", phaseSlug: null })],
       [experience],
+      [],
       skills,
     );
     expect(card?.subject?.period).toBe("2022–2024");
   });
 
-  it("has no subject for a personal project, which the page does not show yet", () => {
+  it("names a personal project, without a link, since the page has no projects section", () => {
+    const project = {
+      slug: "a-project",
+      name: "example.dev",
+      period: { start: "2026-11", end: null },
+    } as unknown as Project;
     const [card] = caseStudyCards(
       [story({ kind: "project", projectSlug: "a-project" })],
+      [],
+      [project],
+      skills,
+    );
+    expect(card?.subject).toEqual({
+      label: "example.dev",
+      href: null,
+      period: "Personal project · 2026–present",
+    });
+  });
+
+  it("has no subject when the project it is about is missing", () => {
+    const [card] = caseStudyCards(
+      [story({ kind: "project", projectSlug: "no-such-project" })],
+      [],
       [],
       skills,
     );

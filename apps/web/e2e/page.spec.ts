@@ -25,6 +25,19 @@ test("a ?skill= link selects the skill and marks the roles that used it", async 
   await expect(page.locator("#experience-ringier")).toContainText("PHP");
 });
 
+test("a skill used only in a personal project shows the project in its panel", async ({ page }) => {
+  await page.goto("/?skill=nextjs");
+  await expect(page.getByRole("button", { name: /^Next\.js/, pressed: true })).toBeVisible();
+  // The panel is an aside on large screens and sits under the skill's group on small ones: one of them is visible.
+  // A regex, because a string `hasText` ignores case and would also match the case study ("Personal project · …").
+  const project = page
+    .getByRole("listitem")
+    .filter({ hasText: /mirelnan\.dev · personal project · / })
+    .filter({ visible: true });
+  await expect(project).toHaveCount(1);
+  await expect(project).toContainText("mirelnan.dev");
+});
+
 test("every response carries the security headers", async ({ request }) => {
   const response = await request.get("/");
   const headers = response.headers();
