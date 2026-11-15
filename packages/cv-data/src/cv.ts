@@ -3,6 +3,7 @@ import { billingCorrectness } from "./case-studies/billing-correctness";
 import { darkLaunchBehindFlag } from "./case-studies/dark-launch-behind-flag";
 import { sharedLibraryExtraction } from "./case-studies/shared-library-extraction";
 import { upgradeSequencing } from "./case-studies/upgrade-sequencing";
+import { thisPortfolio } from "./case-studies/this-portfolio";
 import { education } from "./education";
 import { cnGroup } from "./experiences/cn-group";
 import { freelance } from "./experiences/freelance";
@@ -16,6 +17,7 @@ import { industries } from "./industries";
 import { languages } from "./languages";
 import { products } from "./products";
 import { profile } from "./profile";
+import { portfolio } from "./projects/portfolio";
 import { skills } from "./skills";
 import { sources } from "./sources";
 import { workflow } from "./workflow";
@@ -37,13 +39,14 @@ export const cvData: CvData = {
     geoBlueLabel,
     freelance,
   ],
-  projects: [],
+  projects: [portfolio],
   skills,
   caseStudies: [
     sharedLibraryExtraction,
     upgradeSequencing,
     darkLaunchBehindFlag,
     billingCorrectness,
+    thisPortfolio,
   ],
   industries,
   products,

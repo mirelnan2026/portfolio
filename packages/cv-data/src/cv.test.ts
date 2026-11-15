@@ -63,10 +63,12 @@ describe("cvData", () => {
     expect(repeated).toEqual([]);
   });
 
-  it("links every skill to at least one experience", () => {
-    // The CV's "Technical skills" are the union of the roles' skills, so each has years and roles to show.
+  it("links every skill to at least one experience or project", () => {
+    // The CV's "Technical skills" are the union of the roles' and the projects' skills, so each has a place to show.
     const used = new Set(
-      cvData.experiences.flatMap((experience) => experience.skills.map((usage) => usage.skillSlug)),
+      [...cvData.experiences, ...cvData.projects].flatMap((record) =>
+        record.skills.map((usage) => usage.skillSlug),
+      ),
     );
     expect(slugs(cvData.skills).filter((slug) => !used.has(slug))).toEqual([]);
   });
