@@ -13,7 +13,7 @@ export async function generateImageMetadata() {
 }
 
 /**
- * The image LinkedIn, Slack and search show for a shared link, drawn at build time from the profile, in the light
+ * The image LinkedIn, Slack and search show for a shared link, drawn at build time from the profile, in the dark
  * theme's colours (hex, because the image renderer has no OKLCH) and Geist, the font next/og ships with.
  */
 export default async function OpengraphImage() {
@@ -30,22 +30,22 @@ export default async function OpengraphImage() {
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "72px 80px",
-        background: "#ffffff",
-        color: "#0a0a0a",
-        borderLeft: "16px solid #00786f",
+        background: "#0a0a0a",
+        color: "#fafafa",
+        borderLeft: "16px solid #5eead4",
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         <div style={{ fontSize: 96, letterSpacing: "-0.035em", lineHeight: 1 }}>{profile.name}</div>
         <div style={{ display: "flex", flexDirection: "column", fontSize: 40, lineHeight: 1.3 }}>
           <span>{role}</span>
-          {focus.length > 0 && <span style={{ color: "#00786f" }}>{focus.join(" · ")}</span>}
+          {focus.length > 0 && <span style={{ color: "#5eead4" }}>{focus.join(" · ")}</span>}
         </div>
-        <div style={{ fontSize: 30, lineHeight: 1.45, color: "#6c6c6c", maxWidth: 980 }}>
+        <div style={{ fontSize: 30, lineHeight: 1.45, color: "#a1a1a1", maxWidth: 980 }}>
           {firstSentence}
         </div>
       </div>
-      <div style={{ fontSize: 28, color: "#6c6c6c" }}>mirelnan.dev</div>
+      <div style={{ fontSize: 28, color: "#a1a1a1" }}>mirelnan.dev</div>
     </div>,
     size,
   );
