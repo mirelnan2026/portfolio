@@ -1,9 +1,29 @@
 import { describe, expect, it } from "vitest";
 import type { Experience } from "../entities/experience";
+import type { Project } from "../entities/project";
 import type { Period } from "../values/period";
 import { monthsCovered, skillTenure } from "./skill-tenure";
 
 const period = (start: string, end: string | null): Period => ({ start, end });
+
+function project(slug: string, projectPeriod: Period, skillSlugs: string[]): Project {
+  return {
+    slug,
+    name: slug,
+    summary: "Summary.",
+    period: projectPeriod,
+    releasedOn: projectPeriod.start,
+    offlineSince: null,
+    links: { website: null, repository: null, archive: null, mobileApp: null },
+    highlights: [],
+    skills: skillSlugs.map((skillSlug) => ({
+      skillSlug,
+      contextNote: null,
+      sourceSlug: "project-brief",
+    })),
+    sourceSlug: "project-brief",
+  };
+}
 
 describe("monthsCovered", () => {
   it.each([
@@ -77,17 +97,39 @@ describe("skillTenure", () => {
     ),
     experience("older", period("2020-01", "2022-12"), [{ skillSlug: "angular" }]),
   ];
-  const tenure = skillTenure(experiences, "2026-11");
+  const projects = [project("site", period("2026-11", null), ["angular", "nextjs"])];
+  const tenure = skillTenure(experiences, projects, "2026-11");
 
-  it("adds up the roles that used a skill, in the order given", () => {
-    expect(tenure.get("angular")).toEqual({ months: 44 + 36, experienceSlugs: ["newer", "older"] });
+  it("adds up the roles and projects that used a skill, in the order given", () => {
+    expect(tenure.get("angular")).toEqual({
+      months: 44 + 36 + 1,
+      experienceSlugs: ["newer", "older"],
+      projectSlugs: ["site"],
+    });
   });
 
   it("counts only the phase when the link has one", () => {
-    expect(tenure.get("react")).toEqual({ months: 22, experienceSlugs: ["newer"] });
+    expect(tenure.get("react")).toEqual({
+      months: 22,
+      experienceSlugs: ["newer"],
+      projectSlugs: [],
+    });
   });
 
-  it("leaves out skills no experience uses", () => {
+  it("gives a skill used only in a project the project's months, up to the current month", () => {
+    expect(tenure.get("nextjs")).toEqual({
+      months: 1,
+      experienceSlugs: [],
+      projectSlugs: ["site"],
+    });
+  });
+
+  it("adds nothing for a project inside a role's period", () => {
+    const inside = [project("side", period("2024-01", "2024-06"), ["angular"])];
+    expect(skillTenure(experiences, inside, "2026-11").get("angular")?.months).toBe(44 + 36);
+  });
+
+  it("leaves out skills nothing uses", () => {
     expect(tenure.has("vue")).toBe(false);
   });
 });

@@ -36,6 +36,12 @@ export async function getSkills() {
   return repositories.skills.list();
 }
 
+export async function getProjects() {
+  "use cache";
+  cacheLife("max");
+  return repositories.projects.list();
+}
+
 export async function getCaseStudies() {
   "use cache";
   cacheLife("max");

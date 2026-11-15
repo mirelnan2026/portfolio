@@ -1,4 +1,4 @@
-import type { Experience, Skill } from "@mirelnan/domain";
+import type { Experience, Project, Skill } from "@mirelnan/domain";
 import { describe, expect, it } from "vitest";
 import { selectedSkill, skillGroups, toggledSkillSearch, topSkills } from "./skills";
 
@@ -29,12 +29,25 @@ const role = (slug: string, start: string, end: string, links: Link[]) =>
     })),
   }) as unknown as Experience;
 
+const project = (slug: string, start: string, links: Link[]) =>
+  ({
+    slug,
+    name: `${slug}.dev`,
+    period: { start, end: null },
+    skills: links.map((link) => ({
+      skillSlug: link.skillSlug,
+      contextNote: link.contextNote ?? null,
+      sourceSlug: "project-brief",
+    })),
+  }) as unknown as Project;
+
 describe("skillGroups", () => {
   const groups = skillGroups(
     [
       skill("angular", "frontend"),
       skill("claude-code", "ai-assisted-development"),
       skill("typescript", "frontend"),
+      skill("nextjs", "frontend"),
       skill("unlinked", "cloud"),
     ],
     [
@@ -45,12 +58,18 @@ describe("skillGroups", () => {
       ]),
       role("older", "2020-01", "2020-12", [{ skillSlug: "angular" }]),
     ],
+    [
+      project("site", "2026-11", [
+        { skillSlug: "typescript", contextNote: "Strict." },
+        { skillSlug: "nextjs" },
+      ]),
+    ],
     "2026-11",
   );
 
   it("orders the groups by their most important skill and keeps the skills' order inside", () => {
     expect(groups.map((group) => [group.name, group.skills.map((item) => item.slug)])).toEqual([
-      ["Frontend", ["angular", "typescript"]],
+      ["Frontend", ["angular", "typescript", "nextjs"]],
       ["AI-assisted development", ["claude-code"]],
     ]);
   });
@@ -64,7 +83,30 @@ describe("skillGroups", () => {
         { experienceSlug: "newer", company: "newer company", phase: null, years: "2025–2026" },
         { experienceSlug: "older", company: "older company", phase: null, years: "2020" },
       ],
+      projects: [],
       notes: ["Both phases."],
+    });
+  });
+
+  it("adds a project's months, lists the project and keeps its notes", () => {
+    expect(groups[0]?.skills[1]).toEqual({
+      slug: "typescript",
+      name: "TYPESCRIPT",
+      months: 22 + 1,
+      roles: [
+        { experienceSlug: "newer", company: "newer company", phase: null, years: "2025–2026" },
+      ],
+      projects: [{ projectSlug: "site", name: "site.dev", years: "2026–present" }],
+      notes: ["Strict."],
+    });
+  });
+
+  it("shows a skill used only in a project", () => {
+    expect(groups[0]?.skills[2]).toMatchObject({
+      slug: "nextjs",
+      months: 1,
+      roles: [],
+      projects: [{ projectSlug: "site" }],
     });
   });
 
