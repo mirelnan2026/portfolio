@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readServerEnv } from "./env";
+import { readRateLimitEnv, readServerEnv } from "./env";
 
 // Fictitious values: tests never see a real connection string.
 const valid = "postgresql://reader:not-a-real-secret@db.example.com/portfolio?sslmode=verify-full";
@@ -22,5 +22,43 @@ describe("readServerEnv", () => {
   it("never puts the value in the error", () => {
     const leaky = "mysql://reader:not-a-real-secret@db.example.com/portfolio";
     expect(() => readServerEnv({ DATABASE_URL: leaky })).toThrow(/^(?!.*not-a-real-secret)/s);
+  });
+});
+
+describe("readRateLimitEnv", () => {
+  const url = "https://example-12345.upstash.io";
+  const token = "not-a-real-token";
+
+  it("returns the Upstash url and token", () => {
+    expect(
+      readRateLimitEnv({ UPSTASH_REDIS_REST_URL: url, UPSTASH_REDIS_REST_TOKEN: token }),
+    ).toEqual({
+      UPSTASH_REDIS_REST_URL: url,
+      UPSTASH_REDIS_REST_TOKEN: token,
+    });
+  });
+
+  it.each([
+    ["the url is missing", { UPSTASH_REDIS_REST_TOKEN: token }, "UPSTASH_REDIS_REST_URL"],
+    [
+      "the url is not https",
+      { UPSTASH_REDIS_REST_URL: "http://example.upstash.io", UPSTASH_REDIS_REST_TOKEN: token },
+      "UPSTASH_REDIS_REST_URL",
+    ],
+    [
+      "the token is empty",
+      { UPSTASH_REDIS_REST_URL: url, UPSTASH_REDIS_REST_TOKEN: "" },
+      "UPSTASH_REDIS_REST_TOKEN",
+    ],
+  ])("names the variable when %s", (_case, env, name) => {
+    expect(() => readRateLimitEnv(env)).toThrow(
+      `Missing or invalid environment variables: ${name}.`,
+    );
+  });
+
+  it("never puts the token in the error", () => {
+    expect(() =>
+      readRateLimitEnv({ UPSTASH_REDIS_REST_URL: "not a url", UPSTASH_REDIS_REST_TOKEN: token }),
+    ).toThrow(/^(?!.*not-a-real-token)/s);
   });
 });
