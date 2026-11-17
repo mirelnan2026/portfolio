@@ -8,14 +8,14 @@ limiting), GitHub for code and CI.
 
 Every service the site depends on. Secrets are never written here, only the names of the variables they become.
 
-| Platform                     | Used for                                     | Region         | Secrets → where they go                                                                                                     |
-| ---------------------------- | -------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| GitHub                       | repository, CI, Dependabot, secret scanning  | —              | none                                                                                                                        |
-| Vercel                       | hosting, previews, Web Analytics             | `fra1`         | none (holds the variables below)                                                                                            |
-| Neon                         | Postgres: the CV data                        | `eu-central-1` | owner URL → `packages/db/.env.local` (`DATABASE_ADMIN_URL`); reader URL → `apps/web/.env.local` and Vercel (`DATABASE_URL`) |
-| Upstash                      | Redis: the rate-limit counters               | `eu-central-1` | REST URL and token → `apps/web/.env.local` and Vercel (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)                |
-| Registrar                    | the domain `mirelnan.dev` and its DNS        | —              | none                                                                                                                        |
-| Google Search Console / Bing | indexing (Bing imported from Search Console) | —              | none; verified by a DNS `TXT` record that must stay                                                                         |
+| Platform                     | Used for                                     | Secrets → where they go                                                                                                     |
+| ---------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| GitHub                       | repository, CI, Dependabot, secret scanning  | none                                                                                                                        |
+| Vercel                       | hosting, previews, Web Analytics             | none (holds the variables below)                                                                                            |
+| Neon                         | Postgres: the CV data                        | owner URL → `packages/db/.env.local` (`DATABASE_ADMIN_URL`); reader URL → `apps/web/.env.local` and Vercel (`DATABASE_URL`) |
+| Upstash                      | Redis: the rate-limit counters               | REST URL and token → `apps/web/.env.local` and Vercel (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)                |
+| Registrar                    | the domain `mirelnan.dev` and its DNS        | none                                                                                                                        |
+| Google Search Console / Bing | indexing (Bing imported from Search Console) | none; verified by a DNS `TXT` record that must stay                                                                         |
 
 Vercel variables are **Sensitive**, for Production **and** Preview. No store is connected through a Vercel
 integration: each variable is set by hand.
