@@ -1,7 +1,24 @@
 # Runbook
 
 How to operate the site: deploying, changing data, rotating credentials and recovering from a bad release.
-It assumes the setup described in the README: Vercel for hosting, Neon for Postgres, GitHub for code and CI.
+It assumes the setup described in the README: Vercel for hosting, Neon for Postgres, Upstash for Redis (rate
+limiting), GitHub for code and CI.
+
+## Platforms
+
+Every service the site depends on. Secrets are never written here, only the names of the variables they become.
+
+| Platform                     | Used for                                     | Region         | Secrets → where they go                                                                                                     |
+| ---------------------------- | -------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| GitHub                       | repository, CI, Dependabot, secret scanning  | —              | none                                                                                                                        |
+| Vercel                       | hosting, previews, Web Analytics             | `fra1`         | none (holds the variables below)                                                                                            |
+| Neon                         | Postgres: the CV data                        | `eu-central-1` | owner URL → `packages/db/.env.local` (`DATABASE_ADMIN_URL`); reader URL → `apps/web/.env.local` and Vercel (`DATABASE_URL`) |
+| Upstash                      | Redis: the rate-limit counters               | `eu-central-1` | REST URL and token → `apps/web/.env.local` and Vercel (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)                |
+| Registrar                    | the domain `mirelnan.dev` and its DNS        | —              | none                                                                                                                        |
+| Google Search Console / Bing | indexing (Bing imported from Search Console) | —              | none; verified by a DNS `TXT` record that must stay                                                                         |
+
+Vercel variables are **Sensitive**, for Production **and** Preview. No store is connected through a Vercel
+integration: each variable is set by hand.
 
 ## Deploying a change
 
@@ -46,6 +63,16 @@ The app connects as the read-only role `portfolio_reader`.
 4. Delete `packages/db/.env.reader.local`.
 
 The live site keeps working meanwhile: it is static, so only new builds need the new URL.
+
+## Rotating the Upstash token
+
+1. Upstash console → the database → reset its credentials. The old token stops working immediately.
+2. Copy the new REST URL and token (the standard token, not the read-only one) into `apps/web/.env.local`.
+3. In Vercel, replace `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (**Sensitive**, Production **and**
+   Preview), then redeploy production.
+
+Unlike the database password, this affects the live site: the API routes read the token at request time, so
+between steps 1 and 3 they answer 500. The pages are static and keep working.
 
 ## Rolling back
 
