@@ -346,8 +346,21 @@ code review checks security.
   failed test is `'unsafe-inline'`. Experimental Next SRI is not worth it yet.
 - **Input:** every API input validated with zod (types + max lengths) at the boundary; body size limits; rate limiting
   (Upstash) on every `/api/*` route; generic error messages, no stack traces to the client.
-- **Secrets:** validated at startup (`lib/env.ts`); never `NEXT_PUBLIC_`; modules using them import `server-only`;
-  gitleaks in lefthook + GitHub secret scanning with push protection.
+- **Rate limiting:** `server/rate-limit.ts` (`server-only`) → `createRateLimit({ name, requests, window })`, created at
+  module scope in the route (so the limiter's in-memory cache of blocked clients lives as long as the instance);
+  `const limited = await rateLimit(request); if (limited) return limited;` at the top of the handler. Upstash
+  `slidingWindow` per client IP (`ipAddress()` from `@vercel/functions`: the header Vercel's edge sets, `"unknown"`
+  locally), key prefix `ratelimit:<name>`, one prefix per route; `waitUntil(pending)`. The 429 comes from the pure,
+  tested `lib/rate-limit.ts` (`tooManyRequests`: generic JSON, `Retry-After` in whole seconds rounded up, `no-store`).
+  Every `/api/*` GET starts with `await connection()`, or Cache Components prerenders it at build. Fails open on an
+  Upstash timeout (the library's 5s default; revisit for `/api/chat`), closed on missing variables (500).
+  `/api/health` (`{ "status": "ok" }`, no DB, no version info) is the cheap route that proves the limiter
+  (10 per 10s). One Upstash database (Frankfurt, Free plan, created in the Upstash console, not through the Vercel
+  integration; no payment method on the account), shared by production, previews and local runs.
+- **Secrets:** validated with zod in `server/env.ts`, one schema per moment they are read: `readServerEnv`
+  (`DATABASE_URL`) when the composition root loads, because the build needs it; `readRateLimitEnv` (Upstash) lazily on
+  the first API request, so the build and CI never need those secrets. Never `NEXT_PUBLIC_`; modules using them import
+  `server-only`; gitleaks in lefthook + GitHub secret scanning with push protection.
 - **AI:** the user's text and job descriptions are untrusted (prompt injection). Tools are **read-only** and only
   return public CV data; no secrets or private data in prompts; `max_tokens` and conversation length capped; model
   output rendered as text/sanitized markdown (never `dangerouslySetInnerHTML`); job-match output validated with zod;
@@ -367,8 +380,9 @@ code review checks security.
   `SECURITY.md` (scope, private reporting through GitHub private vulnerability reporting or email, a 7-day answer,
   good-faith limits) and `apps/web/public/.well-known/security.txt` (RFC 9116, static), whose `Expires` is checked by
   `apps/web/src/lib/security-txt.test.ts`: it fails 30 days before the date, so CI asks for the yearly renewal.
-- **Runbook:** `docs/runbook.md` (deploying, changing the database, rotating the reader, rolling back, dependencies,
-  the yearly tasks). Update it in the same change whenever one of those procedures changes.
+- **Runbook:** `docs/runbook.md` (the platforms inventory, deploying, changing the database, rotating the reader and
+  the Upstash token, rolling back, dependencies, the yearly tasks). The inventory names variables, never values;
+  account details and 2FA recovery codes stay in the owner's password manager. Update it in the same change whenever one of those procedures changes.
 - **Privacy:** no tracking cookies, so no consent banner; no third-party scripts without a reason. Analytics = Vercel
   Web Analytics (cookieless, served first-party from `/_vercel/insights`, so the CSP stays `'self'`; `<Analytics />`
   from `@vercel/analytics/next` in the root layout, enabled in the Vercel dashboard; it sends nothing outside Vercel
@@ -485,11 +499,12 @@ The brief adds only work the CV does not mention; its details on work the CV alr
 Only in `.env.local` (git-ignored) and Vercel project settings. Each consumer has its own `.env.example` next to it,
 listing only the variables that process needs (least privilege: the web app never holds the owner URL):
 
-| Where                          | Variable                                                                  | Role / use                                                                   |
-| ------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `packages/db/.env.local`       | `DATABASE_ADMIN_URL`                                                      | Neon owner role, direct (unpooled); only `db:migrate` and `db:seed`, locally |
-| `apps/web/.env.local` + Vercel | `DATABASE_URL`                                                            | read-only role `portfolio_reader`, pooled                                    |
-| `apps/web` + Vercel (stage 1+) | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `ANTHROPIC_API_KEY` | rate limit (Upstash), Claude API                                             |
+| Where                          | Variable                                             | Role / use                                                                   |
+| ------------------------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `packages/db/.env.local`       | `DATABASE_ADMIN_URL`                                 | Neon owner role, direct (unpooled); only `db:migrate` and `db:seed`, locally |
+| `apps/web/.env.local` + Vercel | `DATABASE_URL`                                       | read-only role `portfolio_reader`, pooled                                    |
+| `apps/web/.env.local` + Vercel | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limit; the standard REST token (the limiter writes), read at request    |
+| `apps/web` + Vercel (stage 1+) | `ANTHROPIC_API_KEY`                                  | Claude API                                                                   |
 
 On Vercel, a secret is saved as a **Sensitive** environment variable (its value can no longer be read back, only
 replaced), for Production **and** Preview (a pull request's preview build runs with the Preview variables; without

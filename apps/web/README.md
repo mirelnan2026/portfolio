@@ -10,7 +10,7 @@ the repository interfaces of `@mirelnan/domain`, wired once in `src/server/conta
 ```
 src/
 ├─ app/                    routing only: layout, page, 404, /accessibility, robots, sitemap, the share image,
-│                          /llms.txt
+│                          /llms.txt, /api/health
 ├─ features/portfolio/     the portfolio feature
 │  ├─ queries.ts           every read, cached ("use cache" + cacheLife("max")), server-only
 │  ├─ *.ts                 pure, tested helpers: highlights, timeline, skills, case studies, metadata,
@@ -18,8 +18,8 @@ src/
 │  └─ components/          the sections; Server Components unless they need the browser
 ├─ components/layout/      header, section navigation, theme toggle, skip link, footer
 ├─ components/ui/          shadcn/ui components on Base UI, with our accessibility fixes
-├─ lib/                    security headers, deployment flags, the canonical origin
-└─ server/                 env validation and the composition root (server-only)
+├─ lib/                    security headers, deployment flags, the canonical origin, the 429 response
+└─ server/                 env validation, the composition root and the rate limiter (server-only)
 e2e/                       Playwright specs: axe on every page and theme, smoke, headers, SEO
 ```
 
@@ -40,10 +40,12 @@ The parts that need the browser are small client components: the theme toggle, t
 
 ## Environment
 
-| Variable       | Where                            | What                                                                             |
-| -------------- | -------------------------------- | -------------------------------------------------------------------------------- |
-| `DATABASE_URL` | `.env.local`, Vercel (Sensitive) | the read-only role `portfolio_reader`, pooled host; validated in `server/env.ts` |
-| `VERCEL_ENV`   | set by Vercel, read at build     | `production` turns on indexing and the production security headers               |
+| Variable                   | Where                            | What                                                                                         |
+| -------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`             | `.env.local`, Vercel (Sensitive) | the read-only role `portfolio_reader`, pooled host; validated in `server/env.ts`             |
+| `VERCEL_ENV`               | set by Vercel, read at build     | `production` turns on indexing and the production security headers                           |
+| `UPSTASH_REDIS_REST_URL`   | `.env.local`, Vercel (Sensitive) | Upstash Redis REST endpoint for rate limiting; read on the first API request, never at build |
+| `UPSTASH_REDIS_REST_TOKEN` | `.env.local`, Vercel (Sensitive) | its standard token (the limiter writes)                                                      |
 
 Copy `.env.example` to `.env.local`; the reader URL comes from `pnpm --filter @mirelnan/db db:reader`.
 
@@ -65,13 +67,13 @@ Adding a shadcn component: `pnpm --filter @mirelnan/web exec shadcn add <name>`,
 
 ## Scripts
 
-| Script           | What it does                                                                 |
-| ---------------- | ---------------------------------------------------------------------------- |
-| `pnpm dev`       | `next dev`                                                                   |
-| `pnpm build`     | `next build` (Turbo runs `typecheck` first); needs `DATABASE_URL`            |
-| `pnpm typecheck` | `next typegen && tsc`: route types first, then the compiler                  |
-| `pnpm lint`      | ESLint with the `next` preset (jsx-a11y strict, layer boundaries)            |
-| `pnpm test`      | Vitest: the helpers, the env validation, the headers and the colour contrast |
-| `pnpm test:e2e`  | Playwright + axe against the production build (run `pnpm build` first)       |
+| Script           | What it does                                                                                          |
+| ---------------- | ----------------------------------------------------------------------------------------------------- |
+| `pnpm dev`       | `next dev`                                                                                            |
+| `pnpm build`     | `next build` (Turbo runs `typecheck` first); needs `DATABASE_URL`                                     |
+| `pnpm typecheck` | `next typegen && tsc`: route types first, then the compiler                                           |
+| `pnpm lint`      | ESLint with the `next` preset (jsx-a11y strict, layer boundaries)                                     |
+| `pnpm test`      | Vitest: the helpers, the env validation, the rate-limit response, the headers and the colour contrast |
+| `pnpm test:e2e`  | Playwright + axe against the production build (run `pnpm build` first)                                |
 
 Run them from the root with `pnpm --filter @mirelnan/web <script>`.
