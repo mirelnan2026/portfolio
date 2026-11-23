@@ -23,7 +23,7 @@
     "@mirelnan/prettier-config": "workspace:*",
     "lefthook": "catalog:",
     "prettier": "catalog:",
-    "turbo": "^2.11.10",
+    "turbo": "^2.11.11",
     "typescript": "catalog:"
   }
 }
