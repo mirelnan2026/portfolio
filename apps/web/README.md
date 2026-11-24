@@ -19,7 +19,8 @@ src/
 ├─ components/layout/      header, section navigation, theme toggle, skip link, footer
 ├─ components/ui/          shadcn/ui components on Base UI, with our accessibility fixes
 ├─ lib/                    security headers, deployment flags, the canonical origin, the 429 response
-└─ server/                 env validation, the composition root and the rate limiter (server-only)
+└─ server/                 env validation, the composition root, the rate limiter and the chat turn
+                           signature (server-only; the signature functions are pure, see ADR 0010)
 e2e/                       Playwright specs: axe on every page and theme, smoke, headers, SEO
 ```
 
