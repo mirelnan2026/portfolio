@@ -365,6 +365,13 @@ code review checks security.
   return public CV data; no secrets or private data in prompts; `max_tokens` and conversation length capped; model
   output rendered as text/sanitized markdown (never `dangerouslySetInnerHTML`); job-match output validated with zod;
   spend limit set in the Anthropic console.
+- **Chat history ([ADR 0010](docs/adr/0010-signed-chat-turns.md)):** no conversation is stored on the server; the browser
+  sends the history back on each request. Every assistant turn is signed by the server (HMAC-SHA256 over role,
+  conversation id, position, content and the issue and expiry times, key ≥ 256 bits from the environment, never in the
+  client). The server keeps only the turns whose signature, conversation id, position and expiry check out, and reads
+  the signed fields only through `verifyAssistantTurn`. The conversation id is a server-generated UUID, signed with each
+  turn. Before a verified turn reaches `chatConversationSchema`, the route keeps only `role` and `content`. Signing code
+  is in `apps/web/src/server/chat-turn-signature.ts`, with its tests next to it.
 - **Database:** the runtime uses a read-only Postgres role; migrations/seed use a separate role; TLS required; queries
   only through Drizzle (parameterized), no string-built SQL.
 - **Supply chain:** frozen lockfile in CI, `pnpm audit`, Dependabot, install scripts allowed only via `allowBuilds`;
