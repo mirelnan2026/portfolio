@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@mirelnan/domain": "workspace:*",
     "zod": "catalog:"
   },
   "devDependencies": {
