@@ -150,6 +150,18 @@ const tools = {
 
 export const cvToolNames = Object.keys(tools) as (keyof typeof tools)[];
 
+/** The input schema of each tool: the same objects that validate the input, reused to describe the tool to the model. */
+export const cvToolInputSchemas = {
+  get_profile: noInput,
+  list_experiences: noInput,
+  get_experience: slugInput,
+  search_cv: searchInput,
+  list_skills: noInput,
+  list_case_studies: noInput,
+  get_case_study: slugInput,
+  get_workflow: noInput,
+} as const;
+
 export async function runCvTool(
   name: string,
   rawInput: unknown,
