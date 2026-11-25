@@ -73,6 +73,28 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toMatch(/unreleased work/i);
   });
 
+  it("makes 'not in the CV' the first sentence of the reply, not a paraphrase", () => {
+    expect(prompt).toContain("the first sentence of your reply is exactly: not in the CV.");
+  });
+
+  it("asks for the confidentiality sentence exactly, and nothing else", () => {
+    expect(prompt).toMatch(/reply with exactly this sentence and nothing else/i);
+  });
+
+  it("names the confidential topics, so the model does not improvise for them", () => {
+    expect(prompt).toMatch(/Confidential topics include[^.]*why an engagement ended/i);
+    expect(prompt).toMatch(/Confidential topics include[^.]*feature flags/i);
+  });
+
+  it("shows the reply format with an example, not only with a rule", () => {
+    expect(prompt).toContain("<examples>");
+    expect(prompt).toContain("Answer: not in the CV.");
+  });
+
+  it("limits a list to five items, then offers to continue", () => {
+    expect(prompt).toMatch(/at most five items/i);
+  });
+
   it("stays under 4000 characters, so every request pays a bounded prompt cost", () => {
     expect(prompt.length).toBeLessThan(4000);
   });
