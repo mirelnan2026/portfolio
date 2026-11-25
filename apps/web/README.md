@@ -76,5 +76,29 @@ Adding a shadcn component: `pnpm --filter @mirelnan/web exec shadcn add <name>`,
 | `pnpm lint`      | ESLint with the `next` preset (jsx-a11y strict, layer boundaries)                                     |
 | `pnpm test`      | Vitest: the helpers, the env validation, the rate-limit response, the headers and the colour contrast |
 | `pnpm test:e2e`  | Playwright + axe against the production build (run `pnpm build` first)                                |
+| `pnpm eval`      | the chat's evaluation set against a real model; see [Evaluations](#evaluations)                       |
 
 Run them from the root with `pnpm --filter @mirelnan/web <script>`.
+
+## Evaluations
+
+`evals/` checks the chat's behaviour with the real model: `cases.ts` holds the questions and what a good answer must
+(and must not) do; `graders.ts` decides pass or fail with code (no model judges); `budget.ts` prices each request
+and stops at $3.50; `run.ts` runs the cases and writes each answer to `evals/results/` (git-ignored).
+
+```
+pnpm --filter @mirelnan/web eval -- --model claude-haiku-5-5 --repeats 3
+```
+
+It needs `ANTHROPIC_API_KEY` and a `DATABASE_URL` with the read-only `portfolio_reader` role in `.env.local`;
+the runner refuses any other role. Unit tests for the graders, the budget and the case list run in `pnpm test`.
+
+A case that depends on the CV's data declares it as `dataFact`, for example "Kubernetes has no hits in `search_cv`".
+Before asking the model, the runner checks the fact against the database. If it no longer holds (a skill was added
+or removed with `db:seed`), the case is reported as `STALE` and the model is not asked: the case must be updated,
+not the model blamed.
+
+**Baseline and model.** Haiku 5.5 is the default for the chat: 95 of 95 in a 5-repeat run (2026-11-25, about $0.06).
+Sonnet 5.5 was compared on the same cases and cost about 20 times more; it is kept for comparisons only. Results are
+written to `evals/results/` (ignored by git). Repeat the run after a change to the prompt, the tools, the cases or the
+data, and periodically to catch changes made by the provider.

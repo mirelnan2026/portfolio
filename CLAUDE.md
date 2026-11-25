@@ -372,6 +372,9 @@ code review checks security.
   the signed fields only through `verifyAssistantTurn`. The conversation id is a server-generated UUID, signed with each
   turn. Before a verified turn reaches `chatConversationSchema`, the route keeps only `role` and `content`. Signing code
   is in `apps/web/src/server/chat-turn-signature.ts`, with its tests next to it.
+- **Evaluations (`apps/web/evals`, README "Evaluations"):** a case that depends on CV data declares it as `dataFact`;
+  the runner checks it against the database before the model is asked. A changed fact makes the case STALE, so it is
+  updated with the data, not reported as a model failure. Graders are code (no model judges them).
 - **Database:** the runtime uses a read-only Postgres role; migrations/seed use a separate role; TLS required; queries
   only through Drizzle (parameterized), no string-built SQL.
 - **Supply chain:** frozen lockfile in CI, `pnpm audit`, Dependabot, install scripts allowed only via `allowBuilds`;
