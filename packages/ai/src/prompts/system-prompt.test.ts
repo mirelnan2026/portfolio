@@ -96,6 +96,10 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toMatch(/do not search again with other words/i);
   });
 
+  it("never softens a rounded-down number of years with 'about' or 'around'", () => {
+    expect(prompt).toMatch(/never say "about" or "around" for years/i);
+  });
+
   it("limits a list to five items, then offers to continue", () => {
     expect(prompt).toMatch(/at most five items/i);
   });
