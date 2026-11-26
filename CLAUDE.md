@@ -358,9 +358,11 @@ code review checks security.
   (10 per 10s). One Upstash database (Frankfurt, Free plan, created in the Upstash console, not through the Vercel
   integration; no payment method on the account), shared by production, previews and local runs.
 - **Secrets:** validated with zod in `server/env.ts`, one schema per moment they are read: `readServerEnv`
-  (`DATABASE_URL`) when the composition root loads, because the build needs it; `readRateLimitEnv` (Upstash) lazily on
-  the first API request, so the build and CI never need those secrets. Never `NEXT_PUBLIC_`; modules using them import
-  `server-only`; gitleaks in lefthook + GitHub secret scanning with push protection.
+  (`DATABASE_URL`) when the composition root loads, because the build needs it; `readRateLimitEnv` (Upstash),
+  `readAnthropicEnv` and `readChatSigningEnv` lazily on the first API request, so the build and CI never need those
+  secrets. `CHAT_SIGNING_KEY` is base64url without padding, decoded to a `Buffer` of at least `signatureKeyMinBytes`
+  (32); Production and Preview get different keys, and rotating it invalidates every open conversation. Never
+  `NEXT_PUBLIC_`; modules using them import `server-only`; gitleaks in lefthook + GitHub secret scanning with push protection.
 - **AI:** the user's text and job descriptions are untrusted (prompt injection). Tools are **read-only** and only
   return public CV data; no secrets or private data in prompts; `max_tokens` and conversation length capped; model
   output rendered as text/sanitized markdown (never `dangerouslySetInnerHTML`); job-match output validated with zod;
@@ -516,12 +518,13 @@ The brief adds only work the CV does not mention; its details on work the CV alr
 Only in `.env.local` (git-ignored) and Vercel project settings. Each consumer has its own `.env.example` next to it,
 listing only the variables that process needs (least privilege: the web app never holds the owner URL):
 
-| Where                          | Variable                                             | Role / use                                                                   |
-| ------------------------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `packages/db/.env.local`       | `DATABASE_ADMIN_URL`                                 | Neon owner role, direct (unpooled); only `db:migrate` and `db:seed`, locally |
-| `apps/web/.env.local` + Vercel | `DATABASE_URL`                                       | read-only role `portfolio_reader`, pooled                                    |
-| `apps/web/.env.local` + Vercel | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limit; the standard REST token (the limiter writes), read at request    |
-| `apps/web` + Vercel (stage 1+) | `ANTHROPIC_API_KEY`                                  | Claude API                                                                   |
+| Where                          | Variable                                             | Role / use                                                                    |
+| ------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `packages/db/.env.local`       | `DATABASE_ADMIN_URL`                                 | Neon owner role, direct (unpooled); only `db:migrate` and `db:seed`, locally  |
+| `apps/web/.env.local` + Vercel | `DATABASE_URL`                                       | read-only role `portfolio_reader`, pooled                                     |
+| `apps/web/.env.local` + Vercel | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limit; the standard REST token (the limiter writes), read at request     |
+| `apps/web` + Vercel (stage 1+) | `ANTHROPIC_API_KEY`                                  | Claude API                                                                    |
+| `apps/web/.env.local` + Vercel | `CHAT_SIGNING_KEY`                                   | HMAC key for the chat's assistant turns (ADR 0010), 32 random bytes base64url |
 
 On Vercel, a secret is saved as a **Sensitive** environment variable (its value can no longer be read back, only
 replaced), for Production **and** Preview (a pull request's preview build runs with the Preview variables; without
