@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readRateLimitEnv, readServerEnv } from "./env";
+import { readAnthropicEnv, readRateLimitEnv, readServerEnv } from "./env";
 
 // Fictitious values: tests never see a real connection string.
 const valid = "postgresql://reader:not-a-real-secret@db.example.com/portfolio?sslmode=verify-full";
@@ -60,5 +60,29 @@ describe("readRateLimitEnv", () => {
     expect(() =>
       readRateLimitEnv({ UPSTASH_REDIS_REST_URL: "not a url", UPSTASH_REDIS_REST_TOKEN: token }),
     ).toThrow(/^(?!.*not-a-real-token)/s);
+  });
+});
+
+describe("readAnthropicEnv", () => {
+  // Fictitious: the prefix is the only thing the validation looks at.
+  const key = "sk-ant-not-a-real-key";
+
+  it("returns the key when it has the Anthropic prefix", () => {
+    expect(readAnthropicEnv({ ANTHROPIC_API_KEY: key })).toEqual({ ANTHROPIC_API_KEY: key });
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["empty", ""],
+    ["not an Anthropic key", "sk-openai-not-a-real-key"],
+  ])("names the variable when it is %s", (_case, value) => {
+    expect(() => readAnthropicEnv({ ANTHROPIC_API_KEY: value })).toThrow(
+      "Missing or invalid environment variables: ANTHROPIC_API_KEY.",
+    );
+  });
+
+  it("never puts the value in the error", () => {
+    const leaky = "sk-openai-leaked-value-not-a-real-key";
+    expect(() => readAnthropicEnv({ ANTHROPIC_API_KEY: leaky })).toThrow(/^(?!.*leaked-value)/s);
   });
 });
