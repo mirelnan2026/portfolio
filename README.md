@@ -96,7 +96,8 @@ one starts. These are the decisions behind its answers.
 
 **Limits**
 
-- At most four model requests per question, 800 output tokens per request and 20 seconds per request.
+- At most six model requests per question (a question about several parts needs five tool rounds, measured), 800 output
+  tokens per request and 20 seconds per request.
 - Measured on Haiku 5.5: about $0.001 to $0.002 per question, and a few seconds.
 - A per-request and a daily spending cap are planned before the chat goes live.
 
@@ -115,8 +116,11 @@ one starts. These are the decisions behind its answers.
   No model judges another model's answer.
 - A case that depends on the CV's data states the fact it relies on. The runner checks the fact in the database
   before asking the model. If the fact has changed, the case is reported as `STALE` and must be updated.
-- Baseline: Haiku 5.5 passed 95 of 95 runs (five repetitions, about six cents). Sonnet 5.5 was compared on the same
-  cases: about 20 times the cost and one answer in Romanian despite the English rule, so Haiku is the default.
+- Baseline: Haiku 5.5 passed 95 of 95 runs on the first 19 cases (five repetitions, about six cents). With four
+  multi-part cases added, the first full run passed 108 of 115; the two failures (a question that needed a fifth tool
+  round, and years written as "about 10 years") led to the current limit and wording, and the next run confirms them.
+  Sonnet 5.5 was compared on the same cases: about 20 times the cost and one answer in Romanian despite the English
+  rule, so Haiku is the default.
 - Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
 - Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
   by the model provider.

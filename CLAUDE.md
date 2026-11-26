@@ -375,7 +375,7 @@ code review checks security.
 - **Chat request and loop (`apps/web/src/features/chat`):** the body is measured before it is parsed: above 128 KB the
   answer is `413`, and the body is never read beyond the limit. `parseChatRequest` verifies every answer of the
   assistant (position, conversation, expiry), drops those that fail, and returns `400` when a dropped answer breaks the
-  alternation. `runChatTurn` makes at most 4 model requests per question, 800 output tokens each, with a 20 s timeout
+  alternation. `runChatTurn` makes at most 6 model requests per question, 800 output tokens each, with a 20 s timeout
   on every request. A refusal, a cut-off answer, an empty answer or any failure is a generic line for the visitor; the
   cause goes to the server log. Tool errors go back to the model as errors, never to the visitor. Per-request and daily
   spending caps are not implemented yet: they need a decision and an ADR first.
