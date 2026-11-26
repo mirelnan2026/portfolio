@@ -9,6 +9,8 @@ export interface ReportFields {
   costUsd: number;
   /** How many questions have been asked so far, out of how many the run plans. */
   progress: { done: number; planned: number };
+  /** How many requests the model received for this question, the tool rounds included. */
+  steps: number;
   calls: ToolCall[];
   failures: string[];
 }
@@ -26,5 +28,6 @@ export function reportLine(fields: ReportFields): string {
   const progress = `(${String(fields.progress.done)}/${String(fields.progress.planned)})`.padEnd(
     10,
   );
-  return `${verdict} ${progress} ${fields.model.padEnd(18)} ${fields.id.padEnd(26)} #${String(fields.run)} ${time}s $${fields.costUsd.toFixed(4)}  ${tools}${reasons}\n`;
+  const steps = `${String(fields.steps)} steps`.padEnd(8);
+  return `${verdict} ${progress} ${fields.model.padEnd(18)} ${fields.id.padEnd(26)} #${String(fields.run)} ${time}s $${fields.costUsd.toFixed(4)}  ${steps} ${tools}${reasons}\n`;
 }

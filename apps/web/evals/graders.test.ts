@@ -53,6 +53,50 @@ describe("factHolds", () => {
   });
 });
 
+describe("grade, edge cases", () => {
+  const refusal =
+    "That's covered by a confidentiality agreement, so I can describe the shape of the problem instead.";
+
+  it("matches the refusal when the model writes a typographic apostrophe", () => {
+    const typographic = refusal.replace("'", "’");
+    expect(grade({ id: "c", question: "q", mustContain: [refusal] }, typographic, []).passed).toBe(
+      true,
+    );
+  });
+
+  it("matches a phrase when the model uses a non-breaking space or a double space", () => {
+    const spaced = "not in  the CV.";
+    expect(
+      grade({ id: "c", question: "q", mustContain: ["not in the CV"] }, spaced, []).passed,
+    ).toBe(true);
+  });
+
+  it("matches a phrase inside markdown emphasis", () => {
+    expect(
+      grade({ id: "c", question: "q", mustContain: ["not in the CV"] }, "**Not in the CV.**", [])
+        .passed,
+    ).toBe(true);
+  });
+
+  it("refuses an empty phrase, because it would match every answer", () => {
+    expect(() => grade({ id: "c", question: "q", mustContain: [""] }, "anything", [])).toThrow(
+      /empty/i,
+    );
+  });
+
+  it("refuses an empty search term, because it would match every search", () => {
+    const c = { id: "c", question: "q", mustSearchFor: [" "] };
+    expect(() => grade(c, "x", [{ name: "search_cv", input: { query: "billing" } }])).toThrow(
+      /empty/i,
+    );
+  });
+
+  it("does not fail a blank answer on a mustNotMatch check and misreport the reason", () => {
+    const verdict = grade({ id: "c", question: "q", mustNotMatch: [/x/] }, "   ", []);
+    expect(verdict.failures).toEqual(["empty answer"]);
+  });
+});
+
 describe("grade", () => {
   it("passes an answer that contains the required phrase and nothing forbidden", () => {
     expect(grade(vue, "That is not in the CV, but Mirel worked with Angular.", [])).toEqual({
@@ -69,6 +113,20 @@ describe("grade", () => {
     const verdict = grade(vue, "Mirel has not used it.", []);
     expect(verdict.passed).toBe(false);
     expect(verdict.failures).toEqual(['missing "not in the CV"']);
+  });
+
+  it("requires a pattern the answer must match, and says which one is missing", () => {
+    const angular: EvalCase = { id: "angular", question: "q", mustMatch: [/Angular/] };
+    expect(grade(angular, "Mirel worked with Angular for years.", []).passed).toBe(true);
+    const verdict = grade(angular, "Mirel worked with React.", []);
+    expect(verdict.passed).toBe(false);
+    expect(verdict.failures).toEqual(["did not match /Angular/"]);
+  });
+
+  it("checks a required pattern with the same stateless search as the forbidden ones", () => {
+    const sticky: EvalCase = { id: "sticky", question: "q", mustMatch: [/beta/g] };
+    expect(grade(sticky, "beta", []).passed).toBe(true);
+    expect(grade(sticky, "beta", []).passed).toBe(true);
   });
 
   it("fails when a forbidden pattern appears in the answer", () => {

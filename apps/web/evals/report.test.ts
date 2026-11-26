@@ -9,6 +9,7 @@ const passing: ReportFields = {
   seconds: 1.84,
   costUsd: 0.00032,
   progress: { done: 1, planned: 95 },
+  steps: 2,
   calls: [
     { name: "search_cv", input: { query: "Vue" } },
     { name: "list_skills", input: {} },
@@ -31,6 +32,11 @@ describe("reportLine", () => {
   it("shows the progress as done out of planned, so a long run can be followed", () => {
     expect(reportLine({ ...passing, progress: { done: 1, planned: 95 } })).toContain("(1/95)");
     expect(reportLine({ ...passing, progress: { done: 2, planned: 95 } })).toContain("(2/95)");
+  });
+
+  it("shows how many model calls the question took, so the step limit can be judged from the report", () => {
+    expect(reportLine({ ...passing, steps: 3 })).toContain("3 steps");
+    expect(reportLine({ ...passing, steps: 1 })).toContain("1 steps");
   });
 
   it("says so when the model answered without calling a tool", () => {

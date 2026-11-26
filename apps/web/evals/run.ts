@@ -26,6 +26,8 @@ interface Outcome {
   answer: string;
   calls: ToolCall[];
   stopReason: StopReason;
+  /** How many requests the model received for this question. */
+  steps: number;
 }
 
 function argValue(name: string, fallback: string): string {
@@ -59,11 +61,12 @@ async function askOnce(
 ): Promise<Outcome> {
   const messages: Anthropic.MessageParam[] = [{ role: "user", content: question }];
   const calls: ToolCall[] = [];
+  let steps = 0;
 
   for (let step = 0; step < maxSteps; step++) {
     // Checked before every request, not only between cases, so one question cannot pass the limit.
     if (budget.exhausted) {
-      return { answer: "", calls, stopReason: "budget" };
+      return { answer: "", calls, stopReason: "budget", steps };
     }
 
     const response = await client.messages.create({
@@ -75,17 +78,18 @@ async function askOnce(
       messages,
     });
     budget.add(costOf(model, response.usage));
+    steps++;
     messages.push({ role: "assistant", content: response.content });
 
     if (response.stop_reason === "max_tokens" || response.stop_reason === "refusal") {
-      return { answer: textOf(response.content), calls, stopReason: response.stop_reason };
+      return { answer: textOf(response.content), calls, stopReason: response.stop_reason, steps };
     }
 
     const uses = response.content.filter(
       (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
     );
     if (uses.length === 0) {
-      return { answer: textOf(response.content), calls, stopReason: "end_turn" };
+      return { answer: textOf(response.content), calls, stopReason: "end_turn", steps };
     }
 
     const results: Anthropic.ToolResultBlockParam[] = [];
@@ -102,7 +106,7 @@ async function askOnce(
     messages.push({ role: "user", content: results });
   }
 
-  return { answer: "", calls, stopReason: "out_of_steps" };
+  return { answer: "", calls, stopReason: "out_of_steps", steps };
 }
 
 /** The evaluations must read as the read-only role: a URL with the owner's role would be refused here. */
@@ -192,6 +196,7 @@ async function main(): Promise<void> {
               seconds: (Date.now() - startedAt) / 1000,
               costUsd: budget.total - spentBefore,
               progress: { done: total, planned },
+              steps: outcome.steps,
               calls: outcome.calls,
               failures,
             }),

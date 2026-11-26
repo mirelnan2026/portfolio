@@ -4,6 +4,8 @@ export interface EvalCase {
   question: string;
   /** Phrases the answer must contain, word for word. */
   mustContain?: string[];
+  /** Patterns the answer must match: what it has to say, not only what it must not say. */
+  mustMatch?: RegExp[];
   /** Patterns the answer must not match. */
   mustNotMatch?: RegExp[];
   /** Tools that must have been called at least once. */
@@ -73,6 +75,26 @@ export interface Verdict {
   failures: string[];
 }
 
+/**
+ * Makes the answer comparable with what we wrote: typographic quotes become plain ones, and every run of whitespace,
+ * including a non-breaking space, becomes one space. Case is kept, because a pattern may depend on it.
+ */
+function normalizeText(text: string): string {
+  return text
+    .replace(/[‘’‛′]/g, "'")
+    .replace(/[“”„]/g, '"')
+    .replace(/\s+/g, " ");
+}
+
+/** An empty phrase or term would match every answer, so it is a mistake in the case, reported as one. */
+function requireText(value: string, what: string): string {
+  const normalized = normalizeText(value).trim();
+  if (normalized === "") {
+    throw new Error(`An empty ${what} would match every answer: fix the case`);
+  }
+  return normalized;
+}
+
 /** Code-based grading: deterministic checks that need no model. Every check runs, so all failures are reported. */
 export function grade(evalCase: EvalCase, answer: string, calls: ToolCall[]): Verdict {
   const failures: string[] = [];
@@ -82,16 +104,25 @@ export function grade(evalCase: EvalCase, answer: string, calls: ToolCall[]): Ve
     failures.push("empty answer");
   }
 
+  const text = normalizeText(answer);
+
   for (const phrase of evalCase.mustContain ?? []) {
     // Letter case is ignored: a sentence that starts with "Not in the CV" says the same thing.
-    if (!answer.toLowerCase().includes(phrase.toLowerCase())) {
+    if (!text.toLowerCase().includes(requireText(phrase, "phrase").toLowerCase())) {
       failures.push(`missing "${phrase}"`);
+    }
+  }
+
+  for (const pattern of evalCase.mustMatch ?? []) {
+    // search() for the same reason as below: the verdict must not depend on the order of earlier calls.
+    if (text.search(pattern) === -1) {
+      failures.push(`did not match ${String(pattern)}`);
     }
   }
 
   for (const pattern of evalCase.mustNotMatch ?? []) {
     // search() ignores the global flag's lastIndex, so the same answer always gets the same verdict.
-    if (answer.search(pattern) !== -1) {
+    if (text.search(pattern) !== -1) {
       failures.push(`matched forbidden ${String(pattern)}`);
     }
   }
@@ -105,7 +136,8 @@ export function grade(evalCase: EvalCase, answer: string, calls: ToolCall[]): Ve
   for (const term of evalCase.mustSearchFor ?? []) {
     const searched = calls.some(
       (call) =>
-        call.name === "search_cv" && queryOf(call.input).toLowerCase().includes(term.toLowerCase()),
+        call.name === "search_cv" &&
+        queryOf(call.input).toLowerCase().includes(requireText(term, "search term").toLowerCase()),
     );
     if (!searched) {
       failures.push(`no search_cv call searched for "${term}"`);
