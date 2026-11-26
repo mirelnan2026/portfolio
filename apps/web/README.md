@@ -16,6 +16,8 @@ src/
 │  ├─ *.ts                 pure, tested helpers: highlights, timeline, skills, case studies, metadata,
 │  │                       structured data, llms.txt, format (years, durations, tenure)
 │  └─ components/          the sections; Server Components unless they need the browser
+├─ features/chat/          the chat's server side: request.ts parses and verifies the request before the model,
+│                          turn.ts runs the tool-use loop (timeout, step limit, generic errors)
 ├─ components/layout/      header, section navigation, theme toggle, skip link, footer
 ├─ components/ui/          shadcn/ui components on Base UI, with our accessibility fixes
 ├─ lib/                    security headers, deployment flags, the canonical origin, the 429 response
@@ -85,6 +87,10 @@ Run them from the root with `pnpm --filter @mirelnan/web <script>`.
 `evals/` checks the chat's behaviour with the real model: `cases.ts` holds the questions and what a good answer must
 (and must not) do; `graders.ts` decides pass or fail with code (no model judges); `budget.ts` prices each request
 and stops at $3.50; `run.ts` runs the cases and writes each answer to `evals/results/` (git-ignored).
+
+A case can require a phrase (`mustContain`), a pattern the answer must match (`mustMatch`) or must not match
+(`mustNotMatch`), the tools that must be called, and the search terms they must use. Each report line shows the
+question's progress, the model requests it took (`steps`), the tools called and the cost.
 
 ```
 pnpm --filter @mirelnan/web eval -- --model claude-haiku-5-5 --repeats 3

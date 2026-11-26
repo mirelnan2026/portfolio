@@ -64,6 +64,71 @@ The tables, their relations and the rules the database enforces are in
 | Quality   | ESLint (type-aware, jsx-a11y strict), Prettier, Vitest, Playwright + axe, commitlint, lefthook, gitleaks |
 | CI / host | GitHub Actions, Vercel                                                                                   |
 
+## How the chat is built to answer well
+
+The chat is not live yet (🚧). It is built step by step, and each step is tested, measured or reviewed before the next
+one starts. These are the decisions behind its answers.
+
+**Grounding: it answers only from the data**
+
+- The model answers only from what its tools return. Missing facts get the exact reply "not in the CV", never a guess
+  from related skills.
+- The tools are read-only and return only public CV data. Product descriptions and competencies (kept for search
+  engines) never reach the model.
+- Ownership is kept honest: work done as part of a team is never presented as owned, and years are rounded down
+  ("more than 10 years").
+
+**The system prompt**
+
+- One short prompt (about 3.5 KB), sent with every request. It sets the role, how tools are used, the reply format
+  (plain text, at most five list items, English whatever the question's language), third-person references, the
+  confidentiality reply word for word, and how to treat instructions typed by a visitor.
+- Every rule has a test that fails if the rule is removed. A change to a rule is measured with the evaluations
+  below before it is kept.
+
+**Validation before the model is called**
+
+- A request body is refused above 128 KB, before it is parsed. A visitor's question is limited to 1 000 characters,
+  a conversation to 19 messages, and the roles must alternate. Unknown fields are refused.
+- The assistant's earlier answers come back from the browser, so the server signs each one with HMAC-SHA256 (position,
+  conversation and expiry are signed). A forged, moved, expired or foreign answer is dropped, not trusted
+  ([ADR 0010](docs/adr/0010-signed-chat-turns.md)).
+
+**Limits**
+
+- At most six model requests per question (a question about several parts needs five tool rounds, measured), 800 output
+  tokens per request and 20 seconds per request.
+- Measured on Haiku 5.5: about $0.001 to $0.002 per question, and a few seconds.
+- A per-request and a daily spending cap are planned before the chat goes live.
+
+**Security**
+
+- The API key is read on the server, on the first request, and checked for its prefix. It never reaches the browser,
+  and the error for a missing key does not show its value.
+- The evaluation runner refuses to run unless it connects with the read-only database role.
+- A tool error goes to the model as an error, so the model can say it could not find something. The visitor gets a
+  generic line; the technical cause goes to the server log only.
+
+**Evaluations: the answers are measured, not assumed**
+
+- 23 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
+  language, and questions with several parts. The grading is code: phrases, patterns, tool calls and search terms.
+  No model judges another model's answer.
+- A case that depends on the CV's data states the fact it relies on. The runner checks the fact in the database
+  before asking the model. If the fact has changed, the case is reported as `STALE` and must be updated.
+- Baseline: Haiku 5.5 passed 115 of 115 runs on all 23 cases (five repetitions, about eight cents). The first full run
+  with the four multi-part cases passed 108 of 115. The failures were fixed by rules, and two false positives of the
+  grader were corrected with tests: a fifth tool round needed a higher step limit, years written as "about 10 years"
+  needed an explicit rule, a question about how something was delivered needed a rule to read the case study, and a
+  pattern had flagged a refusal that named the product. Sonnet 5.5 was compared on the first
+  19 cases: about 20 times the cost and one answer in Romanian despite the English rule, so Haiku is the default.
+- Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
+- Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
+  by the model provider.
+
+The decisions are recorded in [ADR 0010](docs/adr/0010-signed-chat-turns.md), and the evaluation workflow is in
+[`apps/web/README.md`](apps/web/README.md#evaluations).
+
 ## Quality bars
 
 **Accessibility — WCAG 2.2 AA, in both themes**
@@ -83,7 +148,8 @@ The tables, their relations and the rules the database enforces are in
 - ✅ The app connects with a read-only database role; secrets are validated at startup and never echoed.
 - ✅ CI with a frozen lockfile, `pnpm audit`, no install scripts, actions pinned to a commit SHA, read-only token.
 - ✅ CodeQL, Dependabot with a 7-day release age, secret scanning with push protection, a protected `main`.
-- 🚧 Rate limiting on the API routes, prompt-injection evaluations (with the AI features).
+- ✅ Rate limiting on the API routes, per client address (Upstash).
+- 🚧 Prompt-injection evaluations are in place for the chat; they grow with the chat's features.
 
 **SEO**
 

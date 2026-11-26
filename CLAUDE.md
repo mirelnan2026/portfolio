@@ -372,6 +372,13 @@ code review checks security.
   the signed fields only through `verifyAssistantTurn`. The conversation id is a server-generated UUID, signed with each
   turn. Before a verified turn reaches `chatConversationSchema`, the route keeps only `role` and `content`. Signing code
   is in `apps/web/src/server/chat-turn-signature.ts`, with its tests next to it.
+- **Chat request and loop (`apps/web/src/features/chat`):** the body is measured before it is parsed: above 128 KB the
+  answer is `413`, and the body is never read beyond the limit. `parseChatRequest` verifies every answer of the
+  assistant (position, conversation, expiry), drops those that fail, and returns `400` when a dropped answer breaks the
+  alternation. `runChatTurn` makes at most 6 model requests per question, 800 output tokens each, with a 20 s timeout
+  on every request. A refusal, a cut-off answer, an empty answer or any failure is a generic line for the visitor; the
+  cause goes to the server log. Tool errors go back to the model as errors, never to the visitor. Per-request and daily
+  spending caps are not implemented yet: they need a decision and an ADR first.
 - **Evaluations (`apps/web/evals`, README "Evaluations"):** a case that depends on CV data declares it as `dataFact`;
   the runner checks it against the database before the model is asked. A changed fact makes the case STALE, so it is
   updated with the data, not reported as a model failure. Graders are code (no model judges them).

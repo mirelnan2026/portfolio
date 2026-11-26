@@ -91,6 +91,25 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Answer: not in the CV.");
   });
 
+  it("searches once per topic, and does not search again with other words when nothing is found", () => {
+    expect(prompt).toMatch(/one search per topic/i);
+    expect(prompt).toMatch(/do not search again with other words/i);
+  });
+
+  it("never softens a rounded-down number of years with 'about' or 'around'", () => {
+    expect(prompt).toMatch(/never say "about" or "around" for years/i);
+  });
+
+  it("reads the case study before answering how something was delivered or why", () => {
+    expect(prompt).toMatch(/how something was delivered or why/i);
+    expect(prompt).toMatch(/get_case_study before you answer/i);
+  });
+
+  it("answers each part of a question with several parts, and starts a missing part with the formula", () => {
+    expect(prompt).toMatch(/For a question with several parts, answer each part/i);
+    expect(prompt).toMatch(/as its own sentence/i);
+  });
+
   it("limits a list to five items, then offers to continue", () => {
     expect(prompt).toMatch(/at most five items/i);
   });
