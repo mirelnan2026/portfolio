@@ -116,11 +116,12 @@ one starts. These are the decisions behind its answers.
   No model judges another model's answer.
 - A case that depends on the CV's data states the fact it relies on. The runner checks the fact in the database
   before asking the model. If the fact has changed, the case is reported as `STALE` and must be updated.
-- Baseline: Haiku 5.5 passed 95 of 95 runs on the first 19 cases (five repetitions, about six cents). With four
-  multi-part cases added, the first full run passed 108 of 115; the two failures (a question that needed a fifth tool
-  round, and years written as "about 10 years") led to the current limit and wording, and the next run confirms them.
-  Sonnet 5.5 was compared on the same cases: about 20 times the cost and one answer in Romanian despite the English
-  rule, so Haiku is the default.
+- Baseline: Haiku 5.5 passed 115 of 115 runs on all 23 cases (five repetitions, about eight cents). The first full run
+  with the four multi-part cases passed 108 of 115. The failures were fixed by rules, and two false positives of the
+  grader were corrected with tests: a fifth tool round needed a higher step limit, years written as "about 10 years"
+  needed an explicit rule, a question about how something was delivered needed a rule to read the case study, and a
+  pattern had flagged a refusal that named the product. Sonnet 5.5 was compared on the first
+  19 cases: about 20 times the cost and one answer in Romanian despite the English rule, so Haiku is the default.
 - Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
 - Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
   by the model provider.
