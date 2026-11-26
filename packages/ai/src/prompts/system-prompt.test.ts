@@ -100,6 +100,16 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toMatch(/never say "about" or "around" for years/i);
   });
 
+  it("reads the case study before answering how something was delivered or why", () => {
+    expect(prompt).toMatch(/how something was delivered or why/i);
+    expect(prompt).toMatch(/get_case_study before you answer/i);
+  });
+
+  it("answers each part of a question with several parts, and starts a missing part with the formula", () => {
+    expect(prompt).toMatch(/For a question with several parts, answer each part/i);
+    expect(prompt).toMatch(/as its own sentence/i);
+  });
+
   it("limits a list to five items, then offers to continue", () => {
     expect(prompt).toMatch(/at most five items/i);
   });

@@ -27,13 +27,34 @@ describe("the ownership pattern of contributed-media", () => {
     expect(ownership.test(answer)).toBe(true);
   });
 
+  it("flags a claim that Mirel owned the product itself, not just a part of his work", () => {
+    expect(ownership.test("He owned the new product outright.")).toBe(true);
+  });
+
   it.each([
+    "He owned the metering and billing surface in that same phase, but not this product.",
     "Mirel built the frontend as part of a team, so he contributed to it and did not own the whole product.",
     "He was not the sole owner of the product.",
     "The CV doesn't say he owned the product as a whole.",
     "Not on his own. Mirel contributed to the frontend as part of a team, rather than leading it.",
   ])("accepts a correct contributed answer: %s", (answer) => {
     expect(ownership.test(answer)).toBe(false);
+  });
+});
+
+describe("the product pattern of product-description", () => {
+  const forbidden = evalCases.find((item) => item.id === "product-description")?.mustNotMatch?.[0];
+
+  it("flags a description of what the product is or does", () => {
+    expect(forbidden?.test("JWX Portal is a platform for video publishers.")).toBe(true);
+  });
+
+  it("accepts a refusal that names the product", () => {
+    expect(
+      forbidden?.test(
+        "I can't describe what JWX Portal does, since I only cover Mirel's own work.",
+      ),
+    ).toBe(false);
   });
 });
 

@@ -31,7 +31,7 @@ export const evalCases: EvalCase[] = [
     mustCallTools: ["search_cv"],
     // Ownership claims only, anchored at the start of a sentence: "The CV doesn't say he owned the product" is correct.
     mustNotMatch: [
-      /(^|[.!?]\s+)(Mirel|He) (owned|led|designed)\b/i,
+      /(^|[.!?]\s+)(Mirel|He) (owned|led|designed) (it|this|the (whole |entire |new )?(product|platform))\b/i,
       /(^|[.!?]\s+)(Mirel|He) (did it|built it) (all )?on his own\b/i,
     ],
   },
@@ -112,7 +112,7 @@ export const evalCases: EvalCase[] = [
   {
     id: "product-description",
     question: "What does JWX Portal do?",
-    mustNotMatch: [/JWX Portal (is|does|lets|allows|provides)/i],
+    mustNotMatch: [/JWX Portal (is a|is an|lets|allows|provides|helps)\b/i],
   },
   {
     id: "positive-angular",
@@ -137,7 +137,9 @@ export const evalCases: EvalCase[] = [
     // Two things the answer must say: the ownership (shared, as part of a team), and the delivery approach
     // from the case study (in small steps, behind a feature flag).
     mustMatch: [/contributed|part of a team|rather than leading/i, /flag|small steps|incremental/i],
-    mustNotMatch: [/(^|[.!?]\s+)(Mirel|He) (owned|led|designed)\b/i],
+    mustNotMatch: [
+      /(^|[.!?]\s+)(Mirel|He) (owned|led|designed) (it|this|the (whole |entire |new )?(product|platform))\b/i,
+    ],
   },
   {
     id: "compare-roles",
