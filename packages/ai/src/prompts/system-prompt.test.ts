@@ -91,6 +91,11 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Answer: not in the CV.");
   });
 
+  it("searches once per topic, and does not search again with other words when nothing is found", () => {
+    expect(prompt).toMatch(/one search per topic/i);
+    expect(prompt).toMatch(/do not search again with other words/i);
+  });
+
   it("limits a list to five items, then offers to continue", () => {
     expect(prompt).toMatch(/at most five items/i);
   });
