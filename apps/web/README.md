@@ -43,12 +43,14 @@ The parts that need the browser are small client components: the theme toggle, t
 
 ## Environment
 
-| Variable                   | Where                            | What                                                                                         |
-| -------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`             | `.env.local`, Vercel (Sensitive) | the read-only role `portfolio_reader`, pooled host; validated in `server/env.ts`             |
-| `VERCEL_ENV`               | set by Vercel, read at build     | `production` turns on indexing and the production security headers                           |
-| `UPSTASH_REDIS_REST_URL`   | `.env.local`, Vercel (Sensitive) | Upstash Redis REST endpoint for rate limiting; read on the first API request, never at build |
-| `UPSTASH_REDIS_REST_TOKEN` | `.env.local`, Vercel (Sensitive) | its standard token (the limiter writes)                                                      |
+| Variable                   | Where                            | What                                                                                                            |
+| -------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`             | `.env.local`, Vercel (Sensitive) | the read-only role `portfolio_reader`, pooled host; validated in `server/env.ts`                                |
+| `VERCEL_ENV`               | set by Vercel, read at build     | `production` turns on indexing and the production security headers                                              |
+| `UPSTASH_REDIS_REST_URL`   | `.env.local`, Vercel (Sensitive) | Upstash Redis REST endpoint for rate limiting; read on the first API request, never at build                    |
+| `UPSTASH_REDIS_REST_TOKEN` | `.env.local`, Vercel (Sensitive) | its standard token (the limiter writes)                                                                         |
+| `ANTHROPIC_API_KEY`        | `.env.local`, Vercel (Sensitive) | Claude API key for the chat; read on the first chat request, never at build                                     |
+| `CHAT_SIGNING_KEY`         | `.env.local`, Vercel (Sensitive) | HMAC key for the chat's assistant turns (ADR 0010): 32 random bytes, base64url; a different key per environment |
 
 Copy `.env.example` to `.env.local`; the reader URL comes from `pnpm --filter @mirelnan/db db:reader`.
 

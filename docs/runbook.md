@@ -14,6 +14,7 @@ Every service the site depends on. Secrets are never written here, only the name
 | Vercel                       | hosting, previews, Web Analytics             | none (holds the variables below)                                                                                            |
 | Neon                         | Postgres: the CV data                        | owner URL → `packages/db/.env.local` (`DATABASE_ADMIN_URL`); reader URL → `apps/web/.env.local` and Vercel (`DATABASE_URL`) |
 | Upstash                      | Redis: the rate-limit counters               | REST URL and token → `apps/web/.env.local` and Vercel (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)                |
+| Anthropic                    | Claude API: the chat                         | API key → `apps/web/.env.local` and Vercel (`ANTHROPIC_API_KEY`); spend limit set in the console                            |
 | Registrar                    | the domain `mirelnan.dev` and its DNS        | none                                                                                                                        |
 | Google Search Console / Bing | indexing (Bing imported from Search Console) | none; verified by a DNS `TXT` record that must stay                                                                         |
 
@@ -73,6 +74,21 @@ The live site keeps working meanwhile: it is static, so only new builds need the
 
 Unlike the database password, this affects the live site: the API routes read the token at request time, so
 between steps 1 and 3 they answer 500. The pages are static and keep working.
+
+## Rotating the chat signing key
+
+1. Generate a key without printing it (once per environment: Production, Preview and local get different keys):
+
+   ```bash
+   node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64url'))" > /tmp/key && chmod 600 /tmp/key
+   ```
+
+2. Local: put it in `apps/web/.env.local` as `CHAT_SIGNING_KEY`. Vercel: delete and re-add `CHAT_SIGNING_KEY`
+   (**Sensitive**), one value for Production and another for Preview, then redeploy production. Delete `/tmp/key`.
+
+Every open conversation loses its history: the old signatures no longer verify, so the server drops those turns and
+the visitor starts again. Nothing is stored, so nothing else needs cleaning up. Rotate at once if the key may have
+leaked.
 
 ## Rolling back
 
