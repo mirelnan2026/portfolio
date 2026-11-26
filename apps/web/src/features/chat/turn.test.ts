@@ -107,6 +107,14 @@ describe("runChatTurn", () => {
     expect(calls).toHaveLength(2);
   });
 
+  it("allows a question that needs five rounds of tools under the default limit", async () => {
+    const rounds = Array.from({ length: 5 }, (_, index) =>
+      reply([toolUse(`t${String(index)}`, "get_workflow", {})], "tool_use"),
+    );
+    const { client } = fakeModel([...rounds, reply([text("Here is how.")])]);
+    expect(await run(client)).toEqual({ ok: true, answer: "Here is how." });
+  });
+
   it("reports a refusal instead of showing it as an answer", async () => {
     const { client } = fakeModel([reply([text("I cannot help with that.")], "refusal")]);
     expect(await run(client)).toMatchObject({ ok: false });

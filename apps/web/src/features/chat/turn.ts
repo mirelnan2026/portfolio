@@ -2,8 +2,11 @@ import type { ChatConversation, CvRepositories } from "@mirelnan/ai";
 import { buildSystemPrompt, cvToolDefinitions, runCvTool } from "@mirelnan/ai";
 import type Anthropic from "@anthropic-ai/sdk";
 
-/** Enough for a question about the CV: a few tool calls, then the answer. */
-const defaultMaxSteps = 4;
+/**
+ * Requests to the model per question. A question about a project with several parts needs five tool rounds and
+ * then the answer (measured in the evaluations), so six leaves one round of margin.
+ */
+const defaultMaxSteps = 6;
 /** A chat answer that takes longer than this is abandoned, so a hung request cannot hold the server function. */
 const modelTimeoutMs = 20_000;
 

@@ -15,7 +15,7 @@ import { reportLine } from "./report";
 /** The owner's limit is $4; the guard stops at $3.50 so the last call cannot pass it. */
 const budgetLimitUsd = 3.5;
 /** Tool round trips allowed per question. */
-const maxSteps = 4;
+const maxSteps = 6;
 /** Where each run's answers are written, one JSON line per case. Git ignores this folder. */
 const resultsDir = new URL("./results/", import.meta.url);
 
