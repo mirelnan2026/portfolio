@@ -58,7 +58,7 @@ describe("grade, edge cases", () => {
     "That's covered by a confidentiality agreement, so I can describe the shape of the problem instead.";
 
   it("matches the refusal when the model writes a typographic apostrophe", () => {
-    const typographic = refusal.replace("'", "’");
+    const typographic = refusal.replaceAll("'", "’");
     expect(grade({ id: "c", question: "q", mustContain: [refusal] }, typographic, []).passed).toBe(
       true,
     );
