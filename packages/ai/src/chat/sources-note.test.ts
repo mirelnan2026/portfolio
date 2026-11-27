@@ -18,19 +18,36 @@ describe("withoutSourcesTags", () => {
     [
       "an opening and a closing tag",
       "Mirel was CTO.<sources>get_profile</sources>",
-      "Mirel was CTO.get_profile",
+      "Mirel was CTO.",
     ],
-    ["any case and spacing", "Hi < SOURCES >search_cv</ Sources >", "Hi search_cv"],
+    ["any case and spacing", "Hi < SOURCES >search_cv</ Sources >", "Hi"],
+    [
+      "a note the model wrote at the end of a real answer",
+      "Angular, for more than 10 years. <sources>list_skills</sources>",
+      "Angular, for more than 10 years.",
+    ],
     ["a lone opening tag", "Hi <sources>", "Hi"],
-  ])("removes %s, so only the server writes a note", (_case, text, expected) => {
-    expect(withoutSourcesTags(text)).toBe(expected);
-  });
+    ["a lone closing tag", "Hi </sources>", "Hi"],
+  ])(
+    "removes %s with the tool names inside, so only the server writes a note",
+    (_case, text, expected) => {
+      expect(withoutSourcesTags(text)).toBe(expected);
+    },
+  );
 
   it("stays linear on a long run of spaces after '<', which an ambiguous pattern would make quadratic", () => {
     // Two optional runs of spaces around an optional "/" could each take the same spaces: CodeQL flagged it.
     const text = `<${" ".repeat(100_000)}x`;
     const started = performance.now();
     expect(withoutSourcesTags(text)).toBe(text.trim());
+    expect(performance.now() - started).toBeLessThan(200);
+  });
+
+  it("stays linear on many opening tags with no closing one", () => {
+    // Each "<sources>" looks ahead for its closing tag only up to the next "<", so the scans do not overlap.
+    const text = "<sources>".repeat(20_000);
+    const started = performance.now();
+    expect(withoutSourcesTags(text)).toBe("");
     expect(performance.now() - started).toBeLessThan(200);
   });
 

@@ -1,3 +1,5 @@
+import { cvToolNames, withoutSourcesTags } from "@mirelnan/ai";
+
 /** One evaluation case: a question and what a good answer must, and must not, do. */
 export interface EvalCase {
   id: string;
@@ -78,7 +80,21 @@ export interface Verdict {
   passed: boolean;
   /** Every failed check, in words; empty when the case passes. */
   failures: string[];
+  /**
+   * The model wrote a `<sources>` tag itself, which the prompt forbids. The server removes it before the visitor sees
+   * the answer, so it is counted, not failed: the checks grade the answer the visitor reads.
+   */
+  wroteSourcesTag: boolean;
 }
+
+/** Any `<sources>` tag, opening or closing, in any case and spacing: the shape `withoutSourcesTags` removes. */
+const sourcesTag = /<\s*(?:\/\s*)?sources\s*>/i;
+
+/** A tool name as a word: "list_skills" in "Source: list_skills", not inside a longer identifier. */
+const toolNamePatterns = cvToolNames.map((name) => ({
+  name,
+  pattern: new RegExp(`\\b${name}\\b`),
+}));
 
 /**
  * Makes the answer comparable with what we wrote: typographic quotes become plain ones, and every run of whitespace,
@@ -100,16 +116,28 @@ function requireText(value: string, what: string): string {
   return normalized;
 }
 
-/** Code-based grading: deterministic checks that need no model. Every check runs, so all failures are reported. */
+/**
+ * Code-based grading: deterministic checks that need no model. Every check runs, so all failures are reported.
+ * `answer` is the model's text as it came back; the checks run on what the visitor reads, after the server has removed
+ * any `<sources>` tag, exactly as the chat route does before it signs the answer.
+ */
 export function grade(evalCase: EvalCase, answer: string, calls: ToolCall[]): Verdict {
   const failures: string[] = [];
+  const visible = withoutSourcesTags(answer);
 
   // Without text the other checks pass trivially (no forbidden pattern matches ""), so emptiness fails first.
-  if (answer.trim() === "") {
+  if (visible.trim() === "") {
     failures.push("empty answer");
   }
 
-  const text = normalizeText(answer);
+  const text = normalizeText(visible);
+
+  // For every case: the prompt forbids tool names in an answer, and a visitor would read them.
+  for (const { name, pattern } of toolNamePatterns) {
+    if (text.search(pattern) !== -1) {
+      failures.push(`names the tool "${name}"`);
+    }
+  }
 
   for (const phrase of evalCase.mustContain ?? []) {
     // Letter case is ignored: a sentence that starts with "Not in the CV" says the same thing.
@@ -149,7 +177,7 @@ export function grade(evalCase: EvalCase, answer: string, calls: ToolCall[]): Ve
     }
   }
 
-  return { passed: failures.length === 0, failures };
+  return { passed: failures.length === 0, failures, wroteSourcesTag: sourcesTag.test(answer) };
 }
 
 function queryOf(input: unknown): string {

@@ -150,6 +150,7 @@ async function main(): Promise<void> {
   const client = new Anthropic();
   const budget = new BudgetGuard(budgetLimitUsd);
   let passedCount = 0;
+  let sourcesTagCount = 0;
   let total = 0;
   // Planned questions for the progress counter; stale cases are skipped, so the run can end below this number.
   const planned = cases.length * repeats;
@@ -190,6 +191,7 @@ async function main(): Promise<void> {
           const spentBefore = budget.total;
           const outcome = await askOnce(client, model, evalCase, repos, budget);
           const verdict = grade(evalCase, outcome.answer, outcome.calls);
+          if (verdict.wroteSourcesTag) sourcesTagCount++;
           const failures =
             outcome.stopReason === "end_turn"
               ? verdict.failures
@@ -213,7 +215,7 @@ async function main(): Promise<void> {
           );
           await appendFile(
             resultsFile,
-            `${JSON.stringify({ model, id: evalCase.id, run, passed, failures, ...outcome })}\n`,
+            `${JSON.stringify({ model, id: evalCase.id, run, passed, failures, wroteSourcesTag: verdict.wroteSourcesTag, ...outcome })}\n`,
           );
         } catch (error) {
           // One failed request (network, rate limit) must not lose the results of the other cases.
@@ -230,6 +232,7 @@ async function main(): Promise<void> {
     await connection.close();
     process.stdout.write(
       `\n${String(passedCount)}/${String(total)} passed on ${model}, spent $${budget.total.toFixed(4)} in ${((Date.now() - runStarted) / 1000).toFixed(1)}s\n` +
+        `the model wrote a <sources> tag ${String(sourcesTagCount)} times (removed before the visitor reads it)\n` +
         `answers saved to ${resultsFile.pathname}\n`,
     );
   }

@@ -88,12 +88,15 @@ Run them from the root with `pnpm --filter @mirelnan/web <script>`.
 ## Evaluations
 
 `evals/` checks the chat's behaviour with the real model: `cases.ts` holds the questions and what a good answer must
-(and must not) do; `graders.ts` decides pass or fail with code (no model judges); `budget.ts` prices each request
+(and must not) do; `graders.ts` decides pass or fail with code (no model judges), on the answer the visitor reads:
+after `withoutSourcesTags`, as the chat route signs it; `budget.ts` prices each request
 and stops at $3.50; `run.ts` runs the cases and writes each answer to `evals/results/` (git-ignored).
 
 A case can require a phrase (`mustContain`), a pattern the answer must match (`mustMatch`) or must not match
-(`mustNotMatch`), the tools that must be called, and the search terms they must use. Each report line shows the
-question's progress, the model requests it took (`steps`), the tools called and the cost.
+(`mustNotMatch`), the tools that must be called, and the search terms they must use. Every case also fails when the answer names a
+tool (`list_skills`), which the prompt forbids. A `<sources>` tag the model wrote is removed before grading, as in
+production, and counted: the summary says how many answers had one, and each result line has `wroteSourcesTag`. Each
+report line shows the question's progress, the model requests it took (`steps`), the tools called and the cost.
 
 ```
 pnpm --filter @mirelnan/web eval -- --model claude-haiku-5-5 --repeats 3
