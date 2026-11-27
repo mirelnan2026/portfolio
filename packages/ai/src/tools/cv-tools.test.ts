@@ -326,14 +326,22 @@ describe("search_cv", () => {
 });
 
 describe("list_skills", () => {
-  it("gives each skill its years, rounded down", async () => {
-    // React is used from 2023-03 to 2026-10 (44 months) and from 2016-07 to 2017-12 (18 months): 62 months, 5 years.
+  it("gives each skill its tenure as a phrase that never overstates it", async () => {
+    // React is used from 2023-03 to 2026-10 (44 months) and from 2016-07 to 2017-12 (18 months): 62 months.
     const result = await run("list_skills", {}, fakeRepos());
     if (!result.ok) throw new Error("expected a result");
-    const react = (result.data as { slug: string; years: number }[]).find(
+    const react = (result.data as { slug: string; tenure: string }[]).find(
       (item) => item.slug === "react",
     );
-    expect(react?.years).toBe(5);
+    expect(react?.tenure).toBe("more than 5 years");
+  });
+
+  it("gives no bare number of years, so the model has nothing to repeat as an exact figure", async () => {
+    const result = await run("list_skills", {}, fakeRepos());
+    if (!result.ok) throw new Error("expected a result");
+    for (const item of result.data as Record<string, unknown>[]) {
+      expect(item).not.toHaveProperty("years");
+    }
   });
 });
 
@@ -415,10 +423,33 @@ describe("list_skills, where the years come from", () => {
     });
     const result = await run("list_skills", {}, repos);
     if (!result.ok) throw new Error("expected a result");
-    const angular = (result.data as { slug: string; years: number }[]).find(
+    const angular = (result.data as { slug: string; tenure: string }[]).find(
       (item) => item.slug === "angular",
     );
-    expect(angular?.years).toBe(2);
+    // 2024-01 to 2025-12 is exactly 24 months: a whole number of years is stated as it is.
+    expect(angular?.tenure).toBe("2 years");
+  });
+
+  it.each([
+    ["under a year", "less than a year", "2026-05", "2026-10"],
+    ["exactly one year", "1 year", "2025-11", "2026-10"],
+    ["one year and a month", "more than 1 year", "2025-10", "2026-10"],
+    ["exactly two years", "2 years", "2024-11", "2026-10"],
+    ["two years and a month", "more than 2 years", "2024-10", "2026-10"],
+    ["an ongoing project, up to the current month", "less than a year", "2026-01", null],
+  ])("says %s as %j", async (_case, tenure, start, end) => {
+    const repos = fakeRepos({
+      projects: {
+        list: () => Promise.resolve([{ ...project, period: period(start, end) }]),
+        getBySlug: () => Promise.resolve({ ...project, period: period(start, end) }),
+      },
+    });
+    const result = await run("list_skills", {}, repos);
+    if (!result.ok) throw new Error("expected a result");
+    const angular = (result.data as { slug: string; tenure: string }[]).find(
+      (item) => item.slug === "angular",
+    );
+    expect(angular?.tenure).toBe(tenure);
   });
 
   it("leaves out a skill that nothing uses", async () => {

@@ -40,9 +40,11 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toMatch(/translate its key terms into English before you call a tool/i);
   });
 
-  it("says rounded-down years as 'more than N years', never as exact", () => {
-    expect(prompt).toMatch(/rounded down/i);
-    expect(prompt).toContain('"more than N years"');
+  it("repeats the tenure phrase from list_skills word for word, so years are never overstated", () => {
+    expect(prompt).toMatch(/list_skills gives each skill's tenure as a phrase/i);
+    expect(prompt).toMatch(/use it word for word/i);
+    // The old rule asked the model to rebuild the phrase from a number; the tool now gives it ready.
+    expect(prompt).not.toContain('"more than N years"');
   });
 
   it("treats an empty result as 'not in the CV', not as something to infer", () => {

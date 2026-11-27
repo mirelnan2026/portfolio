@@ -76,7 +76,8 @@ one starts. These are the decisions behind its answers.
 - The tools are read-only and return only public CV data. Product descriptions and competencies (kept for search
   engines) never reach the model.
 - Ownership is kept honest: work done as part of a team is never presented as owned, and years are rounded down
-  ("more than 10 years").
+  ("more than 10 years"). The skills tool returns that phrase ready to repeat, not a number, so the model has no
+  figure to round up or state as exact.
 
 **The system prompt**
 
@@ -126,6 +127,11 @@ one starts. These are the decisions behind its answers.
   needed an explicit rule, a question about how something was delivered needed a rule to read the case study, and a
   pattern had flagged a refusal that named the product. Sonnet 5.5 was compared on the first
   19 cases: about 20 times the cost and one answer in Romanian despite the English rule, so Haiku is the default.
+- A later single run stated "10 years" for a rounded-down figure. It was fixed in the data, not in the prompt: the
+  skills tool now returns the phrase ("more than 10 years") instead of a number, and the case passed five runs out of
+  five. Reading every answer of that run, not only the failures, showed a grader that was too loose: the case asking
+  about cloud tools accepted any answer containing "cloud", including "the CV does not list any cloud tools", although
+  the CV lists AWS and Vercel. The cause is a search that does not look at skill categories; it is the next fix.
 - Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
 - Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
   by the model provider.

@@ -198,7 +198,8 @@ checks accessibility.
   by `position`; each skill shows its tenure from `skillTenure` in `domain/rules` (the union of the periods of its role, phase and
   project links; [ADR 0009](docs/adr/0009-personal-projects-in-skill-years.md)),
   rounded **down** to whole years by `tenureLabel` ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim
-  never overstates. Only the **top 12** (`topSkills`) are always visible; all of them, by category, sit behind "Show all
+  never overstates. The chat gets the same rule as a phrase from `list_skills` (`tenure`: "less than a year", "N
+  years", "more than N years"; no numeric field), repeated word for word. Only the **top 12** (`topSkills`) are always visible; all of them, by category, sit behind "Show all
   N skills by category", which a `?skill=` link to a skill outside the top opens.
 - **Skill filter:** each skill is a `<button aria-pressed>`; `?skill=<slug>` is the state, so a selection is a shareable
   link (the chat and job match link to skills). The page stays static: the server `components/skills.tsx` wraps the

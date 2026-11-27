@@ -18,7 +18,8 @@ const descriptions: Record<(typeof cvToolNames)[number], string> = {
     "Returns one role with its phases and highlights. Each highlight carries its ownership (owned or contributed) and its sourceSlug.",
   search_cv:
     "Searches the highlights and skill names of the roles for a text, ignoring case. It does not search case studies or the workflow. Returns at most 10 hits, each with its ownership or skill and its sourceSlug.",
-  list_skills: "Lists the skills Mirel has used, with the years of use, rounded down.",
+  list_skills:
+    'Lists the skills Mirel has used, each with its tenure as a phrase that never overstates it (for example "more than 5 years").',
   list_case_studies:
     "Lists the case studies by slug, title and context. Use get_case_study for the details of one.",
   get_case_study:
