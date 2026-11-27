@@ -427,8 +427,9 @@ code review checks security.
   and a `<sources>` tag the model wrote is counted per run (`wroteSourcesTag`), not failed. One variable per measured change: a setting that changes the model's behaviour (model, effort, thinking) is its own
   experiment, never bundled with a fix (effort `low`, bundled with a token-limit fix, broke the English rule).
   A case's `history` uses a real answer of another case, word for word, not a hand-written one: a hand-written first
-  answer without its end month made the model "correct" it. The prompt is near its 4 500-character limit: the next
-  rule comes with a measured compaction of the existing ones, not a higher limit.
+  answer without its end month made the model "correct" it. The prompt's limit is 4 600 characters (a test): a
+  compaction is a measured change like a rule (dropping the role's "using only the tools you are given" made refusals
+  open with "Not in the CV" 4 times in 15). A message that is not a question gets one fixed reply, word for word.
 - **Database:** the runtime uses a read-only Postgres role; migrations/seed use a separate role; TLS required; queries
   only through Drizzle (parameterized), no string-built SQL.
 - **Supply chain:** frozen lockfile in CI, `pnpm audit`, Dependabot, install scripts allowed only via `allowBuilds`;

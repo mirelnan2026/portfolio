@@ -151,9 +151,18 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toMatch(/most recent role/i);
   });
 
-  it("stays under 4500 characters, so every request pays a bounded prompt cost", () => {
-    // Raised from 4000 with the <sources> rule (ADR 0012), rather than rewording rules the evaluations had measured.
-    expect(prompt.length).toBeLessThan(4500);
+  it("gives a message that is not a question its own reply, word for word", () => {
+    // Before the rule, "bla bla" got the off-topic reply, as if the visitor had asked something forbidden.
+    expect(prompt).toMatch(/a message that is not a question/i);
+    expect(prompt).toContain(
+      "I didn't catch a question there. You can ask about Mirel's roles, skills or case studies — for example, what he worked on most recently.",
+    );
+  });
+
+  it("stays under 4600 characters, so every request pays a bounded prompt cost", () => {
+    // Raised from 4000 with the <sources> rule (ADR 0012), then to 4600 with the not-a-question rule: a compaction
+    // that also removed "using only the tools you are given" made 4 refusals in 15 open with "Not in the CV".
+    expect(prompt.length).toBeLessThan(4600);
   });
 
   it("is the same text on every call", () => {
