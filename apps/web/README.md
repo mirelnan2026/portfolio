@@ -17,10 +17,11 @@ src/
 │  │                       structured data, llms.txt, format (years, durations, tenure)
 │  └─ components/          the sections; Server Components unless they need the browser
 ├─ features/chat/          the chat's server side: request.ts parses and verifies the request before the model,
-│                          turn.ts runs the tool-use loop (timeout, step limit, generic errors)
+│                          turn.ts runs the tool-use loop (timeout, step limit, cancellation, generic errors),
+│                          handler.ts turns one request into a signed answer (tested with a fake client)
 ├─ components/layout/      header, section navigation, theme toggle, skip link, footer
 ├─ components/ui/          shadcn/ui components on Base UI, with our accessibility fixes
-├─ lib/                    security headers, deployment flags, the canonical origin, the 429 response
+├─ lib/                    security headers, deployment flags, the canonical origin, the 429 and 503 responses
 └─ server/                 env validation, the composition root, the rate limiter and the chat turn
                            signature (server-only; the signature functions are pure, see ADR 0010)
 e2e/                       Playwright specs: axe on every page and theme, smoke, headers, SEO

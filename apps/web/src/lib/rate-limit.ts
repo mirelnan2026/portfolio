@@ -10,3 +10,11 @@ export function tooManyRequests(retryAfter: number): Response {
     { status: 429, headers: { "Retry-After": String(retryAfter), "Cache-Control": "no-store" } },
   );
 }
+
+/** The answer when the limiter cannot decide in time: generic, so it does not say which service is down. */
+export function rateLimitUnavailable(): Response {
+  return Response.json(
+    { error: "The service is unavailable right now. Try again later." },
+    { status: 503, headers: { "Cache-Control": "no-store" } },
+  );
+}

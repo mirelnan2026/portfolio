@@ -346,14 +346,19 @@ code review checks security.
   failed test is `'unsafe-inline'`. Experimental Next SRI is not worth it yet.
 - **Input:** every API input validated with zod (types + max lengths) at the boundary; body size limits; rate limiting
   (Upstash) on every `/api/*` route; generic error messages, no stack traces to the client.
-- **Rate limiting:** `server/rate-limit.ts` (`server-only`) → `createRateLimit({ name, requests, window })`, created at
-  module scope in the route (so the limiter's in-memory cache of blocked clients lives as long as the instance);
+- **Rate limiting:** `server/rate-limit.ts` (`server-only`) →
+  `createRateLimit({ name, requests, window, timeout?, onTimeout? })`, created at module scope in the route (so the
+  limiter's in-memory cache of blocked clients lives as long as the instance);
   `const limited = await rateLimit(request); if (limited) return limited;` at the top of the handler. Upstash
   `slidingWindow` per client IP (`ipAddress()` from `@vercel/functions`: the header Vercel's edge sets, `"unknown"`
-  locally), key prefix `ratelimit:<name>`, one prefix per route; `waitUntil(pending)`. The 429 comes from the pure,
+  locally), key prefix `ratelimit:<name>`, one prefix per policy; `waitUntil(pending)`. The 429 comes from the pure,
   tested `lib/rate-limit.ts` (`tooManyRequests`: generic JSON, `Retry-After` in whole seconds rounded up, `no-store`).
-  Every `/api/*` GET starts with `await connection()`, or Cache Components prerenders it at build. Fails open on an
-  Upstash timeout (the library's 5s default; revisit for `/api/chat`), closed on missing variables (500).
+  Every `/api/*` GET starts with `await connection()`, or Cache Components prerenders it at build. On an Upstash
+  timeout the library answers `success: true` with `reason: "timeout"`: a policy's `onTimeout` decides, `"allow"` by
+  default (`/api/health`, the library's 5 s), `"deny"` for routes that cost money (`/api/chat`: 2 s, then
+  `rateLimitUnavailable()`, a generic `503`). Closed on missing variables (500). `/api/chat` has two policies,
+  `chat-minute` (5 per minute) and `chat-day` (30 per 24 h), checked in that order, so a blocked burst does not use
+  the daily allowance. Tested in `server/rate-limit.test.ts` with Upstash mocked.
   `/api/health` (`{ "status": "ok" }`, no DB, no version info) is the cheap route that proves the limiter
   (10 per 10s). One Upstash database (Frankfurt, Free plan, created in the Upstash console, not through the Vercel
   integration; no payment method on the account), shared by production, previews and local runs.
@@ -379,8 +384,18 @@ code review checks security.
   assistant (position, conversation, expiry), drops those that fail, and returns `400` when a dropped answer breaks the
   alternation. `runChatTurn` makes at most 6 model requests per question, 800 output tokens each, with a 20 s timeout
   on every request. A refusal, a cut-off answer, an empty answer or any failure is a generic line for the visitor; the
-  cause goes to the server log. Tool errors go back to the model as errors, never to the visitor. Per-request and daily
-  spending caps are not implemented yet: they need a decision and an ADR first.
+  cause goes to the server log. Tool errors go back to the model as errors, never to the visitor. `request.signal`
+  reaches every model call: a visitor who leaves cancels the request in flight, no new round starts, and nothing is
+  logged. Per-request and daily spending caps are not implemented yet: they need a decision and an ADR first.
+- **Chat route (`app/api/chat/route.ts`):** a composition root only: the two rate limits, the Anthropic client and
+  `CHAT_SIGNING_KEY` read lazily on the first request, the six CV ports destructured from `repositories` (so
+  `products` is not even in the object), `maxDuration = 150`. The logic is `handleChatRequest(request, deps)` in
+  `features/chat/handler.ts` (clock and id generator injected, tested with a fake client): parse → `runChatTurn` →
+  sign the answer at `position = messages.length`, in the verified conversation or a new `randomUUID()`, dated when it
+  is ready, valid 15 minutes. Responses are JSON with `no-store`: `200 { answer }` (the signed turn the browser sends
+  back as is), the parser's `400`/`413`, or `502 { error }` when the model gives no usable answer. The model is the
+  constant `chatModel` (Haiku 5.5): a change goes through the evaluations and a pull request, not an environment
+  variable. No streaming: the answer is signed whole (owner decision, 2026-11-26; revisit with an ADR).
 - **Evaluations (`apps/web/evals`, README "Evaluations"):** a case that depends on CV data declares it as `dataFact`;
   the runner checks it against the database before the model is asked. A changed fact makes the case STALE, so it is
   updated with the data, not reported as a model failure. Graders are code (no model judges them).

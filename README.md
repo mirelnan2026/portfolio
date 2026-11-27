@@ -99,6 +99,10 @@ one starts. These are the decisions behind its answers.
 - At most six model requests per question (a question about several parts needs five tool rounds, measured), 800 output
   tokens per request and 20 seconds per request.
 - Measured on Haiku 5.5: about $0.001 to $0.002 per question, and a few seconds.
+- Per visitor: 5 questions a minute and 30 a day. If the rate limiter does not answer within 2 seconds, the chat
+  refuses instead of running unchecked.
+- A visitor who closes the page cancels the model request in flight, and no further round starts.
+- The answer comes back whole, not streamed, because it is signed once it is complete.
 - A per-request and a daily spending cap are planned before the chat goes live.
 
 **Security**

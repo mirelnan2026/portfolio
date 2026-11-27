@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { retryAfterSeconds, tooManyRequests } from "./rate-limit";
+import { rateLimitUnavailable, retryAfterSeconds, tooManyRequests } from "./rate-limit";
 
 const now = 1_000_000;
 
@@ -25,6 +25,20 @@ describe("tooManyRequests", () => {
   it("returns a generic JSON error", async () => {
     await expect(tooManyRequests(7).json()).resolves.toEqual({
       error: "Too many requests. Try again later.",
+    });
+  });
+});
+
+describe("rateLimitUnavailable", () => {
+  it("is a 503 that is never cached", () => {
+    const response = rateLimitUnavailable();
+    expect(response.status).toBe(503);
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+  });
+
+  it("returns a generic JSON error that does not name the limiter", async () => {
+    await expect(rateLimitUnavailable().json()).resolves.toEqual({
+      error: "The service is unavailable right now. Try again later.",
     });
   });
 });
