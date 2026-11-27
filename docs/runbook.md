@@ -75,6 +75,29 @@ The live site keeps working meanwhile: it is static, so only new builds need the
 Unlike the database password, this affects the live site: the API routes read the token at request time, so
 between steps 1 and 3 they answer 500. The pages are static and keep working.
 
+## Rotating the Anthropic API key
+
+Two workspaces in the Anthropic Console, each with its own monthly spend limit, so tests can never use up the live
+site's budget; the Default workspace (course work, never used by the site) has one too, and the organization's limit
+covers the three. The amounts are kept out of the repository, because a public figure would tell an attacker how much
+spending takes the chat offline: they are in the owner's password manager, next to the keys. Each workspace holds one
+key; the chat and job match share it.
+
+| Workspace              | Key                    | Used by                           |
+| ---------------------- | ---------------------- | --------------------------------- |
+| `portfolio-production` | `portfolio-production` | Vercel Production                 |
+| `portfolio-dev`        | `portfolio-dev`        | Vercel Preview, local runs, evals |
+
+1. Console → the workspace → API keys → Create key, with the workspace as its Scope. Expiry: one year for production,
+   rotated with the other yearly tasks (an expired key takes the chat down without warning), 3 months for dev; note
+   both dates in the password manager.
+2. Put the dev key in `apps/web/.env.local`. In Vercel, delete and re-add `ANTHROPIC_API_KEY` (**Sensitive**): the
+   production key for Production, the dev key for Preview. Redeploy production.
+3. Delete the old key in the Console once the new deployment answers.
+
+When a workspace reaches its limit, the API refuses requests and the chat shows its generic "unavailable" line until
+the next month or a higher limit: it fails closed, never at a cost.
+
 ## Rotating the chat signing key
 
 1. Generate a key without printing it (once per environment: Production, Preview and local get different keys):
@@ -111,5 +134,6 @@ leaked.
 
 - **`security.txt`** expires a year after it was written. A test fails 30 days before the date: set a new
   `Expires` in `apps/web/public/.well-known/security.txt`.
+- **Anthropic API key:** rotate the `portfolio-production` key before it expires (see "Rotating the Anthropic API key").
 - **Domain:** `mirelnan.dev` renews automatically at the registrar; the TLS certificates renew automatically on
   Vercel. Keep the DNS records (`A`, `CNAME www`, and the search console `TXT` records).

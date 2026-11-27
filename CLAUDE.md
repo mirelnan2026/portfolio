@@ -371,7 +371,12 @@ code review checks security.
 - **AI:** the user's text and job descriptions are untrusted (prompt injection). Tools are **read-only** and only
   return public CV data; no secrets or private data in prompts; `max_tokens` and conversation length capped; model
   output rendered as text/sanitized markdown (never `dangerouslySetInnerHTML`); job-match output validated with zod;
-  spend limit set in the Anthropic console.
+  spend limits set in the Anthropic console, per workspace (`portfolio-production`, `portfolio-dev`) and for the
+  organization. **Spending amounts never go into tracked files** (docs, ADRs, code, tests, commit messages): a public
+  cap tells an attacker how much spending takes the chat offline (denial of wallet). Tracked files describe the
+  mechanism; the console limits live in the owner's password manager, and in-app budgets will be environment
+  variables. Measured costs per question and the local eval runner's own cap are not limits on the live chat, so
+  they may be stated.
 - **Chat history ([ADR 0010](docs/adr/0010-signed-chat-turns.md)):** no conversation is stored on the server; the browser
   sends the history back on each request. Every assistant turn is signed by the server (HMAC-SHA256 over role,
   conversation id, position, content and the issue and expiry times, key ≥ 256 bits from the environment, never in the
