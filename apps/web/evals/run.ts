@@ -1,6 +1,6 @@
 import { appendFile, mkdir } from "node:fs/promises";
 import Anthropic from "@anthropic-ai/sdk";
-import { buildSystemPrompt, cvToolDefinitions, runCvTool } from "@mirelnan/ai";
+import { buildSystemPrompt, cvToolDefinitions, runCvTool, withSourcesNote } from "@mirelnan/ai";
 import {
   connectToPostgres,
   createDrizzleRepositories,
@@ -9,7 +9,7 @@ import {
 import type { Repositories } from "@mirelnan/domain";
 import { BudgetGuard, costOf, type EvalModel } from "./budget";
 import { selectCases } from "./cases";
-import { factHolds, grade, type ToolCall } from "./graders";
+import { type EvalCase, factHolds, grade, type ToolCall } from "./graders";
 import { reportLine } from "./report";
 import { chatRequestSettings } from "../src/features/chat/turn";
 
@@ -56,11 +56,18 @@ function textOf(content: Anthropic.ContentBlock[]): string {
 async function askOnce(
   client: Anthropic,
   model: EvalModel,
-  question: string,
+  evalCase: EvalCase,
   repos: Repositories,
   budget: BudgetGuard,
 ): Promise<Outcome> {
-  const messages: Anthropic.MessageParam[] = [{ role: "user", content: question }];
+  // Earlier turns come first, each answer with its tools note, exactly as the chat route builds them.
+  const messages: Anthropic.MessageParam[] = [
+    ...(evalCase.history ?? []).flatMap((turn): Anthropic.MessageParam[] => [
+      { role: "user", content: turn.question },
+      { role: "assistant", content: withSourcesNote(turn.answer, turn.tools) },
+    ]),
+    { role: "user", content: evalCase.question },
+  ];
   const calls: ToolCall[] = [];
   let steps = 0;
 
@@ -181,7 +188,7 @@ async function main(): Promise<void> {
         try {
           const startedAt = Date.now();
           const spentBefore = budget.total;
-          const outcome = await askOnce(client, model, evalCase.question, repos, budget);
+          const outcome = await askOnce(client, model, evalCase, repos, budget);
           const verdict = grade(evalCase, outcome.answer, outcome.calls);
           const failures =
             outcome.stopReason === "end_turn"

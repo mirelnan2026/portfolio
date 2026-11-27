@@ -13,7 +13,12 @@ const options = { key, now };
 /** An answer the server signed in `conversationId` at `position`, as the browser sends it back. */
 const answer = (position: number, conversationId = conversation) =>
   signAssistantTurn(
-    { content: "Mirel worked at JWP Connatix.", position, conversationId },
+    {
+      content: "Mirel worked at JWP Connatix.",
+      position,
+      conversationId,
+      tools: ["list_experiences"],
+    },
     key,
     issuedAt,
     15 * 60,
@@ -79,13 +84,16 @@ describe("parseChatRequest, the messages", () => {
     });
   });
 
-  it("keeps a valid answer of the current conversation, and returns its id", async () => {
+  it("keeps a valid answer of the current conversation, with the note of its tools, and returns its id", async () => {
     const body = { messages: [user("Where?"), answer(1), user("Since when?")] };
     expect(await parseChatRequest(post(body), options)).toEqual({
       ok: true,
       messages: [
         user("Where?"),
-        { role: "assistant", content: "Mirel worked at JWP Connatix." },
+        {
+          role: "assistant",
+          content: "Mirel worked at JWP Connatix.\n<sources>list_experiences</sources>",
+        },
         user("Since when?"),
       ],
       conversationId: conversation,

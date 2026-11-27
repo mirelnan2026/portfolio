@@ -47,7 +47,12 @@ const user = (content: string) => ({ role: "user", content });
 /** An answer the server signed earlier in the existing conversation, as the browser sends it back. */
 const earlier = (position: number, signingKey = key) =>
   signAssistantTurn(
-    { content: "Mirel worked at JWP Connatix.", position, conversationId: existingId },
+    {
+      content: "Mirel worked at JWP Connatix.",
+      position,
+      conversationId: existingId,
+      tools: ["list_experiences"],
+    },
     signingKey,
     new Date("2026-11-26T10:00:00.000Z"),
     15 * 60,
@@ -59,6 +64,37 @@ const post = (body: unknown) =>
     headers: { "content-type": "application/json" },
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
+
+/** A model that asks for the given tools in one round, then answers. */
+function fakeModelWithTools(tools: string[], answer: string) {
+  let call = 0;
+  const client = {
+    messages: {
+      create: () => {
+        call++;
+        return Promise.resolve(
+          call === 1
+            ? {
+                content: tools.map((name, index) => ({
+                  type: "tool_use",
+                  id: `t${String(index)}`,
+                  name,
+                  input: {},
+                })),
+                stop_reason: "tool_use",
+                usage: { input_tokens: 100, output_tokens: 20 },
+              }
+            : {
+                content: [{ type: "text", text: answer }],
+                stop_reason: "end_turn",
+                usage: { input_tokens: 100, output_tokens: 20 },
+              },
+        );
+      },
+    },
+  } as unknown as Anthropic;
+  return client;
+}
 
 describe("handleChatRequest, an answer", () => {
   it("returns the model's answer, signed for a new conversation at the next position", async () => {
@@ -95,10 +131,10 @@ describe("handleChatRequest, an answer", () => {
 
     const { answer } = (await response.json()) as { answer: unknown };
     expect(answer).toMatchObject({ conversationId: existingId, position: 3 });
-    // The model sees only role and content: the signed fields never reach it.
+    // The model sees role and content, with the tools the answer came from: the other signed fields never reach it.
     expect(calls[0]?.messages[1]).toEqual({
       role: "assistant",
-      content: "Mirel worked at JWP Connatix.",
+      content: "Mirel worked at JWP Connatix.\n<sources>list_experiences</sources>",
     });
   });
 
@@ -107,6 +143,79 @@ describe("handleChatRequest, an answer", () => {
     const request = post({ messages: [user("Hi")] });
     await handleChatRequest(request, deps(client));
     expect(signals[0]).toBe(request.signal);
+  });
+
+  it("signs the tools the answer was written from, each once, in the order of their first call", async () => {
+    const workflowRepos = {
+      workflow: { list: () => Promise.resolve([]) },
+      caseStudies: { list: () => Promise.resolve([]) },
+    } as unknown as CvRepositories;
+    const client = fakeModelWithTools(
+      ["get_workflow", "list_case_studies", "get_workflow"],
+      "Mirel specifies first.",
+    );
+    const response = await handleChatRequest(
+      post({ messages: [user("How does Mirel work?")] }),
+      deps(client, { repos: workflowRepos }),
+    );
+    const { answer } = (await response.json()) as { answer: unknown };
+    expect(answer).toMatchObject({ tools: ["get_workflow", "list_case_studies"] });
+    expect(verifyAssistantTurn(answer, { conversationId: newId, position: 1 }, key, now)).toEqual({
+      valid: true,
+    });
+  });
+
+  it("signs an answer written without tools with an empty list", async () => {
+    const { client } = fakeModel("Mirel writes the spec first.");
+    const response = await handleChatRequest(post({ messages: [user("Hi")] }), deps(client));
+    const { answer } = (await response.json()) as { answer: unknown };
+    expect(answer).toMatchObject({ tools: [] });
+  });
+
+  it("logs the tools and the requests of the turn, never the question or the answer", async () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const client = fakeModelWithTools(["get_workflow"], "Mirel specifies first.");
+    await handleChatRequest(
+      post({ messages: [user("A private question about Mirel")] }),
+      deps(client, {
+        repos: { workflow: { list: () => Promise.resolve([]) } } as unknown as CvRepositories,
+      }),
+    );
+    expect(log).toHaveBeenCalledTimes(1);
+    const line = String(log.mock.calls[0]?.[0]);
+    expect(JSON.parse(line)).toEqual({
+      event: "chat_turn",
+      ok: true,
+      steps: 2,
+      tools: ["get_workflow"],
+      durationMs: 0,
+    });
+    expect(line).not.toContain("private question");
+    expect(line).not.toContain("specifies");
+    log.mockRestore();
+  });
+
+  it("logs how long the model and the tools took, from the start of the loop to the answer", async () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    // The first read verifies the history, the second starts the loop, the third is when the answer is ready.
+    const reads = [
+      new Date("2026-11-26T10:05:00.000Z"),
+      new Date("2026-11-26T10:05:00.250Z"),
+      new Date("2026-11-26T10:05:06.450Z"),
+    ];
+    let read = 0;
+    const { client } = fakeModel("Hi.");
+    const response = await handleChatRequest(
+      post({ messages: [user("Hi")] }),
+      deps(client, { now: () => reads[Math.min(read++, reads.length - 1)] ?? now }),
+    );
+
+    const line = JSON.parse(String(log.mock.calls[0]?.[0])) as { durationMs: number };
+    expect(line.durationMs).toBe(6_200);
+    // The answer is dated with the same reading that ends the measurement.
+    const { answer } = (await response.json()) as { answer: { issuedAt: string } };
+    expect(answer.issuedAt).toBe("2026-11-26T10:05:06.450Z");
+    log.mockRestore();
   });
 
   it("asks the chat model", async () => {

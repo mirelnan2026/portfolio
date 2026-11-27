@@ -17,7 +17,12 @@ const afterTtl = new Date("2026-11-24T10:16:00.000Z");
 /** A turn the server would send: the second message (position 1) of `conversation`. */
 const signed = () =>
   signAssistantTurn(
-    { content: "Mirel worked at JWP Connatix.", position: 1, conversationId: conversation },
+    {
+      content: "Mirel worked at JWP Connatix.",
+      position: 1,
+      conversationId: conversation,
+      tools: ["search_cv"],
+    },
     key,
     issuedAt,
     ttlSeconds,
@@ -37,7 +42,7 @@ describe("signAssistantTurn", () => {
     const shortKey = Buffer.alloc(signatureKeyMinBytes - 1, 7);
     expect(() =>
       signAssistantTurn(
-        { content: "Hi", position: 1, conversationId: conversation },
+        { content: "Hi", position: 1, conversationId: conversation, tools: ["search_cv"] },
         shortKey,
         issuedAt,
         ttlSeconds,
@@ -48,7 +53,7 @@ describe("signAssistantTurn", () => {
   it.each([-1, 1.5])("refuses a position that is not a non-negative integer (%s)", (position) => {
     expect(() =>
       signAssistantTurn(
-        { content: "Hi", position, conversationId: conversation },
+        { content: "Hi", position, conversationId: conversation, tools: ["search_cv"] },
         key,
         issuedAt,
         ttlSeconds,
@@ -59,7 +64,7 @@ describe("signAssistantTurn", () => {
   it("refuses a conversation id that is not a UUID", () => {
     expect(() =>
       signAssistantTurn(
-        { content: "Hi", position: 1, conversationId: "not-a-uuid" },
+        { content: "Hi", position: 1, conversationId: "not-a-uuid", tools: [] },
         key,
         issuedAt,
         ttlSeconds,
@@ -103,7 +108,12 @@ describe("verifyAssistantTurn", () => {
 
   it("rejects a turn from another conversation, even at the same position", () => {
     const foreign = signAssistantTurn(
-      { content: "Mirel worked at JWP Connatix.", position: 1, conversationId: otherConversation },
+      {
+        content: "Mirel worked at JWP Connatix.",
+        position: 1,
+        conversationId: otherConversation,
+        tools: ["search_cv"],
+      },
       key,
       issuedAt,
       ttlSeconds,
@@ -212,5 +222,60 @@ describe("verifyAssistantTurn", () => {
       valid: false,
       reason: "malformed",
     });
+  });
+});
+
+describe("the tools of a turn", () => {
+  const withTools = (tools: string[]) =>
+    signAssistantTurn(
+      { content: "Mirel is based in Bucharest.", position: 1, conversationId: conversation, tools },
+      key,
+      issuedAt,
+      ttlSeconds,
+    );
+
+  it("signs the tools the answer was written from, in the turn the browser keeps", () => {
+    expect(withTools(["search_cv", "get_profile"])).toMatchObject({
+      tools: ["search_cv", "get_profile"],
+    });
+    expect(verifyAssistantTurn(withTools(["get_profile"]), expected, key, withinTtl)).toEqual({
+      valid: true,
+    });
+  });
+
+  it("signs an answer written without tools with an empty list", () => {
+    expect(verifyAssistantTurn(withTools([]), expected, key, withinTtl)).toEqual({ valid: true });
+  });
+
+  it.each([
+    ["a tool added to make a claim look checked", ["get_profile", "search_cv"]],
+    ["a tool removed", []],
+    ["the tools reordered", ["search_cv", "get_profile"].reverse()],
+  ])("rejects %s, because the signature covers the tools", (_case, tools) => {
+    const turn = { ...withTools(["search_cv", "get_profile"]), tools };
+    expect(verifyAssistantTurn(turn, expected, key, withinTtl)).toEqual({
+      valid: false,
+      reason: "signature",
+    });
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["not a list", "get_profile"],
+    ["a name that is not a CV tool", ["delete_everything"]],
+    ["the same tool twice", ["get_profile", "get_profile"]],
+  ])("rejects tools that are %s as malformed", (_case, tools) => {
+    const turn = { ...withTools(["get_profile"]), tools };
+    expect(verifyAssistantTurn(turn, expected, key, withinTtl)).toEqual({
+      valid: false,
+      reason: "malformed",
+    });
+  });
+
+  it.each([
+    ["a name that is not a CV tool", ["delete_everything"]],
+    ["the same tool twice", ["get_profile", "get_profile"]],
+  ])("refuses to sign %s", (_case, tools) => {
+    expect(() => withTools(tools)).toThrow();
   });
 });
