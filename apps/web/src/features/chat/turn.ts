@@ -21,6 +21,8 @@ export interface TurnInput {
   repos: CvRepositories;
   now: string;
   maxSteps?: number;
+  /** Aborted when the visitor disconnects: the request in flight is cancelled and no new one starts. */
+  signal?: AbortSignal;
 }
 
 function textOf(content: Anthropic.ContentBlock[]): string {
@@ -37,6 +39,10 @@ export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
 
   try {
     for (let step = 0; step < maxSteps; step++) {
+      // A visitor who left gets no answer: stop before paying for another round.
+      if (input.signal?.aborted) {
+        return { ok: false, error: unavailable };
+      }
       const response = await input.client.messages.create(
         {
           model: input.model,
@@ -46,7 +52,7 @@ export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
           tools: cvToolDefinitions as unknown as Anthropic.Tool[],
           messages,
         },
-        { timeout: modelTimeoutMs },
+        { timeout: modelTimeoutMs, signal: input.signal },
       );
 
       if (response.stop_reason === "refusal") {
@@ -80,6 +86,10 @@ export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
     }
     return { ok: false, error: "This question needs too many steps. Try a narrower one." };
   } catch (error) {
+    // A cancelled request is the visitor leaving, not a server fault: nothing to log.
+    if (input.signal?.aborted) {
+      return { ok: false, error: unavailable };
+    }
     // The visitor gets a generic line: the SDK's message can contain request details. The server log gets the cause.
     const cause = error instanceof Error ? error.message : String(error);
     console.error(`chat turn failed: ${cause}`, error);

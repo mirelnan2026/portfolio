@@ -42,11 +42,14 @@ interface RecordedCall {
 /** A model that answers with the given responses in order, and records every request and its options. */
 function fakeModel(responses: (ReturnType<typeof reply> | Error)[]) {
   const calls: RecordedCall[] = [];
-  const options: ({ timeout?: number } | undefined)[] = [];
+  const options: ({ timeout?: number; signal?: AbortSignal } | undefined)[] = [];
   let next = 0;
   const client = {
     messages: {
-      create: (params: RecordedCall, requestOptions?: { timeout?: number }) => {
+      create: (
+        params: RecordedCall,
+        requestOptions?: { timeout?: number; signal?: AbortSignal },
+      ) => {
         calls.push(structuredClone(params));
         options.push(requestOptions);
         const response = responses[next++];
@@ -207,5 +210,72 @@ describe("runChatTurn, edge cases", () => {
     const timeout = options[0]?.timeout;
     expect(timeout).toBeGreaterThan(0);
     expect(timeout).toBeLessThanOrEqual(30_000);
+  });
+});
+
+describe("runChatTurn, a visitor who leaves", () => {
+  const ask = (client: Anthropic, signal: AbortSignal) =>
+    runChatTurn({
+      client,
+      model: "claude-haiku-5-5",
+      messages: question,
+      repos,
+      now: "2026-11",
+      signal,
+    });
+
+  it("gives the visitor's signal to every model call, so a closed tab cancels the request in flight", async () => {
+    const controller = new AbortController();
+    const { client, options } = fakeModel([
+      reply([toolUse("t1", "get_workflow", {})], "tool_use"),
+      reply([text("Hi.")]),
+    ]);
+    await ask(client, controller.signal);
+    expect(options).toHaveLength(2);
+    for (const option of options) {
+      expect(option?.signal).toBe(controller.signal);
+    }
+  });
+
+  it("asks the model nothing more once the visitor has left between two rounds", async () => {
+    const controller = new AbortController();
+    const { client, calls } = fakeModel([
+      reply([toolUse("t1", "get_workflow", {})], "tool_use"),
+      reply([text("never sent")]),
+    ]);
+    const answered = client.messages.create.bind(client.messages);
+    // The visitor closes the tab while the first answer is on its way.
+    vi.spyOn(client.messages, "create").mockImplementation((...args) => {
+      const result = answered(...args);
+      controller.abort();
+      return result;
+    });
+
+    const result = await ask(client, controller.signal);
+    expect(calls).toHaveLength(1);
+    expect(result).toEqual({
+      ok: false,
+      error: "The assistant is unavailable right now. Please try again.",
+    });
+  });
+
+  it("does not log a request the visitor cancelled while it was in flight as a server error", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const controller = new AbortController();
+    // The SDK rejects the call in flight once its signal is aborted.
+    const { client } = fakeModel([new Error("Request was aborted.")]);
+    const rejected = client.messages.create.bind(client.messages);
+    vi.spyOn(client.messages, "create").mockImplementation((...args) => {
+      controller.abort();
+      return rejected(...args);
+    });
+
+    const result = await ask(client, controller.signal);
+    expect(result).toEqual({
+      ok: false,
+      error: "The assistant is unavailable right now. Please try again.",
+    });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

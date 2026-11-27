@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readAnthropicEnv, readRateLimitEnv, readServerEnv } from "./env";
+import { readAnthropicEnv, readChatSigningEnv, readRateLimitEnv, readServerEnv } from "./env";
 
 // Fictitious values: tests never see a real connection string.
 const valid = "postgresql://reader:not-a-real-secret@db.example.com/portfolio?sslmode=verify-full";
@@ -84,5 +84,44 @@ describe("readAnthropicEnv", () => {
   it("never puts the value in the error", () => {
     const leaky = "sk-openai-leaked-value-not-a-real-key";
     expect(() => readAnthropicEnv({ ANTHROPIC_API_KEY: leaky })).toThrow(/^(?!.*leaked-value)/s);
+  });
+});
+
+describe("readChatSigningEnv", () => {
+  // Fictitious keys built from fixed bytes: 32 bytes encode to 43 base64url characters.
+  const bytes = Buffer.alloc(32, 7);
+  const key = bytes.toString("base64url");
+
+  it("decodes a 256-bit base64url key into its bytes", () => {
+    const { CHAT_SIGNING_KEY } = readChatSigningEnv({ CHAT_SIGNING_KEY: key });
+    expect(CHAT_SIGNING_KEY).toBeInstanceOf(Buffer);
+    expect(CHAT_SIGNING_KEY.equals(bytes)).toBe(true);
+  });
+
+  it("accepts a longer key", () => {
+    const long = Buffer.alloc(64, 9);
+    const { CHAT_SIGNING_KEY } = readChatSigningEnv({
+      CHAT_SIGNING_KEY: long.toString("base64url"),
+    });
+    expect(CHAT_SIGNING_KEY.equals(long)).toBe(true);
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["empty", ""],
+    ["shorter than 256 bits", Buffer.alloc(31, 7).toString("base64url")],
+    ["standard base64 with + and /", `${"a".repeat(41)}+/`],
+    ["padded with =", `${key}=`],
+    ["surrounded by whitespace", ` ${key} `],
+    ["a passphrase, not an encoded key", "correct horse battery staple, not a real key!"],
+  ])("names the variable when it is %s", (_case, value) => {
+    expect(() => readChatSigningEnv({ CHAT_SIGNING_KEY: value })).toThrow(
+      "Missing or invalid environment variables: CHAT_SIGNING_KEY.",
+    );
+  });
+
+  it("never puts the value in the error", () => {
+    const leaky = "leaked-value-not-a-real-key";
+    expect(() => readChatSigningEnv({ CHAT_SIGNING_KEY: leaky })).toThrow(/^(?!.*leaked-value)/s);
   });
 });

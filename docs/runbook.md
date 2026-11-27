@@ -14,6 +14,7 @@ Every service the site depends on. Secrets are never written here, only the name
 | Vercel                       | hosting, previews, Web Analytics             | none (holds the variables below)                                                                                            |
 | Neon                         | Postgres: the CV data                        | owner URL → `packages/db/.env.local` (`DATABASE_ADMIN_URL`); reader URL → `apps/web/.env.local` and Vercel (`DATABASE_URL`) |
 | Upstash                      | Redis: the rate-limit counters               | REST URL and token → `apps/web/.env.local` and Vercel (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`)                |
+| Anthropic                    | Claude API: the chat                         | API key → `apps/web/.env.local` and Vercel (`ANTHROPIC_API_KEY`); spend limit set in the console                            |
 | Registrar                    | the domain `mirelnan.dev` and its DNS        | none                                                                                                                        |
 | Google Search Console / Bing | indexing (Bing imported from Search Console) | none; verified by a DNS `TXT` record that must stay                                                                         |
 
@@ -74,6 +75,44 @@ The live site keeps working meanwhile: it is static, so only new builds need the
 Unlike the database password, this affects the live site: the API routes read the token at request time, so
 between steps 1 and 3 they answer 500. The pages are static and keep working.
 
+## Rotating the Anthropic API key
+
+Two workspaces in the Anthropic Console, each with its own monthly spend limit, so tests can never use up the live
+site's budget; the Default workspace (course work, never used by the site) has one too, and the organization's limit
+covers the three. The amounts are kept out of the repository, because a public figure would tell an attacker how much
+spending takes the chat offline: they are in the owner's password manager, next to the keys. Each workspace holds one
+key; the chat and job match share it.
+
+| Workspace              | Key                    | Used by                           |
+| ---------------------- | ---------------------- | --------------------------------- |
+| `portfolio-production` | `portfolio-production` | Vercel Production                 |
+| `portfolio-dev`        | `portfolio-dev`        | Vercel Preview, local runs, evals |
+
+1. Console → the workspace → API keys → Create key, with the workspace as its Scope. Expiry: one year for production,
+   rotated with the other yearly tasks (an expired key takes the chat down without warning), 3 months for dev; note
+   both dates in the password manager.
+2. Put the dev key in `apps/web/.env.local`. In Vercel, delete and re-add `ANTHROPIC_API_KEY` (**Sensitive**): the
+   production key for Production, the dev key for Preview. Redeploy production.
+3. Delete the old key in the Console once the new deployment answers.
+
+When a workspace reaches its limit, the API refuses requests and the chat shows its generic "unavailable" line until
+the next month or a higher limit: it fails closed, never at a cost.
+
+## Rotating the chat signing key
+
+1. Generate a key without printing it (once per environment: Production, Preview and local get different keys):
+
+   ```bash
+   node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64url'))" > /tmp/key && chmod 600 /tmp/key
+   ```
+
+2. Local: put it in `apps/web/.env.local` as `CHAT_SIGNING_KEY`. Vercel: delete and re-add `CHAT_SIGNING_KEY`
+   (**Sensitive**), one value for Production and another for Preview, then redeploy production. Delete `/tmp/key`.
+
+Every open conversation loses its history: the old signatures no longer verify, so the server drops those turns and
+the visitor starts again. Nothing is stored, so nothing else needs cleaning up. Rotate at once if the key may have
+leaked.
+
 ## Rolling back
 
 - **Bad release:** Vercel → Deployments → the last good production deployment → **Instant Rollback**. Then fix
@@ -95,5 +134,6 @@ between steps 1 and 3 they answer 500. The pages are static and keep working.
 
 - **`security.txt`** expires a year after it was written. A test fails 30 days before the date: set a new
   `Expires` in `apps/web/public/.well-known/security.txt`.
+- **Anthropic API key:** rotate the `portfolio-production` key before it expires (see "Rotating the Anthropic API key").
 - **Domain:** `mirelnan.dev` renews automatically at the registrar; the TLS certificates renew automatically on
   Vercel. Keep the DNS records (`A`, `CNAME www`, and the search console `TXT` records).

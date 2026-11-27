@@ -346,25 +346,37 @@ code review checks security.
   failed test is `'unsafe-inline'`. Experimental Next SRI is not worth it yet.
 - **Input:** every API input validated with zod (types + max lengths) at the boundary; body size limits; rate limiting
   (Upstash) on every `/api/*` route; generic error messages, no stack traces to the client.
-- **Rate limiting:** `server/rate-limit.ts` (`server-only`) → `createRateLimit({ name, requests, window })`, created at
-  module scope in the route (so the limiter's in-memory cache of blocked clients lives as long as the instance);
+- **Rate limiting:** `server/rate-limit.ts` (`server-only`) →
+  `createRateLimit({ name, requests, window, timeout?, onTimeout? })`, created at module scope in the route (so the
+  limiter's in-memory cache of blocked clients lives as long as the instance);
   `const limited = await rateLimit(request); if (limited) return limited;` at the top of the handler. Upstash
   `slidingWindow` per client IP (`ipAddress()` from `@vercel/functions`: the header Vercel's edge sets, `"unknown"`
-  locally), key prefix `ratelimit:<name>`, one prefix per route; `waitUntil(pending)`. The 429 comes from the pure,
+  locally), key prefix `ratelimit:<name>`, one prefix per policy; `waitUntil(pending)`. The 429 comes from the pure,
   tested `lib/rate-limit.ts` (`tooManyRequests`: generic JSON, `Retry-After` in whole seconds rounded up, `no-store`).
-  Every `/api/*` GET starts with `await connection()`, or Cache Components prerenders it at build. Fails open on an
-  Upstash timeout (the library's 5s default; revisit for `/api/chat`), closed on missing variables (500).
+  Every `/api/*` GET starts with `await connection()`, or Cache Components prerenders it at build. On an Upstash
+  timeout the library answers `success: true` with `reason: "timeout"`: a policy's `onTimeout` decides, `"allow"` by
+  default (`/api/health`, the library's 5 s), `"deny"` for routes that cost money (`/api/chat`: 2 s, then
+  `rateLimitUnavailable()`, a generic `503`). Closed on missing variables (500). `/api/chat` has two policies,
+  `chat-minute` (5 per minute) and `chat-day` (30 per 24 h), checked in that order, so a blocked burst does not use
+  the daily allowance. Tested in `server/rate-limit.test.ts` with Upstash mocked.
   `/api/health` (`{ "status": "ok" }`, no DB, no version info) is the cheap route that proves the limiter
   (10 per 10s). One Upstash database (Frankfurt, Free plan, created in the Upstash console, not through the Vercel
   integration; no payment method on the account), shared by production, previews and local runs.
 - **Secrets:** validated with zod in `server/env.ts`, one schema per moment they are read: `readServerEnv`
-  (`DATABASE_URL`) when the composition root loads, because the build needs it; `readRateLimitEnv` (Upstash) lazily on
-  the first API request, so the build and CI never need those secrets. Never `NEXT_PUBLIC_`; modules using them import
-  `server-only`; gitleaks in lefthook + GitHub secret scanning with push protection.
+  (`DATABASE_URL`) when the composition root loads, because the build needs it; `readRateLimitEnv` (Upstash),
+  `readAnthropicEnv` and `readChatSigningEnv` lazily on the first API request, so the build and CI never need those
+  secrets. `CHAT_SIGNING_KEY` is base64url without padding, decoded to a `Buffer` of at least `signatureKeyMinBytes`
+  (32); Production and Preview get different keys, and rotating it invalidates every open conversation. Never
+  `NEXT_PUBLIC_`; modules using them import `server-only`; gitleaks in lefthook + GitHub secret scanning with push protection.
 - **AI:** the user's text and job descriptions are untrusted (prompt injection). Tools are **read-only** and only
   return public CV data; no secrets or private data in prompts; `max_tokens` and conversation length capped; model
   output rendered as text/sanitized markdown (never `dangerouslySetInnerHTML`); job-match output validated with zod;
-  spend limit set in the Anthropic console.
+  spend limits set in the Anthropic console, per workspace (`portfolio-production`, `portfolio-dev`) and for the
+  organization. **Spending amounts never go into tracked files** (docs, ADRs, code, tests, commit messages): a public
+  cap tells an attacker how much spending takes the chat offline (denial of wallet). Tracked files describe the
+  mechanism; the console limits live in the owner's password manager, and in-app budgets will be environment
+  variables. Measured costs per question and the local eval runner's own cap are not limits on the live chat, so
+  they may be stated.
 - **Chat history ([ADR 0010](docs/adr/0010-signed-chat-turns.md)):** no conversation is stored on the server; the browser
   sends the history back on each request. Every assistant turn is signed by the server (HMAC-SHA256 over role,
   conversation id, position, content and the issue and expiry times, key ≥ 256 bits from the environment, never in the
@@ -377,8 +389,18 @@ code review checks security.
   assistant (position, conversation, expiry), drops those that fail, and returns `400` when a dropped answer breaks the
   alternation. `runChatTurn` makes at most 6 model requests per question, 800 output tokens each, with a 20 s timeout
   on every request. A refusal, a cut-off answer, an empty answer or any failure is a generic line for the visitor; the
-  cause goes to the server log. Tool errors go back to the model as errors, never to the visitor. Per-request and daily
-  spending caps are not implemented yet: they need a decision and an ADR first.
+  cause goes to the server log. Tool errors go back to the model as errors, never to the visitor. `request.signal`
+  reaches every model call: a visitor who leaves cancels the request in flight, no new round starts, and nothing is
+  logged. Per-request and daily spending caps are not implemented yet: they need a decision and an ADR first.
+- **Chat route (`app/api/chat/route.ts`):** a composition root only: the two rate limits, the Anthropic client and
+  `CHAT_SIGNING_KEY` read lazily on the first request, the six CV ports destructured from `repositories` (so
+  `products` is not even in the object), `maxDuration = 150`. The logic is `handleChatRequest(request, deps)` in
+  `features/chat/handler.ts` (clock and id generator injected, tested with a fake client): parse → `runChatTurn` →
+  sign the answer at `position = messages.length`, in the verified conversation or a new `randomUUID()`, dated when it
+  is ready, valid 15 minutes. Responses are JSON with `no-store`: `200 { answer }` (the signed turn the browser sends
+  back as is), the parser's `400`/`413`, or `502 { error }` when the model gives no usable answer. The model is the
+  constant `chatModel` (Haiku 5.5): a change goes through the evaluations and a pull request, not an environment
+  variable. No streaming: the answer is signed whole (owner decision, 2026-11-26; revisit with an ADR).
 - **Evaluations (`apps/web/evals`, README "Evaluations"):** a case that depends on CV data declares it as `dataFact`;
   the runner checks it against the database before the model is asked. A changed fact makes the case STALE, so it is
   updated with the data, not reported as a model failure. Graders are code (no model judges them).
@@ -516,12 +538,13 @@ The brief adds only work the CV does not mention; its details on work the CV alr
 Only in `.env.local` (git-ignored) and Vercel project settings. Each consumer has its own `.env.example` next to it,
 listing only the variables that process needs (least privilege: the web app never holds the owner URL):
 
-| Where                          | Variable                                             | Role / use                                                                   |
-| ------------------------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `packages/db/.env.local`       | `DATABASE_ADMIN_URL`                                 | Neon owner role, direct (unpooled); only `db:migrate` and `db:seed`, locally |
-| `apps/web/.env.local` + Vercel | `DATABASE_URL`                                       | read-only role `portfolio_reader`, pooled                                    |
-| `apps/web/.env.local` + Vercel | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limit; the standard REST token (the limiter writes), read at request    |
-| `apps/web` + Vercel (stage 1+) | `ANTHROPIC_API_KEY`                                  | Claude API                                                                   |
+| Where                          | Variable                                             | Role / use                                                                    |
+| ------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `packages/db/.env.local`       | `DATABASE_ADMIN_URL`                                 | Neon owner role, direct (unpooled); only `db:migrate` and `db:seed`, locally  |
+| `apps/web/.env.local` + Vercel | `DATABASE_URL`                                       | read-only role `portfolio_reader`, pooled                                     |
+| `apps/web/.env.local` + Vercel | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limit; the standard REST token (the limiter writes), read at request     |
+| `apps/web` + Vercel (stage 1+) | `ANTHROPIC_API_KEY`                                  | Claude API                                                                    |
+| `apps/web/.env.local` + Vercel | `CHAT_SIGNING_KEY`                                   | HMAC key for the chat's assistant turns (ADR 0010), 32 random bytes base64url |
 
 On Vercel, a secret is saved as a **Sensitive** environment variable (its value can no longer be read back, only
 replaced), for Production **and** Preview (a pull request's preview build runs with the Preview variables; without
