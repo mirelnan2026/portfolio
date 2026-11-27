@@ -388,11 +388,15 @@ code review checks security.
 - **Chat request and loop (`apps/web/src/features/chat`):** the body is measured before it is parsed: above 128 KB the
   answer is `413`, and the body is never read beyond the limit. `parseChatRequest` verifies every answer of the
   assistant (position, conversation, expiry), drops those that fail, and returns `400` when a dropped answer breaks the
-  alternation. `runChatTurn` makes at most 6 model requests per question, 800 output tokens each, with a 20 s timeout
-  on every request. A refusal, a cut-off answer, an empty answer or any failure is a generic line for the visitor; the
+  alternation. `runChatTurn` makes at most 6 model requests per question, with a 20 s timeout on every request; each
+  request uses `chatRequestSettings` (2 000 output tokens, effort `medium`, set explicitly), which the evaluation runner
+  imports too, so the evaluations measure what production sends. Haiku 5.5 thinks by default and its thinking counts
+  against `max_tokens`: at 800 an answer came back empty. Effort `low` was tried and rejected: fewer steps and faster,
+  but a Romanian question got a Romanian answer one time in ten. A refusal, a cut-off answer, an empty answer or any failure is a generic line for the visitor; the
   cause goes to the server log. Tool errors go back to the model as errors, never to the visitor. `request.signal`
   reaches every model call: a visitor who leaves cancels the request in flight, no new round starts, and nothing is
-  logged. Per-request and daily spending caps are not implemented yet: they need a decision and an ADR first.
+  logged. No spending caps in the application ([ADR 0011](docs/adr/0011-no-in-app-spending-caps.md)): the
+  per-question limits and the rate limits bound each visitor, and the Console workspace limit bounds the total.
 - **Chat route (`app/api/chat/route.ts`):** a composition root only: the two rate limits, the Anthropic client and
   `CHAT_SIGNING_KEY` read lazily on the first request, the six CV ports destructured from `repositories` (so
   `products` is not even in the object), `maxDuration = 150`. The logic is `handleChatRequest(request, deps)` in

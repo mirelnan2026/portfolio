@@ -136,7 +136,10 @@ export const evalCases: EvalCase[] = [
     mustCallTools: ["search_cv"],
     // Two things the answer must say: the ownership (shared, as part of a team), and the delivery approach
     // from the case study (in small steps, behind a feature flag).
-    mustMatch: [/contributed|part of a team|rather than leading/i, /flag|small steps|incremental/i],
+    mustMatch: [
+      /contributed|part of a team|one of a team|member of the team|rather than leading/i,
+      /flag|small steps|incremental/i,
+    ],
     mustNotMatch: [
       /(^|[.!?]\s+)(Mirel|He) (owned|led|designed) (it|this|the (whole |entire |new )?(product|platform))\b/i,
     ],
@@ -157,7 +160,10 @@ export const evalCases: EvalCase[] = [
     mustCallTools: ["search_cv"],
     // The missing part gets the formula; the part that exists is answered from the data, not invented.
     mustContain: ["not in the CV"],
-    mustMatch: [/AWS|Amazon Web Services|Vercel|cloud/i],
+    // The CV lists AWS and Vercel under "cloud": the answer names them. Matching the bare word "cloud" let
+    // "the CV does not list any cloud tools" pass, so the tools themselves are required and that claim is refused.
+    mustMatch: [/AWS|Amazon Web Services|Vercel/i],
+    mustNotMatch: [/\b(no|any) cloud (tools|platforms|services)\b/i],
   },
   {
     id: "two-sources",
@@ -167,4 +173,64 @@ export const evalCases: EvalCase[] = [
     mustMatch: [/owned|lead|led/i],
     mustNotMatch: [/(?<!than )\b\d+ years\b/i],
   },
+  // AI-assisted development: the headline of the CV, so the chat must never miss it or embellish it.
+  {
+    id: "ai-claude-code",
+    question: "Have you used Claude Code?",
+    dataFact: { tool: "search_cv", input: { query: "Claude Code" }, expect: "hits" },
+    mustCallTools: ["search_cv"],
+    mustMatch: [/Claude Code/],
+    mustNotMatch: [/not in the CV/i],
+  },
+  {
+    id: "ai-spec-driven-spaced",
+    // Written with a space, as a visitor would type it; the data says "spec-driven".
+    question: "What is your experience with spec driven development?",
+    dataFact: { tool: "search_cv", input: { query: "spec-driven" }, expect: "hits" },
+    mustCallTools: ["search_cv"],
+    mustMatch: [/spec[- ]driven/i, /JWP Connatix|2026/i],
+    mustNotMatch: [/not in the CV/i],
+  },
+  {
+    id: "ai-tools-list",
+    question: "Which AI tools do you use in your work?",
+    dataFact: { tool: "search_cv", input: { query: "Claude Code" }, expect: "hits" },
+    mustMatch: [/Claude/],
+    // Tools the CV does not name must not appear as used: popular names are what a model fills a gap with.
+    mustNotMatch: [/\b(Copilot|Cursor|ChatGPT|Gemini|Windsurf)\b/i, /not in the CV/i],
+  },
+  {
+    id: "ai-not-in-cv-copilot",
+    question: "Have you used GitHub Copilot or Cursor?",
+    dataFact: { tool: "search_cv", input: { query: "Copilot" }, expect: "no-hits" },
+    mustContain: ["not in the CV"],
+    mustNotMatch: [/(Mirel|He) (has )?used (GitHub )?(Copilot|Cursor)/i],
+  },
+  {
+    id: "ai-ownership",
+    question: "Did you lead the adoption of spec-driven development with Claude at your company?",
+    dataFact: { tool: "search_cv", input: { query: "spec-driven" }, expect: "hits" },
+    mustCallTools: ["search_cv"],
+    // The CV says he delivered his own 2026 work spec-driven (owned) and joined the first team to adopt it:
+    // it never says he led the company's adoption.
+    mustNotMatch: [
+      /(^|[.!?]\s+)(Mirel|He) (led|drove|introduced|championed) (the )?(company'?s? )?adoption\b/i,
+    ],
+  },
 ];
+
+/**
+ * The cases to run: all of them, or the ones named in `--only` (comma-separated ids), so a fix can be measured on the
+ * cases it targets before the full run. An unknown id is an error, so a typo cannot pass as an empty run.
+ */
+export function selectCases(only: string | undefined, cases: EvalCase[] = evalCases): EvalCase[] {
+  if (only === undefined || only.trim() === "") {
+    return cases;
+  }
+  const ids = only.split(",").map((id) => id.trim());
+  const unknown = ids.filter((id) => !cases.some((item) => item.id === id));
+  if (unknown.length > 0) {
+    throw new Error(`Unknown case ids: ${unknown.join(", ")}`);
+  }
+  return cases.filter((item) => ids.includes(item.id));
+}

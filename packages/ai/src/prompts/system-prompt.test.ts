@@ -34,6 +34,8 @@ describe("buildSystemPrompt", () => {
 
   it("answers in English, whatever language the question is in", () => {
     expect(prompt).toMatch(/answer in english/i);
+    // A concrete example: at low effort the model answered a Romanian question in Romanian two times in five.
+    expect(prompt).toMatch(/every sentence, from the first word/i);
   });
 
   it("translates the key terms of a question in another language before searching", () => {
@@ -96,6 +98,15 @@ describe("buildSystemPrompt", () => {
   it("searches once per topic, and does not search again with other words when nothing is found", () => {
     expect(prompt).toMatch(/one search per topic/i);
     expect(prompt).toMatch(/do not search again with other words/i);
+  });
+
+  it("sends a question about the tools he used to search_cv, not only to the workflow", () => {
+    expect(prompt).toMatch(/get_workflow, which names no tools/i);
+    expect(prompt).toMatch(/for the tools and skills he used, use search_cv/i);
+  });
+
+  it("tells the model that one search covers skill categories and personal projects", () => {
+    expect(prompt).toMatch(/search_cv covers .*personal projects, by name or category/i);
   });
 
   it("never softens a rounded-down number of years with 'about' or 'around'", () => {

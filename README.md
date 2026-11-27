@@ -97,14 +97,18 @@ one starts. These are the decisions behind its answers.
 
 **Limits**
 
-- At most six model requests per question (a question about several parts needs five tool rounds, measured), 800 output
-  tokens per request and 20 seconds per request.
+- At most six model requests per question (a question about several parts needs five tool rounds, measured), 2 000
+  output tokens per request and 20 seconds per request. The model's hidden thinking counts against the token limit:
+  at 800 it once left no room for the answer. A lower effort was faster but broke the English rule one time in ten,
+  so it was measured and rejected. The evaluations use the same request settings as production.
 - Measured on Haiku 5.5: about $0.001 to $0.002 per question, and a few seconds.
 - Per visitor: 5 questions a minute and 30 a day. If the rate limiter does not answer within 2 seconds, the chat
   refuses instead of running unchecked.
 - A visitor who closes the page cancels the model request in flight, and no further round starts.
 - The answer comes back whole, not streamed, because it is signed once it is complete.
-- A per-request and a daily spending cap are planned before the chat goes live.
+- Total spend is capped outside the code, by a monthly limit on the Anthropic workspace that holds the production key,
+  with an alert before it is reached; when it is reached the chat says it is unavailable, it never spends beyond it
+  ([ADR 0011](docs/adr/0011-no-in-app-spending-caps.md)).
 
 **Security**
 
@@ -116,12 +120,14 @@ one starts. These are the decisions behind its answers.
 
 **Evaluations: the answers are measured, not assumed**
 
-- 23 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
-  language, and questions with several parts. The grading is code: phrases, patterns, tool calls and search terms.
+- 28 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
+  language, questions with several parts, and the AI-assisted development the CV leads with (Claude Code,
+  spec-driven work, tools the CV does not name, a leadership claim it does not make). The grading is code: phrases, patterns, tool calls and search terms.
   No model judges another model's answer.
 - A case that depends on the CV's data states the fact it relies on. The runner checks the fact in the database
   before asking the model. If the fact has changed, the case is reported as `STALE` and must be updated.
-- Baseline: Haiku 5.5 passed 115 of 115 runs on all 23 cases (five repetitions, about eight cents). The first full run
+- Baseline: Haiku 5.5 passes 140 of 140 runs on all 28 cases (five repetitions, about ten cents). An earlier baseline
+  passed 115 of 115 on the first 23 cases; the first full run
   with the four multi-part cases passed 108 of 115. The failures were fixed by rules, and two false positives of the
   grader were corrected with tests: a fifth tool round needed a higher step limit, years written as "about 10 years"
   needed an explicit rule, a question about how something was delivered needed a rule to read the case study, and a
@@ -131,7 +137,13 @@ one starts. These are the decisions behind its answers.
   skills tool now returns the phrase ("more than 10 years") instead of a number, and the case passed five runs out of
   five. Reading every answer of that run, not only the failures, showed a grader that was too loose: the case asking
   about cloud tools accepted any answer containing "cloud", including "the CV does not list any cloud tools", although
-  the CV lists AWS and Vercel. The cause is a search that does not look at skill categories; it is the next fix.
+  the CV lists AWS and Vercel. The cause was a search that did not look at skill categories.
+- Five cases on AI-assisted development then found more gaps, all fixed in the search or the request settings, not by
+  hiding them: "spec driven" with a space found nothing, "AI" also matched "campaign", personal projects' highlights
+  were not searched, a three-word query missed a highlight that lacked one word, and "Which AI tools…" went only to
+  the workflow, which names no tools. Two answers stopped at the token limit, one of them empty: the model's hidden
+  thinking had used the 800 tokens. A lower effort fixed that but answered a Romanian question in Romanian one time
+  in ten, so it was rejected; the limit was raised instead, at the default effort.
 - Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
 - Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
   by the model provider.

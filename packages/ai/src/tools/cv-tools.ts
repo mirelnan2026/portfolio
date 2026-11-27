@@ -52,7 +52,58 @@ type SearchHit =
       text: string;
       sourceSlug: string;
     }
-  | { kind: "skill"; experienceSlug: string; skill: string; sourceSlug: string };
+  | {
+      kind: "highlight";
+      projectSlug: string;
+      // A personal project is the owner's alone, so each of its highlights is owned.
+      ownership: "owned";
+      text: string;
+      sourceSlug: string;
+    }
+  | { kind: "skill"; experienceSlug: string; skill: string; category: string; sourceSlug: string }
+  | { kind: "skill"; projectSlug: string; skill: string; category: string; sourceSlug: string };
+
+/** Lower case, with hyphens and runs of spaces read as one space: "Spec-Driven" and "spec  driven" are alike. */
+const normalized = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[-\s]+/g, " ")
+    .trim();
+
+/**
+ * Words a visitor adds around the term they mean ("AI tools", "experience with Claude"). They say nothing about which
+ * part of the CV is meant, and a text rarely repeats them, so they are dropped from a query; a query made only of
+ * them is searched as it is.
+ */
+const genericWords = new Set(
+  (
+    "a an the and or of in on for to with at by his your you my mirel " +
+    "experience tool tools skill skills technology technologies stack"
+  ).split(" "),
+);
+
+/**
+ * Scores a text against a query, word by word. Each word matches at the start of a word, so "ai" finds "AI" and
+ * "AI-driven" but not "campaign", and "transform" still finds "transformation". Words are escaped: they are searched
+ * as text, never run as patterns; a word that starts with a symbol (".NET") is matched anywhere. A text must contain
+ * every word of a short query; from three words on, one may be missing, because a visitor often adds a word the CV
+ * does not use ("spec driven development"). Generic words are dropped first. Returns how many words matched, or null
+ * when the text does not match.
+ */
+function queryScorer(query: string): (text: string) => number | null {
+  const words = normalized(query).split(" ");
+  const specific = words.filter((word) => !genericWords.has(word));
+  const patterns = (specific.length > 0 ? specific : words).map((word) => {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(/^\w/.test(word) ? `\\b${escaped}` : escaped);
+  });
+  const required = patterns.length >= 3 ? patterns.length - 1 : patterns.length;
+  return (text) => {
+    const haystack = normalized(text);
+    const score = patterns.filter((pattern) => pattern.test(haystack)).length;
+    return score >= required ? score : null;
+  };
+}
 
 const summaryOf = (experience: Experience) => ({
   slug: experience.slug,
@@ -96,38 +147,94 @@ const tools = {
   }),
 
   search_cv: tool(searchInput, async ({ query }, { repos }) => {
-    const needle = query.toLowerCase();
-    const [experiences, skills] = await Promise.all([
+    const scoreOf = queryScorer(query);
+    const [experiences, projects, skills] = await Promise.all([
       repos.experiences.list(),
+      repos.projects.list(),
       repos.skills.list(),
     ]);
-    const skillNames = new Map(skills.map((skill) => [skill.slug, skill.name] as const));
-    const hits: SearchHit[] = [];
+    const skillsBySlug = new Map(skills.map((skill) => [skill.slug, skill] as const));
+
+    /** A skill matches by its name and its category, read with spaces ("testing and tooling"). */
+    const matchingSkill = (skillSlug: string) => {
+      const skill = skillsBySlug.get(skillSlug);
+      if (skill === undefined) return null;
+      const category = normalized(skill.category);
+      const score = scoreOf(`${skill.name} ${category}`);
+      return score === null ? null : { score, skill: skill.name, category };
+    };
+
+    const found: { hit: SearchHit; score: number }[] = [];
     for (const experience of experiences) {
       for (const highlight of experience.highlights) {
-        if (highlight.body.toLowerCase().includes(needle)) {
-          hits.push({
-            kind: "highlight",
-            experienceSlug: experience.slug,
-            ownership: highlight.ownership,
-            text: highlight.body,
-            sourceSlug: highlight.sourceSlug,
+        const score = scoreOf(highlight.body);
+        if (score !== null) {
+          found.push({
+            score,
+            hit: {
+              kind: "highlight",
+              experienceSlug: experience.slug,
+              ownership: highlight.ownership,
+              text: highlight.body,
+              sourceSlug: highlight.sourceSlug,
+            },
           });
         }
       }
       for (const link of experience.skills) {
-        const name = skillNames.get(link.skillSlug);
-        if (name?.toLowerCase().includes(needle)) {
-          hits.push({
-            kind: "skill",
-            experienceSlug: experience.slug,
-            skill: name,
-            sourceSlug: link.sourceSlug,
+        const match = matchingSkill(link.skillSlug);
+        if (match) {
+          const { score, ...skill } = match;
+          found.push({
+            score,
+            hit: {
+              kind: "skill",
+              experienceSlug: experience.slug,
+              ...skill,
+              sourceSlug: link.sourceSlug,
+            },
           });
         }
       }
     }
-    return hits.slice(0, maxSearchResults);
+    // Personal projects come after the roles: among hits that match equally well, client work is shown first.
+    for (const project of projects) {
+      for (const highlight of project.highlights) {
+        const score = scoreOf(highlight.body);
+        if (score !== null) {
+          found.push({
+            score,
+            hit: {
+              kind: "highlight",
+              projectSlug: project.slug,
+              ownership: "owned",
+              text: highlight.body,
+              sourceSlug: highlight.sourceSlug,
+            },
+          });
+        }
+      }
+      for (const link of project.skills) {
+        const match = matchingSkill(link.skillSlug);
+        if (match) {
+          const { score, ...skill } = match;
+          found.push({
+            score,
+            hit: {
+              kind: "skill",
+              projectSlug: project.slug,
+              ...skill,
+              sourceSlug: link.sourceSlug,
+            },
+          });
+        }
+      }
+    }
+    // The best matches first; the sort is stable, so equal scores keep the order above.
+    return found
+      .sort((a, b) => b.score - a.score)
+      .slice(0, maxSearchResults)
+      .map(({ hit }) => hit);
   }),
 
   list_skills: tool(noInput, async (_input, { repos, now }) => {

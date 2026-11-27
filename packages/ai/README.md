@@ -44,6 +44,12 @@ src/
   competencies (kept for search engines, never shown). Experiences come without their highlights in the list and
   with them in `get_experience`. Search returns at most ten hits, and each hit keeps its `ownership` and its
   `sourceSlug`, so a contributed highlight is never presented as owned and every claim can be cited.
+- **Search covers the whole CV a visitor can ask about.** `search_cv` looks at the roles' highlights and the skills of
+  the roles and personal projects, by skill name and category ("cloud" finds AWS and Vercel); a project's highlights
+  are owned. Hyphens and spaces are the same ("spec driven" finds "spec-driven"), each word matches at the start of a
+  word ("AI" does not find "campaign"), generic words are dropped ("AI tools" searches "AI"), and from three words on
+  one may be missing ("spec driven development"); hits that match more words come first. The trade-off of prefix
+  matching: "React" also finds "reactive", and a category match ("testing") lists every skill in that category.
 - **The current month is an argument.** `list_skills` needs it for ongoing periods; the package never reads the clock.
 - **Tenure comes as a phrase, never as a number.** `list_skills` gives each skill `tenure`: "less than a year", "N
   years" for whole years, "more than N years" otherwise (the same rule as the page's `tenureLabel`). The prompt tells

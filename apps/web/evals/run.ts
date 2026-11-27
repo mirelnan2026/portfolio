@@ -8,9 +8,10 @@ import {
 } from "@mirelnan/db";
 import type { Repositories } from "@mirelnan/domain";
 import { BudgetGuard, costOf, type EvalModel } from "./budget";
-import { evalCases } from "./cases";
+import { selectCases } from "./cases";
 import { factHolds, grade, type ToolCall } from "./graders";
 import { reportLine } from "./report";
+import { chatRequestSettings } from "../src/features/chat/turn";
 
 /** The owner's limit is $4; the guard stops at $3.50 so the last call cannot pass it. */
 const budgetLimitUsd = 3.5;
@@ -71,7 +72,8 @@ async function askOnce(
 
     const response = await client.messages.create({
       model,
-      max_tokens: 800,
+      // The same settings as the chat in production, so a change there is measured here.
+      ...chatRequestSettings,
       system: buildSystemPrompt(),
       // The definitions are plain JSON Schema; the SDK's type expects a stricter object shape.
       tools: cvToolDefinitions as unknown as Anthropic.Tool[],
@@ -124,6 +126,7 @@ async function main(): Promise<void> {
     throw new Error("Pass --model claude-haiku-5-5 or --model claude-sonnet-5-5");
   }
   const repeats = parseRepeats(argValue("--repeats", "3"));
+  const cases = selectCases(argValue("--only", ""));
   const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error(
@@ -142,13 +145,13 @@ async function main(): Promise<void> {
   let passedCount = 0;
   let total = 0;
   // Planned questions for the progress counter; stale cases are skipped, so the run can end below this number.
-  const planned = evalCases.length * repeats;
+  const planned = cases.length * repeats;
   const runStarted = Date.now();
 
   try {
     await assertReaderRole(connection);
 
-    for (const evalCase of evalCases) {
+    for (const evalCase of cases) {
       // A case that relies on the data is checked against the data first. When the fact no longer holds, the case
       // is stale: the data changed and the case must be updated. The model is not asked, and nothing is scored.
       if (evalCase.dataFact) {

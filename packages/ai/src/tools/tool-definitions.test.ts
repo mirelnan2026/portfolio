@@ -23,6 +23,12 @@ describe("cvToolDefinitions", () => {
     expect(search?.description).toMatch(/does not search case studies or the workflow/i);
   });
 
+  it("tells the model that the workflow names no tools, so a question about tools goes to search_cv", () => {
+    const workflow = cvToolDefinitions.find((item) => item.name === "get_workflow");
+    expect(workflow?.description).toMatch(/names no tools/i);
+    expect(workflow?.description).toMatch(/search_cv/);
+  });
+
   it("bounds the search query, so one request cannot carry a long text", () => {
     const search = cvToolDefinitions.find((item) => item.name === "search_cv");
     const query = (search?.input_schema as { properties: { query: { maxLength?: number } } })
