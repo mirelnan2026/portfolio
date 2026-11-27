@@ -468,3 +468,237 @@ describe("get_workflow", () => {
     });
   });
 });
+
+describe("search_cv, skill categories and personal projects", () => {
+  // Fictitious: a role that used AWS and Vitest, and a personal project hosted on Vercel.
+  const categorySkills: Skill[] = [
+    ...skills,
+    { slug: "aws", name: "Amazon Web Services (AWS)", category: "cloud", sourceSlug: "cv" },
+    { slug: "vercel", name: "Vercel", category: "cloud", sourceSlug: "cv" },
+    { slug: "cloud-run", name: "Cloud Run", category: "cloud", sourceSlug: "cv" },
+    { slug: "vitest", name: "Vitest", category: "testing-and-tooling", sourceSlug: "cv" },
+  ];
+  const role: Experience = {
+    ...earlier,
+    skills: [
+      ...earlier.skills,
+      { skillSlug: "aws", phaseSlug: null, contextNote: null, sourceSlug: "skills-matrix" },
+      { skillSlug: "cloud-run", phaseSlug: null, contextNote: null, sourceSlug: "cv" },
+      { skillSlug: "vitest", phaseSlug: null, contextNote: null, sourceSlug: "cv" },
+    ],
+  };
+  const site: Project = {
+    slug: "portfolio",
+    name: "Portfolio",
+    summary: "A personal site.",
+    period: period("2026-10", null),
+    releasedOn: "2026-11",
+    offlineSince: null,
+    links: { website: null, repository: null, archive: null, mobileApp: null },
+    highlights: [],
+    skills: [{ skillSlug: "vercel", contextNote: null, sourceSlug: "project-brief" }],
+    sourceSlug: "project-brief",
+  };
+  const repos = fakeRepos({
+    experiences: {
+      list: () => Promise.resolve([jwx, role]),
+      getBySlug: (slug) => Promise.resolve([jwx, role].find((item) => item.slug === slug) ?? null),
+    },
+    projects: { list: () => Promise.resolve([site]), getBySlug: () => Promise.resolve(site) },
+    skills: { list: () => Promise.resolve(categorySkills) },
+  });
+
+  interface SkillHit {
+    kind: string;
+    skill: string;
+    category: string;
+    experienceSlug?: string;
+    projectSlug?: string;
+    sourceSlug: string;
+  }
+  const search = async (query: string) => {
+    const result = await run("search_cv", { query }, repos);
+    if (!result.ok) throw new Error("expected a result");
+    return result.data as SkillHit[];
+  };
+
+  it("finds the skills of a category, so a question about cloud tools finds AWS and Vercel", async () => {
+    const names = (await search("cloud")).map((hit) => hit.skill);
+    expect(names).toEqual(expect.arrayContaining(["Amazon Web Services (AWS)", "Vercel"]));
+  });
+
+  it("names the category of every skill hit, so the model can tell why it matched", async () => {
+    const aws = (await search("cloud")).find((hit) => hit.skill === "Amazon Web Services (AWS)");
+    expect(aws).toMatchObject({
+      kind: "skill",
+      category: "cloud",
+      experienceSlug: "softelligence",
+      sourceSlug: "skills-matrix",
+    });
+  });
+
+  it("reads a category written with spaces as the same category", async () => {
+    const names = (await search("testing and tooling")).map((hit) => hit.skill);
+    expect(names).toEqual(["Vitest"]);
+  });
+
+  it("gives one hit per use when both the name and the category match", async () => {
+    const cloudRun = (await search("cloud")).filter((hit) => hit.skill === "Cloud Run");
+    expect(cloudRun).toHaveLength(1);
+  });
+
+  it("finds a skill used only in a personal project, with the project and its source", async () => {
+    expect(await search("vercel")).toEqual([
+      {
+        kind: "skill",
+        projectSlug: "portfolio",
+        skill: "Vercel",
+        category: "cloud",
+        sourceSlug: "project-brief",
+      },
+    ]);
+  });
+
+  it("still finds nothing for a technology the CV does not mention", async () => {
+    expect(await search("kubernetes")).toEqual([]);
+  });
+});
+
+describe("search_cv, how a query matches the text", () => {
+  // Fictitious: a role with an AI highlight and a word that merely contains "ai", and a project built spec-driven.
+  const role: Experience = {
+    ...jwx,
+    highlights: [
+      ...jwx.highlights,
+      {
+        body: "Delivered feature work through a spec-driven workflow with Claude AI.",
+        ownership: "owned",
+        featured: null,
+        phaseSlug: null,
+        sourceSlug: "cv",
+      },
+      {
+        body: "Campaign and inventory tooling.",
+        ownership: "contributed",
+        featured: null,
+        phaseSlug: null,
+        sourceSlug: "cv",
+      },
+    ],
+  };
+  const site: Project = {
+    slug: "portfolio",
+    name: "Portfolio",
+    summary: "A personal site.",
+    period: period("2026-10", null),
+    releasedOn: "2026-11",
+    offlineSince: null,
+    links: { website: null, repository: null, archive: null, mobileApp: null },
+    highlights: [
+      {
+        body: "Built it spec-driven with Claude Code.",
+        featured: null,
+        sourceSlug: "project-brief",
+      },
+    ],
+    skills: [],
+    sourceSlug: "project-brief",
+  };
+  const repos = fakeRepos({
+    experiences: {
+      list: () => Promise.resolve([role]),
+      getBySlug: () => Promise.resolve(role),
+    },
+    projects: { list: () => Promise.resolve([site]), getBySlug: () => Promise.resolve(site) },
+  });
+
+  const texts = async (query: string) => {
+    const result = await run("search_cv", { query }, repos);
+    if (!result.ok) throw new Error("expected a result");
+    return (result.data as { text?: string }[]).flatMap((hit) => (hit.text ? [hit.text] : []));
+  };
+
+  it.each([["spec driven"], ["spec-driven"], ["spec  driven"], ["Spec Driven"]])(
+    "treats %j like the hyphenated word in the CV",
+    async (query) => {
+      expect(await texts(query)).toEqual([
+        "Delivered feature work through a spec-driven workflow with Claude AI.",
+        "Built it spec-driven with Claude Code.",
+      ]);
+    },
+  );
+
+  it("matches a short term only at the start of a word, so AI does not find Campaign", async () => {
+    const found = await texts("AI");
+    expect(found).toEqual(
+      expect.arrayContaining([
+        "Shipped the AI media transformation build-out.",
+        "Delivered feature work through a spec-driven workflow with Claude AI.",
+      ]),
+    );
+    expect(found).not.toContain("Campaign and inventory tooling.");
+  });
+
+  it("still finds a longer word from its beginning", async () => {
+    expect(await texts("transform")).toEqual(["Shipped the AI media transformation build-out."]);
+  });
+
+  it("lets a query of three or more words miss one, as a visitor adds words the CV does not use", async () => {
+    // "development" is not in the highlight: the other two words are enough.
+    expect(await texts("spec driven development")).toEqual([
+      "Delivered feature work through a spec-driven workflow with Claude AI.",
+      "Built it spec-driven with Claude Code.",
+    ]);
+  });
+
+  it("needs every word of a shorter query", async () => {
+    // Each word is in some highlight, but no highlight has both.
+    expect(await texts("Claude media")).toEqual([]);
+  });
+
+  it("does not let a long query match on a single word", async () => {
+    expect(await texts("spec banana kiwi")).toEqual([]);
+  });
+
+  it("puts the hits that match more of the query first", async () => {
+    // The project's highlight has all four words, the role's has three: the project comes first.
+    expect(await texts("spec driven claude code")).toEqual([
+      "Built it spec-driven with Claude Code.",
+      "Delivered feature work through a spec-driven workflow with Claude AI.",
+    ]);
+  });
+
+  it.each([["AI tools"], ["experience with AI"], ["the AI skills"]])(
+    "ignores the generic words of %j, so it searches like AI",
+    async (query) => {
+      expect(await texts(query)).toEqual(await texts("AI"));
+    },
+  );
+
+  it("needs the remaining words once the generic ones are dropped", async () => {
+    // "experience" and "with" are dropped; "Claude Code" is only in the project's highlight.
+    expect(await texts("experience with Claude Code")).toEqual([
+      "Built it spec-driven with Claude Code.",
+    ]);
+  });
+
+  it("searches a query made only of generic words as it is", async () => {
+    expect(await texts("tool")).toEqual(["Campaign and inventory tooling."]);
+  });
+
+  it("finds a highlight of a personal project, marked owned, with the project and its source", async () => {
+    const result = await run("search_cv", { query: "Claude Code" }, repos);
+    expect(result).toEqual({
+      ok: true,
+      data: [
+        {
+          kind: "highlight",
+          projectSlug: "portfolio",
+          ownership: "owned",
+          text: "Built it spec-driven with Claude Code.",
+          sourceSlug: "project-brief",
+        },
+      ],
+    });
+  });
+});

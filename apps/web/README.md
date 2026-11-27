@@ -99,6 +99,9 @@ question's progress, the model requests it took (`steps`), the tools called and 
 pnpm --filter @mirelnan/web eval -- --model claude-haiku-5-5 --repeats 3
 ```
 
+`--only <id,id>` runs just the named cases (an unknown id is an error), to measure a fix on the cases it targets
+before the full run that sets the baseline.
+
 It needs `ANTHROPIC_API_KEY` and a `DATABASE_URL` with the read-only `portfolio_reader` role in `.env.local`;
 the runner refuses any other role. Unit tests for the graders, the budget and the case list run in `pnpm test`.
 

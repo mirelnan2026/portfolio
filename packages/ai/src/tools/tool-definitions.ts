@@ -17,7 +17,7 @@ const descriptions: Record<(typeof cvToolNames)[number], string> = {
   get_experience:
     "Returns one role with its phases and highlights. Each highlight carries its ownership (owned or contributed) and its sourceSlug.",
   search_cv:
-    "Searches the highlights and skill names of the roles for a text, ignoring case. It does not search case studies or the workflow. Returns at most 10 hits, each with its ownership or skill and its sourceSlug.",
+    'Searches the highlights of the roles, and the skills of the roles and personal projects by name or category (for example "cloud"), ignoring case. It does not search case studies or the workflow. Returns at most 10 hits, each with its ownership or skill and category, and its sourceSlug.',
   list_skills:
     'Lists the skills Mirel has used, each with its tenure as a phrase that never overstates it (for example "more than 5 years").',
   list_case_studies:
@@ -25,7 +25,7 @@ const descriptions: Record<(typeof cvToolNames)[number], string> = {
   get_case_study:
     "Returns one case study with its context, approach, outcome and what it shows about Mirel.",
   get_workflow:
-    "Returns the steps of how Mirel works with AI tools. Use it for questions about his working method.",
+    "Returns the steps of how Mirel works with AI agents. Use it for questions about his working method. It names no tools: for the tools and skills he used, use search_cv.",
 };
 
 /** Converts a zod input schema to JSON Schema, without the `$schema` marker the API does not need. */

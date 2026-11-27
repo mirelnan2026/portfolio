@@ -10,6 +10,17 @@ const defaultMaxSteps = 6;
 /** A chat answer that takes longer than this is abandoned, so a hung request cannot hold the server function. */
 const modelTimeoutMs = 20_000;
 
+/**
+ * What every chat request asks of the model, shared with the evaluations so they measure what production sends.
+ * Haiku 5.5 thinks by default, and its thinking counts against max_tokens: at 800 tokens an answer once came back
+ * empty. The limit leaves room for both. The effort is set, not left to the model's default: low effort was faster
+ * but answered a Romanian question in Romanian one time in ten, so it stays medium.
+ */
+export const chatRequestSettings = {
+  max_tokens: 2_000,
+  output_config: { effort: "medium" },
+} as const satisfies Partial<Anthropic.MessageCreateParamsNonStreaming>;
+
 const unavailable = "The assistant is unavailable right now. Please try again.";
 
 export type TurnResult = { ok: true; answer: string } | { ok: false; error: string };
@@ -46,7 +57,7 @@ export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
       const response = await input.client.messages.create(
         {
           model: input.model,
-          max_tokens: 800,
+          ...chatRequestSettings,
           system: buildSystemPrompt(),
           // The definitions are plain JSON Schema; the SDK's type expects a stricter object shape.
           tools: cvToolDefinitions as unknown as Anthropic.Tool[],

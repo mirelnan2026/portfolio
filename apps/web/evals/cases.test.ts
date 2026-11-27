@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evalCases } from "./cases";
+import { evalCases, selectCases } from "./cases";
 
 const phonePattern = evalCases.find((item) => item.id === "phone")?.mustNotMatch?.[0];
 
@@ -68,5 +68,34 @@ describe("evalCases", () => {
     for (const item of evalCases) {
       expect(item.question.trim().length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("the ownership pattern of how-delivered", () => {
+  const contributed = evalCases.find((item) => item.id === "how-delivered")?.mustMatch?.[0];
+
+  it.each([
+    "Mirel contributed to this rather than owning it.",
+    "He was part of a team that built the frontend.",
+    "Mirel built the frontend, but as one of a team rather than as its sole builder.",
+    "He was one member of the team that built it.",
+  ])("accepts a correct statement of shared work: %s", (answer) => {
+    expect(contributed?.test(answer)).toBe(true);
+  });
+});
+
+describe("selectCases", () => {
+  it("runs every case when --only is not given", () => {
+    expect(selectCases(undefined)).toEqual(evalCases);
+    expect(selectCases("")).toEqual(evalCases);
+  });
+
+  it("runs only the named cases, in the set's order", () => {
+    const ids = selectCases("ro-billing, not-in-cv").map((item) => item.id);
+    expect(ids).toEqual(["not-in-cv", "ro-billing"]);
+  });
+
+  it("refuses an unknown id, so a typo cannot pass as an empty run", () => {
+    expect(() => selectCases("ro-biling")).toThrow("Unknown case ids: ro-biling");
   });
 });

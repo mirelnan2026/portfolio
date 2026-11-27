@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import type { ChatConversation, CvRepositories } from "@mirelnan/ai";
 import { describe, expect, it, vi } from "vitest";
-import { runChatTurn } from "./turn";
+import { chatRequestSettings, runChatTurn } from "./turn";
 
 // Fictitious: the tests use a fake model and a single workflow step, never the real API or database.
 const repos = {
@@ -277,5 +277,25 @@ describe("runChatTurn, a visitor who leaves", () => {
     });
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
+  });
+});
+
+describe("runChatTurn, the request settings", () => {
+  it("asks every request with the shared settings, so the evaluations measure what production sends", async () => {
+    const { client, calls } = fakeModel([
+      reply([toolUse("t1", "get_workflow", {})], "tool_use"),
+      reply([text("Hi.")]),
+    ]);
+    await run(client);
+    for (const call of calls) {
+      expect(call).toMatchObject(chatRequestSettings);
+    }
+  });
+
+  it("leaves room for the model's thinking and the answer, at an effort that keeps the rules", () => {
+    // Haiku 5.5 thinks by default and its thinking counts against max_tokens: at 800 an answer once came back empty.
+    // Low effort fixed that but broke the English rule (a Romanian reply one time in ten), so the effort stays medium.
+    expect(chatRequestSettings.output_config.effort).toBe("medium");
+    expect(chatRequestSettings.max_tokens).toBeGreaterThanOrEqual(2_000);
   });
 });
