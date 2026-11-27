@@ -235,3 +235,36 @@ describe("grade, the answer the visitor reads", () => {
     expect(grade({ id: "c", question: "q" }, "See my_get_profile_notes.", []).passed).toBe(true);
   });
 });
+
+describe("grade, tools that must not be called", () => {
+  const noTools: EvalCase = {
+    id: "gibberish",
+    question: "sadasd",
+    mustNotCallTools: ["search_cv", "get_profile"],
+  };
+
+  it("passes when none of the forbidden tools ran", () => {
+    expect(grade(noTools, "I only answer questions about Mirel's experience.", []).passed).toBe(
+      true,
+    );
+  });
+
+  it("fails once for each forbidden tool that ran, however often it ran", () => {
+    const calls: ToolCall[] = [
+      { name: "search_cv", input: { query: "sadasd" } },
+      { name: "search_cv", input: { query: "sad" } },
+      { name: "get_profile", input: {} },
+    ];
+    expect(grade(noTools, "not in the CV.", calls).failures).toEqual([
+      'tool "search_cv" was called',
+      'tool "get_profile" was called',
+    ]);
+  });
+
+  it("allows a tool that is not on the list", () => {
+    expect(
+      grade(noTools, "Mirel worked at JWP Connatix.", [{ name: "list_experiences", input: {} }])
+        .passed,
+    ).toBe(true);
+  });
+});
