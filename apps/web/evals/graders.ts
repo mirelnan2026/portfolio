@@ -17,6 +17,8 @@ export interface EvalCase {
   history?: { question: string; answer: string; tools: string[] }[];
   /** Tools that must have been called at least once. */
   mustCallTools?: string[];
+  /** Tools that must not be called at all: a question with nothing to look up should cost no tool round. */
+  mustNotCallTools?: readonly string[];
   /** Terms that some search_cv call must have searched for (case-insensitive), so translation is checked. */
   mustSearchFor?: string[];
   /**
@@ -163,6 +165,12 @@ export function grade(evalCase: EvalCase, answer: string, calls: ToolCall[]): Ve
   for (const name of evalCase.mustCallTools ?? []) {
     if (!calls.some((call) => call.name === name)) {
       failures.push(`tool "${name}" was not called`);
+    }
+  }
+
+  for (const name of evalCase.mustNotCallTools ?? []) {
+    if (calls.some((call) => call.name === name)) {
+      failures.push(`tool "${name}" was called`);
     }
   }
 

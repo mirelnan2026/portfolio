@@ -72,7 +72,8 @@ one starts. These are the decisions behind its answers.
 **Grounding: it answers only from the data**
 
 - The model answers only from what its tools return. Missing facts get the exact reply "not in the CV", never a guess
-  from related skills.
+  from related skills. A message that is not a question ("bla bla") gets one fixed reply that suggests what to ask,
+  with no tool call.
 - The tools are read-only and return only public CV data. Product descriptions and competencies (kept for search
   engines) never reach the model.
 - Ownership is kept honest: work done as part of a team is never presented as owned, and years are rounded down
@@ -85,7 +86,7 @@ one starts. These are the decisions behind its answers.
 
 **The system prompt**
 
-- One short prompt (under 4.5 KB), sent with every request. It sets the role, how tools are used, the reply format
+- One short prompt (under 4.6 KB), sent with every request. It sets the role, how tools are used, the reply format
   (plain text, at most five list items, English whatever the question's language), third-person references, the
   confidentiality reply word for word, and how to treat instructions typed by a visitor.
 - Every rule has a test that fails if the rule is removed. A change to a rule is measured with the evaluations
@@ -131,14 +132,15 @@ one starts. These are the decisions behind its answers.
 
 **Evaluations: the answers are measured, not assumed**
 
-- 32 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
+- 36 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
   language, questions with several parts, the AI-assisted development the CV leads with (Claude Code,
   spec-driven work, tools the CV does not name, a leadership claim it does not make), a follow-up question that
-  must not retract a grounded first answer, and the tense of a role that has ended. The grading is code: phrases, patterns, tool calls and search terms.
+  must not retract a grounded first answer, the tense of a role that has ended, and messages that are not questions
+  ("bla bla", random letters) next to short real ones ("Angular?") and an unrelated question in Romanian. The grading is code: phrases, patterns, tool calls and search terms.
   No model judges another model's answer.
 - A case that depends on the CV's data states the fact it relies on. The runner checks the fact in the database
   before asking the model. If the fact has changed, the case is reported as `STALE` and must be updated.
-- Baseline: Haiku 5.5 passes 160 of 160 runs on all 32 cases (five repetitions, about twelve cents). An earlier baseline
+- Baseline: Haiku 5.5 passes 180 of 180 runs on all 36 cases (five repetitions, about thirteen cents). An earlier baseline
   passed 115 of 115 on the first 23 cases; the first full run
   with the four multi-part cases passed 108 of 115. The failures were fixed by rules, and two false positives of the
   grader were corrected with tests: a fifth tool round needed a higher step limit, years written as "about 10 years"
@@ -166,7 +168,11 @@ one starts. These are the decisions behind its answers.
 - The answers are graded as the visitor reads them, after the server has removed any `<sources>` note the model
   wrote. That showed a real bug: the server removed the tags but left the tool names between them, so an answer could
   end with "list_skills". Now the whole note goes, every case fails on a tool name in the answer, and the run counts
-  the notes the model wrote against the prompt (1 in 160 at the baseline).
+  the notes the model wrote against the prompt (3 in 180 at the baseline).
+- "bla bla" used to get the reply for an unrelated question, as if the visitor had asked something forbidden. It now
+  gets one fixed reply that suggests what to ask, with no tool call (20 of 20). To make room, the prompt was compacted
+  first and measured on its own: dropping "using only the tools you are given" from the role, which looked redundant,
+  made 4 refusals in 15 open with "not in the CV", so it went back (0 in 15).
 - Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
 - Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
   by the model provider.

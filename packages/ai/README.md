@@ -60,8 +60,9 @@ src/
   years" for whole years, "more than N years" otherwise (the same rule as the page's `tenureLabel`). The prompt tells
   the model to use it word for word: with no bare number there is nothing to round up or state as exact.
 - **The system prompt is the instruction channel.** It is the same text on every request and is never built from the
-  visitor's text. Each rule in it has a test, so removing one fails the build. It stays under 4 500 characters, because
-  it is paid for on every request (raised from 4 000 with the `<sources>` rule rather than rewording measured rules; at about 4 490 after the
-  ended-role rules, so the next rule comes with a measured compaction, not another raise).
+  visitor's text. Each rule in it has a test, so removing one fails the build. It stays under 4 600 characters, because
+  it is paid for on every request (raised from 4 000 with the `<sources>` rule, then to 4 600 with the not-a-question
+  rule after a measured compaction). A compaction is measured like any rule change: removing the role's "using only
+  the tools you are given", which looked redundant, made 4 refusals in 15 open with "Not in the CV".
 - **The definitions are generated, not written twice.** `cvToolDefinitions` reuses the schemas that validate the
   input, so the model is asked for exactly what `runCvTool` accepts.
