@@ -31,14 +31,27 @@ export async function handleChatRequest(
     return Response.json({ error: parsed.error }, { status: parsed.status, headers: noStore });
   }
 
+  const started = deps.now();
   const turn = await runChatTurn({
     client: deps.client,
     model: chatModel,
     messages: parsed.messages,
     repos: deps.repos,
-    now: toYearMonth(deps.now()),
+    now: toYearMonth(started),
     signal: request.signal,
   });
+  const finished = deps.now();
+  // What the loop did, for the server log: tools, request count and time, never the question, the answer or the IP.
+  // eslint-disable-next-line no-console -- the one info line per turn the server keeps (ADR 0012)
+  console.info(
+    JSON.stringify({
+      event: "chat_turn",
+      ok: turn.ok,
+      steps: turn.steps,
+      tools: turn.tools,
+      durationMs: finished.getTime() - started.getTime(),
+    }),
+  );
   if (!turn.ok) {
     return Response.json({ error: turn.error }, { status: 502, headers: noStore });
   }
@@ -49,9 +62,10 @@ export async function handleChatRequest(
       content: turn.answer,
       position: parsed.messages.length,
       conversationId: parsed.conversationId ?? deps.newConversationId(),
+      tools: turn.tools,
     },
     deps.key,
-    deps.now(),
+    finished,
     answerTtlSeconds,
   );
   return Response.json({ answer }, { headers: noStore });

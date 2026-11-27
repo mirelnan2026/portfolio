@@ -1,6 +1,11 @@
-import { chatConversationSchema, chatLimits, type ChatConversation } from "@mirelnan/ai";
+import {
+  chatConversationSchema,
+  chatLimits,
+  withSourcesNote,
+  type ChatConversation,
+} from "@mirelnan/ai";
 import { z } from "zod";
-import { verifyAssistantTurn } from "../../server/chat-turn-signature";
+import { type SignedAssistantTurn, verifyAssistantTurn } from "../../server/chat-turn-signature";
 
 /** The most a chat request may weigh: a longest conversation is about 85 KB, plus the JSON around it. */
 export const maxChatBodyBytes = 128 * 1024;
@@ -49,12 +54,12 @@ async function readBody(request: Request): Promise<string | null> {
   return new TextDecoder().decode(Buffer.concat(chunks));
 }
 
-/** The text and conversation of an answer the server signed, or null when it does not check out. */
+/** The text, tools and conversation of an answer the server signed, or null when it does not check out. */
 function verifiedAnswer(
   item: unknown,
   position: number,
   options: ChatRequestOptions,
-): { conversationId: string; content: string } | null {
+): Pick<SignedAssistantTurn, "conversationId" | "content" | "tools"> | null {
   if (typeof item !== "object" || item === null || !("conversationId" in item)) {
     return null;
   }
@@ -68,10 +73,12 @@ function verifiedAnswer(
     options.key,
     options.now,
   );
-  if (!check.valid || !("content" in item) || typeof item.content !== "string") {
+  if (!check.valid) {
     return null;
   }
-  return { conversationId: item.conversationId, content: item.content };
+  // The check parsed the whole turn against its schema, so its fields have their types.
+  const { conversationId, content, tools } = item as SignedAssistantTurn;
+  return { conversationId, content, tools };
 }
 
 export async function parseChatRequest(
@@ -117,7 +124,8 @@ export async function parseChatRequest(
     } else if (role === "assistant") {
       const answer = verified[index];
       if (answer?.conversationId === currentId) {
-        kept.push({ role: "assistant", content: answer.content });
+        // The model sees the answer with the tools it came from, never the other signed fields.
+        kept.push({ role: "assistant", content: withSourcesNote(answer.content, answer.tools) });
       }
     } else {
       return invalid;

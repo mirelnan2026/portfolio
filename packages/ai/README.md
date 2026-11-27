@@ -18,6 +18,8 @@ src/
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `chatLimits`                         | caps on a conversation: message count (odd, so it ends with a question) and message length                                                              |
 | `chatConversationSchema`             | zod schema for the conversation a visitor sends (untrusted input, validated at the route)                                                               |
+| `withSourcesNote`                    | an earlier answer as the model sees it: the text, then `<sources>…</sources>` with the tools it came from (ADR 0012)                                    |
+| `withoutSourcesTags`                 | removes any `<sources>` tag from the model's answer before it is signed, so only the server writes the note                                             |
 | `ChatConversation`                   | its type; each `ChatMessage` is assignable to the SDK's `MessageParam`                                                                                  |
 | `buildSystemPrompt()`                | the system prompt: role, tool use, grounding, reply format, language, confidentiality and injection rules; the same text on every call                  |
 | `runCvTool(name, input, repos, now)` | runs one tool: validates the raw input, then reads; answers `{ ok, data }` or `{ ok: false, error }`, never throws                                      |
@@ -55,7 +57,7 @@ src/
   years" for whole years, "more than N years" otherwise (the same rule as the page's `tenureLabel`). The prompt tells
   the model to use it word for word: with no bare number there is nothing to round up or state as exact.
 - **The system prompt is the instruction channel.** It is the same text on every request and is never built from the
-  visitor's text. Each rule in it has a test, so removing one fails the build. It stays under 4 000 characters, because
-  it is paid for on every request.
+  visitor's text. Each rule in it has a test, so removing one fails the build. It stays under 4 500 characters, because
+  it is paid for on every request (raised from 4 000 with the `<sources>` rule rather than rewording measured rules).
 - **The definitions are generated, not written twice.** `cvToolDefinitions` reuses the schemas that validate the
   input, so the model is asked for exactly what `runCvTool` accepts.

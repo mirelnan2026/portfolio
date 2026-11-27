@@ -94,6 +94,12 @@ one starts. These are the decisions behind its answers.
 - The assistant's earlier answers come back from the browser, so the server signs each one with HMAC-SHA256 (position,
   conversation and expiry are signed). A forged, moved, expired or foreign answer is dropped, not trusted
   ([ADR 0010](docs/adr/0010-signed-chat-turns.md)).
+- Each answer also carries, signed, the tools it was written from. On the next turn the model sees the earlier answer
+  with a short note of those tools, so it keeps a grounded claim instead of "correcting" it because the evidence is no
+  longer in view, which it did once on a preview. A visitor cannot add a tool to make an invented claim look checked,
+  nor make the model write the note itself: the server removes any such tag from the model's answer
+  ([ADR 0012](docs/adr/0012-signed-tools-per-turn.md)). The server logs which tools answered each question and how
+  long it took, never the question or the answer.
 
 **Limits**
 
@@ -120,13 +126,14 @@ one starts. These are the decisions behind its answers.
 
 **Evaluations: the answers are measured, not assumed**
 
-- 28 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
+- 29 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
   language, questions with several parts, and the AI-assisted development the CV leads with (Claude Code,
-  spec-driven work, tools the CV does not name, a leadership claim it does not make). The grading is code: phrases, patterns, tool calls and search terms.
+  spec-driven work, tools the CV does not name, a leadership claim it does not make), and a follow-up question that
+  must not retract a grounded first answer. The grading is code: phrases, patterns, tool calls and search terms.
   No model judges another model's answer.
 - A case that depends on the CV's data states the fact it relies on. The runner checks the fact in the database
   before asking the model. If the fact has changed, the case is reported as `STALE` and must be updated.
-- Baseline: Haiku 5.5 passes 140 of 140 runs on all 28 cases (five repetitions, about ten cents). An earlier baseline
+- Baseline: Haiku 5.5 passes 145 of 145 runs on all 29 cases (five repetitions, about eleven cents). An earlier baseline
   passed 115 of 115 on the first 23 cases; the first full run
   with the four multi-part cases passed 108 of 115. The failures were fixed by rules, and two false positives of the
   grader were corrected with tests: a fifth tool round needed a higher step limit, years written as "about 10 years"

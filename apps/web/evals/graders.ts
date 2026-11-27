@@ -8,6 +8,11 @@ export interface EvalCase {
   mustMatch?: RegExp[];
   /** Patterns the answer must not match. */
   mustNotMatch?: RegExp[];
+  /**
+   * Earlier turns of the conversation, sent before the question as the chat route sends them: each answer with the
+   * note of the tools it was written from (ADR 0012).
+   */
+  history?: { question: string; answer: string; tools: string[] }[];
   /** Tools that must have been called at least once. */
   mustCallTools?: string[];
   /** Terms that some search_cv call must have searched for (case-insensitive), so translation is checked. */

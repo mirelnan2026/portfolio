@@ -105,6 +105,15 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toMatch(/for the tools and skills he used, use search_cv/i);
   });
 
+  it("keeps an earlier answer whose <sources> note names the tools it came from", () => {
+    expect(prompt).toMatch(/<sources>/);
+    expect(prompt).toMatch(/do not retract it unless a new tool result contradicts it/i);
+  });
+
+  it("never lets the model write a <sources> note itself", () => {
+    expect(prompt).toMatch(/never write a <sources> tag yourself/i);
+  });
+
   it("tells the model that one search covers skill categories and personal projects", () => {
     expect(prompt).toMatch(/search_cv covers .*personal projects, by name or category/i);
   });
@@ -127,8 +136,9 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toMatch(/at most five items/i);
   });
 
-  it("stays under 4000 characters, so every request pays a bounded prompt cost", () => {
-    expect(prompt.length).toBeLessThan(4000);
+  it("stays under 4500 characters, so every request pays a bounded prompt cost", () => {
+    // Raised from 4000 with the <sources> rule (ADR 0012), rather than rewording rules the evaluations had measured.
+    expect(prompt.length).toBeLessThan(4500);
   });
 
   it("is the same text on every call", () => {

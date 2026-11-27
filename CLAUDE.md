@@ -383,8 +383,18 @@ code review checks security.
   conversation id, position, content and the issue and expiry times, key ≥ 256 bits from the environment, never in the
   client). The server keeps only the turns whose signature, conversation id, position and expiry check out, and reads
   the signed fields only through `verifyAssistantTurn`. The conversation id is a server-generated UUID, signed with each
-  turn. Before a verified turn reaches `chatConversationSchema`, the route keeps only `role` and `content`. Signing code
-  is in `apps/web/src/server/chat-turn-signature.ts`, with its tests next to it.
+  turn. Before a verified turn reaches `chatConversationSchema`, the route keeps only `role` and `content`, the content
+  ending with `withSourcesNote` (`<sources>search_cv, get_profile</sources>`). Signing code is in
+  `apps/web/src/server/chat-turn-signature.ts`, with its tests next to it.
+- **Tools per turn ([ADR 0012](docs/adr/0012-signed-tools-per-turn.md)):** each signed answer carries `tools`, the CV
+  tools that returned data while it was written (each once, in order of first call; an invented name or a failed call
+  is not evidence), signed with the rest; a missing, unknown or repeated name makes the turn malformed. The prompt
+  tells the model to keep an answer with a `<sources>` note unless a new tool result contradicts it, and never to
+  write the tag; `withoutSourcesTags` strips any tag from the model's answer before signing, so a visitor cannot make
+  it echo a note after an invented claim. The handler logs one line per turn, `{ event: "chat_turn", ok, steps, tools, durationMs }` (the loop's time, from the
+  injected clock), never the question,
+  the answer or the IP (an inline `no-console` exception). Changing the signed fields drops the open conversations
+  once, as a key rotation does.
 - **Chat request and loop (`apps/web/src/features/chat`):** the body is measured before it is parsed: above 128 KB the
   answer is `413`, and the body is never read beyond the limit. `parseChatRequest` verifies every answer of the
   assistant (position, conversation, expiry), drops those that fail, and returns `400` when a dropped answer breaks the

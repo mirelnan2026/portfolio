@@ -1,5 +1,5 @@
 import type { ChatConversation, CvRepositories } from "@mirelnan/ai";
-import { buildSystemPrompt, cvToolDefinitions, runCvTool } from "@mirelnan/ai";
+import { buildSystemPrompt, cvToolDefinitions, runCvTool, withoutSourcesTags } from "@mirelnan/ai";
 import type Anthropic from "@anthropic-ai/sdk";
 
 /**
@@ -23,7 +23,11 @@ export const chatRequestSettings = {
 
 const unavailable = "The assistant is unavailable right now. Please try again.";
 
-export type TurnResult = { ok: true; answer: string } | { ok: false; error: string };
+/** The turn's outcome, with the tools it called (each once, in order) and the requests it made, for the log. */
+export type TurnResult = ({ ok: true; answer: string } | { ok: false; error: string }) & {
+  tools: string[];
+  steps: number;
+};
 
 export interface TurnInput {
   client: Anthropic;
@@ -42,6 +46,16 @@ function textOf(content: Anthropic.ContentBlock[]): string {
 
 /** Asks the model, runs the tools it requests, and repeats until it writes its answer or the turn must stop. */
 export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
+  const tools: string[] = [];
+  let steps = 0;
+  const done = (
+    result: { ok: true; answer: string } | { ok: false; error: string },
+  ): TurnResult => ({
+    ...result,
+    tools,
+    steps,
+  });
+
   const maxSteps = input.maxSteps ?? defaultMaxSteps;
   const messages: Anthropic.MessageParam[] = input.messages.map((message) => ({
     role: message.role,
@@ -52,8 +66,9 @@ export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
     for (let step = 0; step < maxSteps; step++) {
       // A visitor who left gets no answer: stop before paying for another round.
       if (input.signal?.aborted) {
-        return { ok: false, error: unavailable };
+        return done({ ok: false, error: unavailable });
       }
+      steps++;
       const response = await input.client.messages.create(
         {
           model: input.model,
@@ -67,25 +82,30 @@ export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
       );
 
       if (response.stop_reason === "refusal") {
-        return { ok: false, error: "I can't answer that question." };
+        return done({ ok: false, error: "I can't answer that question." });
       }
       if (response.stop_reason === "max_tokens") {
-        return { ok: false, error: "The answer was too long. Try a shorter question." };
+        return done({ ok: false, error: "The answer was too long. Try a shorter question." });
       }
 
       const uses = response.content.filter(
         (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
       );
       if (uses.length === 0) {
-        const answer = textOf(response.content).trim();
+        // Only the server writes a <sources> note (ADR 0012): a tag in the model's text is removed before signing.
+        const answer = withoutSourcesTags(textOf(response.content));
         // An empty answer is not an answer: showing it would leave the visitor with a blank reply.
-        return answer === "" ? { ok: false, error: unavailable } : { ok: true, answer };
+        return done(answer === "" ? { ok: false, error: unavailable } : { ok: true, answer });
       }
 
       messages.push({ role: "assistant", content: response.content });
       const results: Anthropic.ToolResultBlockParam[] = [];
       for (const use of uses) {
         const result = await runCvTool(use.name, use.input, input.repos, input.now);
+        // Only a tool that returned data is evidence; an invented name or invalid input is not (ADR 0012).
+        if (result.ok && !tools.includes(use.name)) {
+          tools.push(use.name);
+        }
         results.push({
           type: "tool_result",
           tool_use_id: use.id,
@@ -95,15 +115,15 @@ export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
       }
       messages.push({ role: "user", content: results });
     }
-    return { ok: false, error: "This question needs too many steps. Try a narrower one." };
+    return done({ ok: false, error: "This question needs too many steps. Try a narrower one." });
   } catch (error) {
     // A cancelled request is the visitor leaving, not a server fault: nothing to log.
     if (input.signal?.aborted) {
-      return { ok: false, error: unavailable };
+      return done({ ok: false, error: unavailable });
     }
     // The visitor gets a generic line: the SDK's message can contain request details. The server log gets the cause.
     const cause = error instanceof Error ? error.message : String(error);
     console.error(`chat turn failed: ${cause}`, error);
-    return { ok: false, error: unavailable };
+    return done({ ok: false, error: unavailable });
   }
 }

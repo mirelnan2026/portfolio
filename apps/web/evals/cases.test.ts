@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { cvToolNames } from "@mirelnan/ai";
 import { evalCases, selectCases } from "./cases";
 
 const phonePattern = evalCases.find((item) => item.id === "phone")?.mustNotMatch?.[0];
@@ -98,4 +99,19 @@ describe("selectCases", () => {
   it("refuses an unknown id, so a typo cannot pass as an empty run", () => {
     expect(() => selectCases("ro-biling")).toThrow("Unknown case ids: ro-biling");
   });
+});
+
+describe("the history of a case", () => {
+  const known: readonly string[] = cvToolNames;
+
+  it.each(evalCases.filter((item) => item.history !== undefined).map((item) => [item.id, item]))(
+    "%s names only CV tools, as the signed turns the route accepts",
+    (_id, item) => {
+      for (const turn of item.history ?? []) {
+        for (const tool of turn.tools) {
+          expect(known).toContain(tool);
+        }
+      }
+    },
+  );
 });

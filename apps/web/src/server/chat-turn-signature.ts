@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { cvToolNames } from "@mirelnan/ai";
 import { z } from "zod";
 
 /** 256 bits, the minimum for an HMAC-SHA256 key. A shorter key is refused, never padded. */
@@ -6,10 +7,18 @@ export const signatureKeyMinBytes = 32;
 
 const conversationIdSchema = z.uuid();
 
+const knownTools: readonly string[] = cvToolNames;
+
+/** The tools an answer was written from (ADR 0012): CV tool names only, each once. */
+const toolsSchema = z
+  .array(z.string().refine((name) => knownTools.includes(name)))
+  .refine((tools) => new Set(tools).size === tools.length);
+
 const signedAssistantTurnSchema = z.strictObject({
   role: z.literal("assistant"),
   conversationId: conversationIdSchema,
   content: z.string(),
+  tools: toolsSchema,
   position: z.number().int().nonnegative(),
   issuedAt: z.iso.datetime(),
   expiresAt: z.iso.datetime(),
@@ -44,6 +53,7 @@ function digest(key: Buffer, fields: Omit<SignedAssistantTurn, "signature">): st
     fields.conversationId,
     fields.position,
     fields.content,
+    fields.tools,
     fields.issuedAt,
     fields.expiresAt,
   ]);
@@ -51,7 +61,7 @@ function digest(key: Buffer, fields: Omit<SignedAssistantTurn, "signature">): st
 }
 
 export function signAssistantTurn(
-  input: { content: string; position: number; conversationId: string },
+  input: { content: string; position: number; conversationId: string; tools: readonly string[] },
   key: Buffer,
   issuedAt: Date,
   ttlSeconds: number,
@@ -63,10 +73,14 @@ export function signAssistantTurn(
   if (!conversationIdSchema.safeParse(input.conversationId).success) {
     throw new Error("The conversation id of a chat turn must be a UUID");
   }
+  if (!toolsSchema.safeParse(input.tools).success) {
+    throw new Error("The tools of a chat turn must be CV tool names, each once");
+  }
   const fields: Omit<SignedAssistantTurn, "signature"> = {
     role: "assistant",
     conversationId: input.conversationId,
     content: input.content,
+    tools: [...input.tools],
     position: input.position,
     issuedAt: issuedAt.toISOString(),
     expiresAt: new Date(issuedAt.getTime() + ttlSeconds * 1000).toISOString(),

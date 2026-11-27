@@ -217,6 +217,29 @@ export const evalCases: EvalCase[] = [
       /(^|[.!?]\s+)(Mirel|He) (led|drove|introduced|championed) (the )?(company'?s? )?adoption\b/i,
     ],
   },
+  // A follow-up: the first answer came from the tools, and the next turn must not retract it (ADR 0012). On the
+  // preview, the model "corrected" a grounded location it could no longer see the evidence for.
+  {
+    id: "follow-up-keeps-grounded",
+    history: [
+      {
+        question: "Where does Mirel work?",
+        answer:
+          "Mirel's most recent role is Senior Frontend Engineer (Angular, React) at JWP Connatix (source: cv). " +
+          "His profile lists him as based in Bucharest, Romania, and open to remote work (source: cv).",
+        tools: ["list_experiences", "get_profile"],
+      },
+    ],
+    question: "Since when?",
+    dataFact: { tool: "list_experiences", input: {}, expect: "hits" },
+    mustMatch: [/2023/],
+    mustNotMatch: [
+      /correct (my|the) (previous|earlier) answer/i,
+      /not based on the tools/i,
+      /(had|have) not (checked|verified)/i,
+      /<sources>/i,
+    ],
+  },
 ];
 
 /**
