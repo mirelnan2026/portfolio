@@ -102,6 +102,7 @@ describe("grade", () => {
     expect(grade(vue, "That is not in the CV, but Mirel worked with Angular.", [])).toEqual({
       passed: true,
       failures: [],
+      wroteSourcesTag: false,
     });
   });
 
@@ -194,5 +195,43 @@ describe("grade", () => {
       mustCallTools: ["get_profile"],
     };
     expect(grade(strict, "beta", []).failures).toHaveLength(3);
+  });
+});
+
+describe("grade, the answer the visitor reads", () => {
+  const angular: EvalCase = { id: "angular", question: "q", mustMatch: [/more than 10 years\.$/] };
+
+  it("grades the answer without a <sources> note the model wrote, as the route removes it before signing", () => {
+    const verdict = grade(
+      angular,
+      "Angular, for more than 10 years. <sources>list_skills</sources>",
+      [],
+    );
+    expect(verdict.passed).toBe(true);
+    // Counted apart: the prompt forbids the tag, but the visitor never sees it.
+    expect(verdict.wroteSourcesTag).toBe(true);
+  });
+
+  it("does not mark an answer without a tag", () => {
+    expect(grade(angular, "Angular, for more than 10 years.", []).wroteSourcesTag).toBe(false);
+  });
+
+  it("fails an answer that is only a <sources> note: the visitor would get nothing", () => {
+    expect(
+      grade({ id: "c", question: "q" }, "<sources>get_profile</sources>", []).failures,
+    ).toContain("empty answer");
+  });
+
+  it.each(["Source: list_experiences.", "I checked get_profile for that.", "(search_cv)"])(
+    "fails every case when the answer names a tool: %s",
+    (answer) => {
+      const verdict = grade({ id: "c", question: "q" }, answer, []);
+      expect(verdict.passed).toBe(false);
+      expect(verdict.failures.some((failure) => failure.startsWith("names the tool"))).toBe(true);
+    },
+  );
+
+  it("does not take a longer word that contains a tool name for the name", () => {
+    expect(grade({ id: "c", question: "q" }, "See my_get_profile_notes.", []).passed).toBe(true);
   });
 });

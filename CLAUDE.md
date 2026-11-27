@@ -392,8 +392,8 @@ code review checks security.
   tools that returned data while it was written (each once, in order of first call; an invented name or a failed call
   is not evidence), signed with the rest; a missing, unknown or repeated name makes the turn malformed. The prompt
   tells the model to keep an answer with a `<sources>` note unless a new tool result contradicts it, and never to
-  write the tag; `withoutSourcesTags` strips any tag from the model's answer before signing, so a visitor cannot make
-  it echo a note after an invented claim. The handler logs one line per turn, `{ event: "chat_turn", ok, steps, tools, durationMs }` (the loop's time, from the
+  write the tag; `withoutSourcesTags` removes a note from the model's answer before signing, tool names included (a
+  lone tag too), so a visitor cannot make it echo a note after an invented claim and never reads a bare tool name. The handler logs one line per turn, `{ event: "chat_turn", ok, steps, tools, durationMs }` (the loop's time, from the
   injected clock), never the question,
   the answer or the IP (an inline `no-console` exception). Changing the signed fields drops the open conversations
   once, as a key rotation does.
@@ -423,7 +423,8 @@ code review checks security.
   updated with the data, not reported as a model failure. Graders are code (no model judges them). Every answer of a
   run is read, not only the failures: a grader that accepts a wrong answer is a bug (the cloud case did). `--only
 <ids>` measures a fix on the cases it targets; the baseline in the README comes only from a full run (5 repeats).
-  One variable per measured change: a setting that changes the model's behaviour (model, effort, thinking) is its own
+  The graders read the answer the visitor reads (after `withoutSourcesTags`); every case fails on a tool name in it,
+  and a `<sources>` tag the model wrote is counted per run (`wroteSourcesTag`), not failed. One variable per measured change: a setting that changes the model's behaviour (model, effort, thinking) is its own
   experiment, never bundled with a fix (effort `low`, bundled with a token-limit fix, broke the English rule).
   A case's `history` uses a real answer of another case, word for word, not a hand-written one: a hand-written first
   answer without its end month made the model "correct" it. The prompt is near its 4 500-character limit: the next
