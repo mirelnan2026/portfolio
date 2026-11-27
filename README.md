@@ -78,10 +78,14 @@ one starts. These are the decisions behind its answers.
 - Ownership is kept honest: work done as part of a team is never presented as owned, and years are rounded down
   ("more than 10 years"). The skills tool returns that phrase ready to repeat, not a number, so the model has no
   figure to round up or state as exact.
+- A role that has ended is told in the past, with its end month ("worked there from March 2023 to October 2026"),
+  even when the question asks "Since when has he worked…". The experience tools say `ended` or `ongoing` for each
+  role, so the model does not have to work it out from dates, and the prompt names the wrong form to avoid. "Where
+  does Mirel work?" gets the most recent role and its end month, not "not in the CV".
 
 **The system prompt**
 
-- One short prompt (about 3.5 KB), sent with every request. It sets the role, how tools are used, the reply format
+- One short prompt (under 4.5 KB), sent with every request. It sets the role, how tools are used, the reply format
   (plain text, at most five list items, English whatever the question's language), third-person references, the
   confidentiality reply word for word, and how to treat instructions typed by a visitor.
 - Every rule has a test that fails if the rule is removed. A change to a rule is measured with the evaluations
@@ -126,14 +130,14 @@ one starts. These are the decisions behind its answers.
 
 **Evaluations: the answers are measured, not assumed**
 
-- 29 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
-  language, questions with several parts, and the AI-assisted development the CV leads with (Claude Code,
-  spec-driven work, tools the CV does not name, a leadership claim it does not make), and a follow-up question that
-  must not retract a grounded first answer. The grading is code: phrases, patterns, tool calls and search terms.
+- 32 cases cover refusals, confidentiality, prompt injection in English and Romanian, ownership, rounded years,
+  language, questions with several parts, the AI-assisted development the CV leads with (Claude Code,
+  spec-driven work, tools the CV does not name, a leadership claim it does not make), a follow-up question that
+  must not retract a grounded first answer, and the tense of a role that has ended. The grading is code: phrases, patterns, tool calls and search terms.
   No model judges another model's answer.
 - A case that depends on the CV's data states the fact it relies on. The runner checks the fact in the database
   before asking the model. If the fact has changed, the case is reported as `STALE` and must be updated.
-- Baseline: Haiku 5.5 passes 145 of 145 runs on all 29 cases (five repetitions, about eleven cents). An earlier baseline
+- Baseline: Haiku 5.5 passes 160 of 160 runs on all 32 cases (five repetitions, about twelve cents). An earlier baseline
   passed 115 of 115 on the first 23 cases; the first full run
   with the four multi-part cases passed 108 of 115. The failures were fixed by rules, and two false positives of the
   grader were corrected with tests: a fifth tool round needed a higher step limit, years written as "about 10 years"
@@ -151,6 +155,13 @@ one starts. These are the decisions behind its answers.
   the workflow, which names no tools. Two answers stopped at the token limit, one of them empty: the model's hidden
   thinking had used the 800 tokens. A lower effort fixed that but answered a Romanian question in Romanian one time
   in ten, so it was rejected; the limit was raised instead, at the default effort.
+- Asked "Since when has Mirel worked at JWP Connatix?", the model echoed the question: "has worked there since March
+  2023", for a role that ended in October 2026. Reading every answer showed the grader passing seven such answers in
+  ten. With the grader fixed, the fix came in three measured steps: a `status` field in the tools (the yes/no question
+  was fixed, the "since when" one was not), a prompt rule with an example (10 of 10), and the wrong form named in the
+  rule, after 2 follow-ups in 10 still wrote it. On the way, the follow-up case's hand-written first answer turned out
+  to make the model "correct" it; it was replaced by a real answer of the new "Where does Mirel work?" case, which
+  itself opened with "not in the CV" 2 times in 10 until a rule said that question has an answer.
 - Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
 - Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
   by the model provider.

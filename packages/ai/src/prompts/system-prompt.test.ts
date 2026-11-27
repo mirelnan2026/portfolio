@@ -136,6 +136,21 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toMatch(/at most five items/i);
   });
 
+  it("tells an ended role in the past tense, even when the question asks 'has worked … since'", () => {
+    // With the status in the tool result alone, 7 answers in 10 echoed "has worked at … since March 2023".
+    expect(prompt).toMatch(/status is "ended"/);
+    expect(prompt).toMatch(/past tense/i);
+    expect(prompt).toMatch(/even when the question asks/i);
+    // The wrong form, named: answered from the history, 2 follow-ups in 10 still wrote "has worked at … since".
+    expect(prompt).toContain('never as "has worked … since"');
+  });
+
+  it("answers 'where does he work' with the most recent role when every role has ended, not with the formula", () => {
+    // "Where does Mirel work?" opened with "not in the CV." 2 times in 10, then named the most recent role anyway.
+    expect(prompt).toMatch(/when every role has ended/i);
+    expect(prompt).toMatch(/most recent role/i);
+  });
+
   it("stays under 4500 characters, so every request pays a bounded prompt cost", () => {
     // Raised from 4000 with the <sources> rule (ADR 0012), rather than rewording rules the evaluations had measured.
     expect(prompt.length).toBeLessThan(4500);

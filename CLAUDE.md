@@ -199,7 +199,9 @@ checks accessibility.
   project links; [ADR 0009](docs/adr/0009-personal-projects-in-skill-years.md)),
   rounded **down** to whole years by `tenureLabel` ("10+ yrs", spoken "over 10 years" through `sr-only`), so a claim
   never overstates. The chat gets the same rule as a phrase from `list_skills` (`tenure`: "less than a year", "N
-  years", "more than N years"; no numeric field), repeated word for word. Only the **top 12** (`topSkills`) are always visible; all of them, by category, sit behind "Show all
+  years", "more than N years"; no numeric field), repeated word for word. Likewise `list_experiences` and `get_experience` give
+  each role `status` (`"ended"` / `"ongoing"`, from `period.end`), and the prompt tells an ended role in the past
+  tense with its end month, never "has worked … since", and answers "where does he work" with the most recent role. Only the **top 12** (`topSkills`) are always visible; all of them, by category, sit behind "Show all
   N skills by category", which a `?skill=` link to a skill outside the top opens.
 - **Skill filter:** each skill is a `<button aria-pressed>`; `?skill=<slug>` is the state, so a selection is a shareable
   link (the chat and job match link to skills). The page stays static: the server `components/skills.tsx` wraps the
@@ -423,6 +425,9 @@ code review checks security.
 <ids>` measures a fix on the cases it targets; the baseline in the README comes only from a full run (5 repeats).
   One variable per measured change: a setting that changes the model's behaviour (model, effort, thinking) is its own
   experiment, never bundled with a fix (effort `low`, bundled with a token-limit fix, broke the English rule).
+  A case's `history` uses a real answer of another case, word for word, not a hand-written one: a hand-written first
+  answer without its end month made the model "correct" it. The prompt is near its 4 500-character limit: the next
+  rule comes with a measured compaction of the existing ones, not a higher limit.
 - **Database:** the runtime uses a read-only Postgres role; migrations/seed use a separate role; TLS required; queries
   only through Drizzle (parameterized), no string-built SQL.
 - **Supply chain:** frozen lockfile in CI, `pnpm audit`, Dependabot, install scripts allowed only via `allowBuilds`;

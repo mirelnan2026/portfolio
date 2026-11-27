@@ -227,6 +227,37 @@ describe("list_experiences", () => {
   });
 });
 
+describe("the status of a role", () => {
+  // Without it the model saw "2023-03 to 2026-10" and wrote "has been at JWP Connatix since 2023" for a role that ended.
+  const ongoing: Experience = { ...jwx, slug: "now-co", period: period("2025-01", null) };
+  const repos = fakeRepos({
+    experiences: {
+      list: () => Promise.resolve([jwx, ongoing]),
+      getBySlug: (slug) =>
+        Promise.resolve([jwx, ongoing].find((item) => item.slug === slug) ?? null),
+    },
+  });
+
+  it("marks a role with an end month as ended, and one without as ongoing, in the list", async () => {
+    const result = await run("list_experiences", {}, repos);
+    if (!result.ok) throw new Error("expected a result");
+    expect(result.data).toEqual([
+      expect.objectContaining({ slug: "jwp-connatix", status: "ended" }),
+      expect.objectContaining({ slug: "now-co", status: "ongoing" }),
+    ]);
+  });
+
+  it.each([
+    ["jwp-connatix", "ended"],
+    ["now-co", "ongoing"],
+  ])("gives %s the status %s in its details", async (slug, status) => {
+    expect(await run("get_experience", { slug }, repos)).toMatchObject({
+      ok: true,
+      data: { status },
+    });
+  });
+});
+
 describe("get_experience", () => {
   it("returns the role with its highlights and their ownership", async () => {
     const result = await run("get_experience", { slug: "jwp-connatix" }, fakeRepos());

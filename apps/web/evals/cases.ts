@@ -224,9 +224,14 @@ export const evalCases: EvalCase[] = [
     history: [
       {
         question: "Where does Mirel work?",
+        // A real answer of where-works-now, word for word (a hand-written one without the end month made the model
+        // "correct" it on the next turn), plus the profile sentence the preview's model retracted (ADR 0012).
         answer:
-          "Mirel's most recent role is Senior Frontend Engineer (Angular, React) at JWP Connatix (source: cv). " +
-          "His profile lists him as based in Bucharest, Romania, and open to remote work (source: cv).",
+          "Mirel's most recent role was Senior Frontend Engineer (Angular, React) at JWP Connatix, where he worked " +
+          "from March 2023 to October 2026 (source: jwp-connatix). The CV lists no current role, as every listed " +
+          "position has ended. Before that, he worked at Sware as a Frontend Engineer (Angular) from September 2020 " +
+          "to February 2023 (source: sware). His profile lists him as based in Bucharest, Romania, and open to " +
+          "remote work (source: cv).",
         tools: ["list_experiences", "get_profile"],
       },
     ],
@@ -234,10 +239,56 @@ export const evalCases: EvalCase[] = [
     dataFact: { tool: "list_experiences", input: {}, expect: "hits" },
     mustMatch: [/2023/],
     mustNotMatch: [
-      /correct (my|the) (previous|earlier) answer/i,
+      // Any word about the earlier answer is a retraction or a correction of it: "This corrects my earlier answer".
+      /\b(my|the) (previous|earlier) (answer|reply)\b/i,
+      /\bshould not have (described|said|stated|cited)\b/i,
+      // "Since when?" asks in the present perfect; the role has ended, so the answer is in the past.
+      /\bhas (been )?work(ed|ing) (at|there|for)\b/i,
+      /\bhas been (at|with|working)\b/i,
       /not based on the tools/i,
       /(had|have) not (checked|verified)/i,
       /<sources>/i,
+    ],
+  },
+  // A role that has ended is told in the past: "from March 2023 to October 2026", never "has been … since 2023".
+  {
+    id: "ended-role-tense",
+    question: "Does Mirel still work at JWP Connatix?",
+    dataFact: { tool: "list_experiences", input: {}, expect: "hits" },
+    mustMatch: [/October 2026|2026-10/i],
+    mustNotMatch: [
+      // "does not still work" answers the question correctly, so a negation right before is allowed.
+      /(?<!\bnot )\b(still|currently) (works?|working|employed|at)\b/i,
+      /\bhas been (at|with|working)\b/i,
+      /\bhas (been )?work(ed|ing) (at|there|for)\b/i,
+      /^yes\b/i,
+    ],
+  },
+  // A visitor's likely first question, in the present tense: the answer names the most recent role as ended. Its
+  // answers are also the realistic first turn for follow-up-keeps-grounded's history.
+  {
+    id: "where-works-now",
+    question: "Where does Mirel work?",
+    dataFact: { tool: "list_experiences", input: {}, expect: "hits" },
+    mustMatch: [/October 2026|2026-10/i],
+    mustNotMatch: [
+      /(?<!\bnot )\b(still|currently) (works?|working|employed|at)\b/i,
+      /\bMirel works at\b/i,
+      // The question has an answer (the most recent role): opening with the formula reads as a refusal.
+      /^\s*not in the CV/i,
+      /\bhas (been )?work(ed|ing) (at|there|for)\b/i,
+      /\bhas been (at|with|working)\b/i,
+    ],
+  },
+  {
+    id: "since-when-ended",
+    question: "Since when has Mirel worked at JWP Connatix?",
+    dataFact: { tool: "list_experiences", input: {}, expect: "hits" },
+    mustMatch: [/March 2023|2023-03/i, /October 2026|2026-10/i],
+    // The question's own present perfect, echoed back, says the role goes on: "has worked … since March 2023".
+    mustNotMatch: [
+      /\bhas been (at|with|working)\b/i,
+      /\bhas (been )?work(ed|ing) (at|there|for)\b/i,
     ],
   },
 ];
