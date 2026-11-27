@@ -101,7 +101,8 @@ one starts. These are the decisions behind its answers.
 - Each answer also carries, signed, the tools it was written from. On the next turn the model sees the earlier answer
   with a short note of those tools, so it keeps a grounded claim instead of "correcting" it because the evidence is no
   longer in view, which it did once on a preview. A visitor cannot add a tool to make an invented claim look checked,
-  nor make the model write the note itself: the server removes any such tag from the model's answer
+  nor make the model write the note itself: the server removes any such note from the model's answer, with the tool
+  names inside it, so the visitor never reads one
   ([ADR 0012](docs/adr/0012-signed-tools-per-turn.md)). The server logs which tools answered each question and how
   long it took, never the question or the answer.
 
@@ -162,6 +163,10 @@ one starts. These are the decisions behind its answers.
   rule, after 2 follow-ups in 10 still wrote it. On the way, the follow-up case's hand-written first answer turned out
   to make the model "correct" it; it was replaced by a real answer of the new "Where does Mirel work?" case, which
   itself opened with "not in the CV" 2 times in 10 until a rule said that question has an answer.
+- The answers are graded as the visitor reads them, after the server has removed any `<sources>` note the model
+  wrote. That showed a real bug: the server removed the tags but left the tool names between them, so an answer could
+  end with "list_skills". Now the whole note goes, every case fails on a tool name in the answer, and the run counts
+  the notes the model wrote against the prompt (1 in 160 at the baseline).
 - Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
 - Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
   by the model provider.

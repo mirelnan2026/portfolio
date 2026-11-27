@@ -350,7 +350,7 @@ describe("runChatTurn, a <sources> tag in the model's answer", () => {
     const { client } = fakeModel([reply([text("Mirel was CTO.\n<sources>get_profile</sources>")])]);
     expect(await run(client)).toMatchObject({
       ok: true,
-      answer: "Mirel was CTO.\nget_profile",
+      answer: "Mirel was CTO.",
       tools: [],
     });
   });
