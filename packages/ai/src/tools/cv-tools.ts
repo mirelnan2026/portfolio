@@ -61,6 +61,19 @@ const summaryOf = (experience: Experience) => ({
   period: experience.period,
 });
 
+/**
+ * A skill's time in use, worded so it never overstates it: whole years are stated as they are, anything over
+ * is "more than", and under a year is said as such. The model repeats it, so it never has a number to round up.
+ */
+function tenurePhrase(months: number): string {
+  const years = Math.floor(months / 12);
+  if (years === 0) {
+    return "less than a year";
+  }
+  const counted = `${String(years)} ${years === 1 ? "year" : "years"}`;
+  return months % 12 === 0 ? counted : `more than ${counted}`;
+}
+
 const tools = {
   get_profile: tool(noInput, async (_input, { repos }) => {
     // Competencies are kept for search engines only (CLAUDE.md): they are never shown or quoted.
@@ -133,7 +146,7 @@ const tools = {
               slug: skill.slug,
               name: skill.name,
               category: skill.category,
-              years: Math.floor(used.months / 12),
+              tenure: tenurePhrase(used.months),
             },
           ];
     });
