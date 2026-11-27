@@ -105,11 +105,16 @@ function queryScorer(query: string): (text: string) => number | null {
   };
 }
 
+/** "ended" when the period has an end month, "ongoing" otherwise: the model cannot tell from dates alone. */
+const statusOf = (experience: Experience) =>
+  experience.period.end === null ? ("ongoing" as const) : ("ended" as const);
+
 const summaryOf = (experience: Experience) => ({
   slug: experience.slug,
   company: experience.company,
   role: experience.role,
   period: experience.period,
+  status: statusOf(experience),
 });
 
 /**
@@ -143,7 +148,7 @@ const tools = {
     }
     // Products never reach the model: they are site context only.
     const { products: _products, ...withoutProducts } = experience;
-    return withoutProducts;
+    return { ...withoutProducts, status: statusOf(experience) };
   }),
 
   search_cv: tool(searchInput, async ({ query }, { repos }) => {
