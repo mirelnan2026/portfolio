@@ -408,7 +408,11 @@ code review checks security.
   variable. No streaming: the answer is signed whole (owner decision, 2026-11-26; revisit with an ADR).
 - **Evaluations (`apps/web/evals`, README "Evaluations"):** a case that depends on CV data declares it as `dataFact`;
   the runner checks it against the database before the model is asked. A changed fact makes the case STALE, so it is
-  updated with the data, not reported as a model failure. Graders are code (no model judges them).
+  updated with the data, not reported as a model failure. Graders are code (no model judges them). Every answer of a
+  run is read, not only the failures: a grader that accepts a wrong answer is a bug (the cloud case did). `--only
+<ids>` measures a fix on the cases it targets; the baseline in the README comes only from a full run (5 repeats).
+  One variable per measured change: a setting that changes the model's behaviour (model, effort, thinking) is its own
+  experiment, never bundled with a fix (effort `low`, bundled with a token-limit fix, broke the English rule).
 - **Database:** the runtime uses a read-only Postgres role; migrations/seed use a separate role; TLS required; queries
   only through Drizzle (parameterized), no string-built SQL.
 - **Supply chain:** frozen lockfile in CI, `pnpm audit`, Dependabot, install scripts allowed only via `allowBuilds`;

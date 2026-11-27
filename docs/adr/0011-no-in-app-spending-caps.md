@@ -12,7 +12,7 @@ application as well: one per request and one per day, counted in Redis.
 
 The chat already has several limits that bound the cost without counting money:
 
-- per question: at most six model requests and 800 output tokens each, a 20 second timeout per request, and the
+- per question: at most six model requests, an output token limit and a 20 second timeout per request, and the
   conversation's length capped;
 - per visitor: a rate limit per IP, per minute and per day, that refuses the request when Redis does not answer in time;
 - for the whole site: a monthly spend limit on the Anthropic Console workspace that holds the production key, with an
