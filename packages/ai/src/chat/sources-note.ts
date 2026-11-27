@@ -13,5 +13,7 @@ export function withSourcesNote(content: string, tools: readonly string[]): stri
  * invented claim, and the next turn would treat that claim as checked.
  */
 export function withoutSourcesTags(text: string): string {
-  return text.replace(/<\s*\/?\s*sources\s*>/gi, "").trim();
+  // The spaces after "/" are inside the optional group, so each space can match in one place only: the pattern stays
+  // linear on "<" followed by many spaces (an ambiguous `<\s*\/?\s*` is quadratic there).
+  return text.replace(/<\s*(?:\/\s*)?sources\s*>/gi, "").trim();
 }

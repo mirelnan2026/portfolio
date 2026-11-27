@@ -26,6 +26,14 @@ describe("withoutSourcesTags", () => {
     expect(withoutSourcesTags(text)).toBe(expected);
   });
 
+  it("stays linear on a long run of spaces after '<', which an ambiguous pattern would make quadratic", () => {
+    // Two optional runs of spaces around an optional "/" could each take the same spaces: CodeQL flagged it.
+    const text = `<${" ".repeat(100_000)}x`;
+    const started = performance.now();
+    expect(withoutSourcesTags(text)).toBe(text.trim());
+    expect(performance.now() - started).toBeLessThan(200);
+  });
+
   it("leaves an answer without tags as it is", () => {
     expect(withoutSourcesTags("Mirel owned the billing work.")).toBe(
       "Mirel owned the billing work.",
