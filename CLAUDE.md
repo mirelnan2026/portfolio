@@ -390,7 +390,8 @@ code review checks security.
   tools that returned data while it was written (each once, in order of first call; an invented name or a failed call
   is not evidence), signed with the rest; a missing, unknown or repeated name makes the turn malformed. The prompt
   tells the model to keep an answer with a `<sources>` note unless a new tool result contradicts it, and never to
-  write the tag. The handler logs one line per turn, `{ event: "chat_turn", ok, steps, tools, durationMs }` (the loop's time, from the
+  write the tag; `withoutSourcesTags` strips any tag from the model's answer before signing, so a visitor cannot make
+  it echo a note after an invented claim. The handler logs one line per turn, `{ event: "chat_turn", ok, steps, tools, durationMs }` (the loop's time, from the
   injected clock), never the question,
   the answer or the IP (an inline `no-console` exception). Changing the signed fields drops the open conversations
   once, as a key rotation does.

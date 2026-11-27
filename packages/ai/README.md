@@ -19,6 +19,7 @@ src/
 | `chatLimits`                         | caps on a conversation: message count (odd, so it ends with a question) and message length                                                              |
 | `chatConversationSchema`             | zod schema for the conversation a visitor sends (untrusted input, validated at the route)                                                               |
 | `withSourcesNote`                    | an earlier answer as the model sees it: the text, then `<sources>…</sources>` with the tools it came from (ADR 0012)                                    |
+| `withoutSourcesTags`                 | removes any `<sources>` tag from the model's answer before it is signed, so only the server writes the note                                             |
 | `ChatConversation`                   | its type; each `ChatMessage` is assignable to the SDK's `MessageParam`                                                                                  |
 | `buildSystemPrompt()`                | the system prompt: role, tool use, grounding, reply format, language, confidentiality and injection rules; the same text on every call                  |
 | `runCvTool(name, input, repos, now)` | runs one tool: validates the raw input, then reads; answers `{ ok, data }` or `{ ok: false, error }`, never throws                                      |

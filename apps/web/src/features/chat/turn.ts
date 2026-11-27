@@ -1,5 +1,5 @@
 import type { ChatConversation, CvRepositories } from "@mirelnan/ai";
-import { buildSystemPrompt, cvToolDefinitions, runCvTool } from "@mirelnan/ai";
+import { buildSystemPrompt, cvToolDefinitions, runCvTool, withoutSourcesTags } from "@mirelnan/ai";
 import type Anthropic from "@anthropic-ai/sdk";
 
 /**
@@ -92,7 +92,8 @@ export async function runChatTurn(input: TurnInput): Promise<TurnResult> {
         (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
       );
       if (uses.length === 0) {
-        const answer = textOf(response.content).trim();
+        // Only the server writes a <sources> note (ADR 0012): a tag in the model's text is removed before signing.
+        const answer = withoutSourcesTags(textOf(response.content));
         // An empty answer is not an answer: showing it would leave the visitor with a blank reply.
         return done(answer === "" ? { ok: false, error: unavailable } : { ok: true, answer });
       }

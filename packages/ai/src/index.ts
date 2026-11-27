@@ -1,6 +1,6 @@
 export { chatConversationSchema, chatLimits } from "./chat/conversation";
 export type { ChatConversation, ChatMessage } from "./chat/conversation";
-export { withSourcesNote } from "./chat/sources-note";
+export { withSourcesNote, withoutSourcesTags } from "./chat/sources-note";
 
 export { cvToolNames, runCvTool } from "./tools/cv-tools";
 export type { CvRepositories, ToolResult } from "./tools/cv-tools";

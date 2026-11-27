@@ -96,9 +96,10 @@ one starts. These are the decisions behind its answers.
   ([ADR 0010](docs/adr/0010-signed-chat-turns.md)).
 - Each answer also carries, signed, the tools it was written from. On the next turn the model sees the earlier answer
   with a short note of those tools, so it keeps a grounded claim instead of "correcting" it because the evidence is no
-  longer in view, which it did once on a preview. A visitor cannot add a tool to make an invented claim look checked
-  ([ADR 0012](docs/adr/0012-signed-tools-per-turn.md)). The server logs which tools answered each question and how long
-  it took, never the question or the answer.
+  longer in view, which it did once on a preview. A visitor cannot add a tool to make an invented claim look checked,
+  nor make the model write the note itself: the server removes any such tag from the model's answer
+  ([ADR 0012](docs/adr/0012-signed-tools-per-turn.md)). The server logs which tools answered each question and how
+  long it took, never the question or the answer.
 
 **Limits**
 

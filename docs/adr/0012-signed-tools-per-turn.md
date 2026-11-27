@@ -30,6 +30,9 @@ assistant that contradicts itself.
   The system prompt says what it means: the answer was written from those tools' results, which are no longer shown;
   keep it unless a new tool result contradicts it, and never write a `<sources>` tag yourself. An answer with an empty
   list gets no note.
+- **Only the server writes the note.** Any `<sources>` tag in the model's own answer is removed before the answer is
+  signed (`withoutSourcesTags`): otherwise a visitor could ask the model to echo `<sources>get_profile</sources>` after
+  an invented claim, and the next turn would treat the claim as checked.
 - **The server logs each turn's tools, number of model requests and duration**, without the question, the answer or the
   visitor's address, so a report like the one above can be checked against what the loop really did.
 - **Measured by an evaluation case with history:** a first answer with its tools, then a follow-up; the reply must not
