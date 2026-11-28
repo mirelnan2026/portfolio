@@ -5,6 +5,7 @@ import {
   type ChatConversation,
 } from "@mirelnan/ai";
 import { z } from "zod";
+import { chatErrors } from "./messages";
 import { type SignedAssistantTurn, verifyAssistantTurn } from "../../server/chat-turn-signature";
 
 /** The most a chat request may weigh: a longest conversation is about 85 KB, plus the JSON around it. */
@@ -138,7 +139,7 @@ export async function parseChatRequest(
     return {
       ok: false,
       status: 400,
-      error: "This conversation can no longer continue. Start a new one.",
+      error: chatErrors.conversationEnded,
     };
   }
   return { ok: true, messages: conversation.data, conversationId: currentId };

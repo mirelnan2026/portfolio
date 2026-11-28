@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { SectionNav } from "./section-nav";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -6,7 +7,14 @@ import { ThemeToggle } from "./theme-toggle";
  * Sticky header. Its height is the `--header-height` token, which globals.css also uses as the scroll
  * padding, so anchors and focused elements never end up hidden behind it (WCAG 2.4.11).
  */
-export function SiteHeader({ sections }: { sections: readonly { id: string; label: string }[] }) {
+export function SiteHeader({
+  sections,
+  actions,
+}: {
+  sections: readonly { id: string; label: string }[];
+  /** Controls a feature adds to the header (the chat's button), passed in by the root layout. */
+  actions?: ReactNode;
+}) {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur contrast-more:bg-background">
       <div className="mx-auto flex h-(--header-height) max-w-5xl items-center justify-between px-4">
@@ -15,6 +23,7 @@ export function SiteHeader({ sections }: { sections: readonly { id: string; labe
         </Link>
         <div className="flex items-center gap-2 md:gap-6">
           <SectionNav sections={sections} />
+          {actions}
           <ThemeToggle />
         </div>
       </div>

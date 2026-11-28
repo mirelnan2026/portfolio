@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SkipLink } from "@/components/layout/skip-link";
 import { getProfile } from "@/features/portfolio/queries";
 import { pageSections } from "@/features/portfolio/sections";
+import { ChatPanel } from "@/features/chat/components/chat-panel";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -43,7 +44,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           <SkipLink />
-          <SiteHeader sections={pageSections} />
+          {/* Compared here, not in a helper: next.config inlines the value, so a false build drops the import. */}
+          <SiteHeader
+            sections={pageSections}
+            actions={process.env.CHAT_ENABLED === "true" ? <ChatPanel /> : null}
+          />
           <main id="main">{children}</main>
           <SiteFooter name={profile.name} email={profile.email} linkedinUrl={profile.linkedinUrl} />
         </ThemeProvider>

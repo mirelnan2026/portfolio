@@ -113,6 +113,43 @@ Every open conversation loses its history: the old signatures no longer verify, 
 the visitor starts again. Nothing is stored, so nothing else needs cleaning up. Rotate at once if the key may have
 leaked.
 
+## Feature flags
+
+A feature that is not launched is hidden by a build-time flag, `<FEATURE>_ENABLED`, on only when it is exactly
+`true` ([ADR 0013](adr/0013-build-time-feature-flags.md)). It is read at build, not at request: the page is
+prerendered, so a change takes effect with the next deploy.
+
+**Adding a flag** (in the feature's pull request):
+
+1. `apps/web/next.config.ts` → `env`: `<FEATURE>_ENABLED: process.env.<FEATURE>_ENABLED ?? ""`.
+2. In the module that imports the feature, compare inline: `process.env.<FEATURE>_ENABLED === "true" ? … : null`,
+   with a comment saying why it is not a helper.
+3. Declare it in `turbo.json` `build.env`, in the CI job's `env` in `ci.yml` (`"true"`, so the e2e tests reach it)
+   and in `apps/web/.env.example` (empty).
+4. On Vercel, add it for **Preview** only, as a plain variable (it is not a secret).
+5. Build with the flag off and search for a text unique to the feature: it must be in neither
+   `apps/web/.next/server/app/index.html` nor `apps/web/.next/static`.
+
+**Launching:** add the variable for **Production** and redeploy production. **Hiding it again** (an incident): remove
+the Production variable and redeploy. **Once the feature stays:** remove the flag, its comparison and its
+declarations in a pull request.
+
+### The chat (`CHAT_ENABLED`)
+
+The "Ask about me" panel is built only when `CHAT_ENABLED` is exactly `true`.
+
+- **Before launch:** on Vercel, `CHAT_ENABLED` = `true` for **Preview** only. It is not a secret, so it can be a plain
+  variable. CI sets it in `ci.yml`, so the e2e and axe tests can open the panel against a faked `/api/chat`.
+- **At launch:** add it for **Production** and redeploy production.
+- **To hide the chat again** (an incident, a model problem): remove the Production variable and redeploy. The route
+  `/api/chat` stays deployed either way; the variable only decides whether the page links to it.
+- Locally: `CHAT_ENABLED=true` in `apps/web/.env.local`, or on the command line
+  (`CHAT_ENABLED=true pnpm --filter @mirelnan/web build`, or `dev`), shows the panel. A variable set on the command
+  line wins over `.env.local`, so `CHAT_ENABLED=false pnpm --filter @mirelnan/web build` builds the page as
+  production sees it before launch.
+- **Check that the chat is really out:** after that `false` build, `grep -rl "Your question" apps/web/.next/static`
+  finds nothing. The HTML hiding the button is not enough: the panel's JavaScript must not be in the page either.
+
 ## Rolling back
 
 - **Bad release:** Vercel → Deployments → the last good production deployment → **Instant Rollback**. Then fix

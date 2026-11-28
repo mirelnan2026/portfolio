@@ -11,14 +11,14 @@ for every claim, and accessibility, security and SEO rules enforced by tooling a
 
 ## Features
 
-| Feature                                                                                  | Status     |
-| ---------------------------------------------------------------------------------------- | ---------- |
-| Portfolio page rendered from Postgres, light / dark / system themes, keyboard-first      | ✅ live    |
-| Experience timeline, skills with years from roles and projects, case studies             | ✅ live    |
-| A skill filter with shareable links (`?skill=react`), section navigation, a share image  | ✅ live    |
-| **Ask about me** — a Claude chat grounded in the CV through tool use, with source links  | 🚧 planned |
-| **Job match** — paste a job description, get requirement → evidence → level              | 🚧 planned |
-| **MCP server** — the same CV tools for Claude Desktop, Claude Code and other MCP clients | 🚧 planned |
+| Feature                                                                                  | Status        |
+| ---------------------------------------------------------------------------------------- | ------------- |
+| Portfolio page rendered from Postgres, light / dark / system themes, keyboard-first      | ✅ live       |
+| Experience timeline, skills with years from roles and projects, case studies             | ✅ live       |
+| A skill filter with shareable links (`?skill=react`), section navigation, a share image  | ✅ live       |
+| **Ask about me** — a Claude chat grounded in the CV through tool use, with source links  | 🚧 in preview |
+| **Job match** — paste a job description, get requirement → evidence → level              | 🚧 planned    |
+| **MCP server** — the same CV tools for Claude Desktop, Claude Code and other MCP clients | 🚧 planned    |
 
 ## Architecture highlights
 
@@ -35,6 +35,10 @@ for every claim, and accessibility, security and SEO rules enforced by tooling a
 - **Static by default.** The page is prerendered at build time from the database and served from the CDN; at run
   time only the dynamic AI routes will query it.
 - **One set of AI tools.** The chat and the MCP server will share the same tool definitions (zod schema + handler).
+- **Unreleased features ship nothing.** A feature that is not launched is behind a build-time flag
+  (`CHAT_ENABLED`), inlined at compile time, so a production build without it contains none of the feature's HTML or
+  JavaScript; previews and CI build it and test it end to end
+  ([ADR 0013](docs/adr/0013-build-time-feature-flags.md)).
 
 ```
             ┌──────────────┐
@@ -242,6 +246,9 @@ cp packages/db/.env.example packages/db/.env.local # DATABASE_ADMIN_URL, for mig
 pnpm --filter @mirelnan/db db:migrate && pnpm --filter @mirelnan/db db:seed
 pnpm dev
 ```
+
+The chat is behind a feature flag: add `CHAT_ENABLED=true` to `apps/web/.env.local` to build it into the page (see
+[`docs/runbook.md`](docs/runbook.md#feature-flags)).
 
 | Script                                       | What it does                                                   |
 | -------------------------------------------- | -------------------------------------------------------------- |

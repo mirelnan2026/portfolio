@@ -82,6 +82,15 @@ Dependency direction (one way only): `domain` ← `cv-data`, `db`, `ai` ← `app
   `components/ui/`; layout pieces in `components/layout/` (layout components never import from `features/`; they get
   plain props).
 - AI tools are shared by the chat and the MCP server: defined once in `@mirelnan/ai`.
+- **Feature flags** ([ADR 0013](docs/adr/0013-build-time-feature-flags.md)): a feature that is not launched is hidden
+  by a build-time flag `<FEATURE>_ENABLED`, on only for exactly `"true"`. The value is inlined by `env` in
+  `apps/web/next.config.ts` (`process.env.<FEATURE>_ENABLED ?? ""`), and the comparison
+  `process.env.<FEATURE>_ENABLED === "true"` is written **in the module that imports the feature**, with a comment
+  saying why: never a helper or an exported constant, which hide only the HTML (the import still makes a client
+  reference, so the page loads the chunk). Declare each flag in `next.config.ts`, turbo.json `build.env`, the CI job's
+  `env`, Vercel Preview (plain) and `.env.example` (empty). Verify with a build with the flag off: a text unique to the
+  feature is in neither the HTML nor `.next/static`. At launch add it for Production; once the feature stays, remove
+  the flag. A flag decides only what the page shows: routes behind it keep their own protections.
 
 ## Conventions
 
@@ -254,7 +263,17 @@ checks accessibility.
   timeline. Job match is its own route, `/job-match` (linked from the header and the hero as "Match me to your role"),
   so the home page stays static; requirement → linked evidence → level, where the level is shown as text and dots
   (Strong / Partial / Gap), never by colour alone. Until they work, the entry points are hidden: nothing on the page
-  mentions the chat or job match.
+  mentions the chat or job match. The chat is hidden by the feature flag `CHAT_ENABLED` (see
+  "Feature flags" under Architecture): CI and Vercel Preview set it, Production does not until launch. The root layout
+  passes `<ChatPanel />` to `SiteHeader` through its `actions` slot (layout components never import from
+  `features/`), behind `process.env.CHAT_ENABLED === "true"` written in the layout itself; the check is that a build
+  with `CHAT_ENABLED=false` leaves no "Your question" in `.next/static`. The panel (`features/chat/components/chat-panel.tsx`)
+  keeps its state outside the sheet's content (closing keeps the conversation), sends the signed answers back as
+  they came (`features/chat/client.ts`: a loose schema, so a new signed field survives the round trip), renders
+  answers as React text, and uses `role="log"` for the conversation, an always-present `role="status"` for
+  "Thinking…" and `role="alert"` for errors; the error lines both sides know are in `features/chat/messages.ts`.
+  Its e2e tests (`e2e/chat.spec.ts`) fake `/api/chat` with `page.route`: CI needs no API key. Source chips come in a
+  later pull request with their own ADR.
 - Use Base UI primitives (via shadcn/ui, base `base`, style `base-nova`) for dialogs, menus, tabs; don't hand-roll
   them. shadcn copies component source into `components/ui/`: we own it and fix its accessibility gaps there. Fixes
   applied after every `shadcn add`: focus is a solid `outline-ring` outline on `:focus-visible` (not `ring-ring/50`,
