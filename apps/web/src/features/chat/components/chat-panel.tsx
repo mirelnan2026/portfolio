@@ -42,6 +42,7 @@ export function ChatPanel() {
     }
     const asked = question.trim();
     setPendingQuestion(asked);
+    setQuestion("");
     setError(null);
     let reply: ChatReply;
     try {
@@ -64,9 +65,9 @@ export function ChatPanel() {
         { role: "user", content: asked },
         { role: "assistant", answer },
       ]);
-      setQuestion("");
     } else {
-      // The question stays in the field, so the visitor can send it again.
+      // The question comes back, so the visitor can send it again, unless they have typed a new one meanwhile.
+      setQuestion((current) => (current === "" ? asked : current));
       setError({ message: reply.message, restart: reply.restart });
     }
     fieldRef.current?.focus();

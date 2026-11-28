@@ -114,6 +114,11 @@ test("says it is thinking while the answer is on its way, and lets the visitor s
   await ask(page, "Where does Mirel work?");
   await expect(dialog.getByRole("status")).toHaveText(/thinking/i);
   await expect(dialog.getByRole("button", { name: "Send" })).toBeDisabled();
+  // The question leaves the field as soon as it is sent: it is already in the conversation.
+  await expect(dialog.getByRole("textbox", { name: "Your question" })).toHaveValue("");
+  await expect(dialog.getByRole("log", { name: "Conversation" })).toContainText(
+    "Where does Mirel work?",
+  );
 
   release();
   await expect(dialog.getByRole("log", { name: "Conversation" })).toContainText(
@@ -121,7 +126,7 @@ test("says it is thinking while the answer is on its way, and lets the visitor s
   );
   // The status region stays in the page, emptied, so the next "Thinking…" is announced too.
   await expect(dialog.getByRole("status")).toHaveText("");
-  // The answered question leaves the field, so Send waits for the next one.
+  // The field is still empty, so Send waits for the next question.
   await expect(dialog.getByRole("button", { name: "Send" })).toBeDisabled();
   await dialog.getByRole("textbox", { name: "Your question" }).fill("And before that?");
   await expect(dialog.getByRole("button", { name: "Send" })).toBeEnabled();
@@ -149,10 +154,31 @@ test("shows the server's line when the visitor asks too often, as an alert", asy
   await ask(page, "Where does Mirel work?");
 
   await expect(dialog.getByRole("alert")).toHaveText("Too many requests. Try again later.");
-  // The question stays in the field, so the visitor can send it again later.
+  // The question comes back to the field, so the visitor can send it again later.
   await expect(dialog.getByRole("textbox", { name: "Your question" })).toHaveValue(
     "Where does Mirel work?",
   );
+});
+
+test("keeps what the visitor typed while waiting when the question fails", async ({ page }) => {
+  let release: () => void = () => undefined;
+  const answered = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/chat", async (route) => {
+    await answered;
+    await route.fulfill({ status: 429, json: { error: "Too many requests. Try again later." } });
+  });
+  const dialog = await openChat(page);
+  const field = dialog.getByRole("textbox", { name: "Your question" });
+
+  await ask(page, "Where does Mirel work?");
+  await field.fill("And before that?");
+  release();
+
+  await expect(dialog.getByRole("alert")).toHaveText("Too many requests. Try again later.");
+  // The failed question does not overwrite the new one.
+  await expect(field).toHaveValue("And before that?");
 });
 
 test("shows a generic line when the network fails", async ({ page }) => {
