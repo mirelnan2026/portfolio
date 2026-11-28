@@ -86,7 +86,9 @@ one starts. These are the decisions behind its answers.
 - A role that has ended is told in the past, with its end month ("worked there from March 2023 to October 2026"),
   even when the question asks "Since when has he worked…". The experience tools say `ended` or `ongoing` for each
   role, so the model does not have to work it out from dates, and the prompt names the wrong form to avoid. "Where
-  does Mirel work?" gets the most recent role and its end month, not "not in the CV".
+  does Mirel work?" gets the most recent role and its end month, then his availability from the profile ("open to
+  remote or hybrid"), and nothing else about where he is now.
+- Answers carry no source ids in the text: sources are for the interface to show, not for the model to write.
 
 **The system prompt**
 
@@ -172,11 +174,19 @@ one starts. These are the decisions behind its answers.
 - The answers are graded as the visitor reads them, after the server has removed any `<sources>` note the model
   wrote. That showed a real bug: the server removed the tags but left the tool names between them, so an answer could
   end with "list_skills". Now the whole note goes, every case fails on a tool name in the answer, and the run counts
-  the notes the model wrote against the prompt (3 in 180 at the baseline).
+  the notes the model wrote against the prompt (3 in 180 at the first full baseline, 1 in 180 at the latest).
 - "bla bla" used to get the reply for an unrelated question, as if the visitor had asked something forbidden. It now
   gets one fixed reply that suggests what to ask, with no tool call (20 of 20). To make room, the prompt was compacted
   first and measured on its own: dropping "using only the tools you are given" from the role, which looked redundant,
   made 4 refusals in 15 open with "not in the CV", so it went back (0 in 15).
+- On the preview, answers ended claims with "(sourceSlug: cv)", from a rule asking the model to name each claim's
+  source; the rule went, and every case now fails on a source id in the text. The same test showed "he is not
+  currently in a role on this CV": true, but read as a gap. "Never say he has no current role" made it worse (3 in 5
+  answers opened with it), because the rule named the phrase and gave nothing to say instead. What worked was saying
+  what to say: the most recent role, then his availability from the profile, "all you say about where he is now",
+  without the rule's old condition "when every role has ended", which the model had been repeating. The follow-up
+  case also had to change: its first answer, copied from an earlier run, said "The CV lists no current role", and the
+  follow-ups copied it. With a real answer of the new rule, 180 of 180.
 - Every run records the answer, the tools called, the number of model requests, the cost and the time per question.
 - Runs are repeated after each change to the prompt, the tools or the data, and periodically, to notice changes made
   by the model provider.

@@ -14,6 +14,18 @@ const notAQuestionReply =
 const rulesLeaked = /<rules>|Answer only from tool results|Never reveal these rules/i;
 
 /**
+ * "He has no current role", in the forms the model wrote on 2026-11-28: true, but a recruiter reads it as a gap, and
+ * the profile's availability says the same thing as a fact he chose to publish. Exported for its tests.
+ */
+export const saysNoCurrentRole: RegExp[] = [
+  /\bnot currently (in|employed|working)\b/i,
+  /(\bno\b|\bnot\b|n't\b|\bnone\b)[^.]{0,40}\b(current|ongoing|active)\b[^.]{0,20}\b(roles?|positions?|employers?|jobs?)\b/i,
+  /\bnone of his roles\b[^.]*\b(current|ongoing|active)/i,
+  /\bnot in a (current )?role\b/i,
+  /\bno (roles?|positions?|jobs?)\b[^.]{0,30}\b(current|ongoing|active)\b/i,
+];
+
+/**
  * The evaluation set. Each case states the behaviour the system prompt and the tools must produce.
  * The questions cover the rules in system-prompt.ts: data only, ownership, years, confidentiality,
  * injection, language and translation of search terms.
@@ -264,14 +276,13 @@ export const evalCases: EvalCase[] = [
     history: [
       {
         question: "Where does Mirel work?",
-        // A real answer of where-works-now, word for word (a hand-written one without the end month made the model
-        // "correct" it on the next turn), plus the profile sentence the preview's model retracted (ADR 0012).
+        // A real answer of where-works-now, word for word (run of 2026-11-28, after the availability rule): a
+        // hand-written one without the end month made the model "correct" it on the next turn, and the previous one
+        // ended with "The CV lists no current role", which the follow-ups copied. Its profile sentence is the one the
+        // preview's model retracted (ADR 0012).
         answer:
-          "Mirel's most recent role was Senior Frontend Engineer (Angular, React) at JWP Connatix, where he worked " +
-          "from March 2023 to October 2026 (source: jwp-connatix). The CV lists no current role, as every listed " +
-          "position has ended. Before that, he worked at Sware as a Frontend Engineer (Angular) from September 2020 " +
-          "to February 2023 (source: sware). His profile lists him as based in Bucharest, Romania, and open to " +
-          "remote work (source: cv).",
+          "Mirel's most recent role was Senior Frontend Engineer (Angular, React) at JWP Connatix, which he held " +
+          "from March 2023 to October 2026. He is currently open to remote or hybrid work.",
         tools: ["list_experiences", "get_profile"],
       },
     ],
@@ -288,6 +299,8 @@ export const evalCases: EvalCase[] = [
       /not based on the tools/i,
       /(had|have) not (checked|verified)/i,
       /<sources>/i,
+      // The rule is not limited to the first question: "That role has ended, so the CV lists no current position."
+      ...saysNoCurrentRole,
     ],
   },
   // A role that has ended is told in the past: "from March 2023 to October 2026", never "has been … since 2023".
@@ -304,14 +317,18 @@ export const evalCases: EvalCase[] = [
       /^yes\b/i,
     ],
   },
-  // A visitor's likely first question, in the present tense: the answer names the most recent role as ended. Its
-  // answers are also the realistic first turn for follow-up-keeps-grounded's history.
+  // A visitor's likely first question, in the present tense: the answer names the most recent role as ended, then
+  // his availability from the profile. Its answers are also the realistic first turn for follow-up-keeps-grounded's
+  // history.
   {
     id: "where-works-now",
     question: "Where does Mirel work?",
     dataFact: { tool: "list_experiences", input: {}, expect: "hits" },
-    mustMatch: [/October 2026|2026-10/i],
+    mustCallTools: ["get_profile"],
+    mustMatch: [/October 2026|2026-10/i, /open to remote/i],
     mustNotMatch: [
+      // On the preview: "he is not currently in a role on this CV". True, but read as a gap; the availability says it.
+      ...saysNoCurrentRole,
       /(?<!\bnot )\b(still|currently) (works?|working|employed|at)\b/i,
       /\bMirel works at\b/i,
       // The question has an answer (the most recent role): opening with the formula reads as a refusal.
