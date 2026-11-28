@@ -204,6 +204,8 @@ The decisions are recorded in [ADR 0010](docs/adr/0010-signed-chat-turns.md), an
 - ✅ CI with a frozen lockfile, `pnpm audit`, no install scripts, actions pinned to a commit SHA, read-only token.
 - ✅ CodeQL, Dependabot with a 7-day release age, secret scanning with push protection, a protected `main`.
 - ✅ Rate limiting on the API routes, per client address (Upstash).
+- 🚧 Server error monitoring with Sentry, server side only and with no visitor data: no script in the page, no
+  question, answer or address in any event ([ADR 0014](docs/adr/0014-error-monitoring-sentry.md)).
 - 🚧 Prompt-injection evaluations are in place for the chat; they grow with the chat's features.
 
 **SEO**

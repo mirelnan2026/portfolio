@@ -17,6 +17,7 @@ Every service the site depends on. Secrets are never written here, only the name
 | Anthropic                    | Claude API: the chat                         | API key → `apps/web/.env.local` and Vercel (`ANTHROPIC_API_KEY`); spend limit set in the console                            |
 | Registrar                    | the domain `mirelnan.dev` and its DNS        | none                                                                                                                        |
 | Google Search Console / Bing | indexing (Bing imported from Search Console) | none; verified by a DNS `TXT` record that must stay                                                                         |
+| Sentry (planned, ADR 0014)   | server error alerts (EU region, free plan)   | project DSN → Vercel (`SENTRY_DSN`, Production and Preview); not needed locally or in CI                                    |
 
 Vercel variables are **Sensitive**, for Production **and** Preview. No store is connected through a Vercel
 integration: each variable is set by hand.

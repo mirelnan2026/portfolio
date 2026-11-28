@@ -472,6 +472,19 @@ code review checks security.
   from `@vercel/analytics/next` in the root layout, enabled in the Vercel dashboard; it sends nothing outside Vercel
   deployments). Google Analytics is ruled out (cookies → consent banner, a third-party script that costs INP/LCP,
   partial data).
+- **Error monitoring (planned, next step; [ADR 0014](docs/adr/0014-error-monitoring-sentry.md)):** Sentry, free
+  Developer plan, EU region, **server side only** (`@sentry/nextjs` in `instrumentation.ts` for the Node.js runtime,
+  `onRequestError` for errors that escape a route or render). No browser SDK: no monitoring code in the page, the CSP
+  stays `'self'`, no public endpoint to burn the quota. Handled failures (the chat catches its own) are reported
+  through an injected `reportError(error, context)` dependency of the handler, faked in tests, wired to
+  `Sentry.captureException` in the route; its context holds only what the `chat_turn` line holds, never the question,
+  the answer, the conversation or the IP, and a cancelled request is not reported. `sendDefaultPii: false` plus a
+  tested pure `beforeSend` that strips the request body, headers, cookies, query string and user. Errors only:
+  `tracesSampleRate: 0`, no Replay, no profiling. `SENTRY_DSN` is optional and read at server start, never at build:
+  without it Sentry is off (CI, local, builds); on Vercel for Production and Preview, environment from `VERCEL_ENV`;
+  never `NEXT_PUBLIC_`. No source map upload (no `SENTRY_AUTH_TOKEN` in the build) until stack traces prove
+  unreadable. `console.error` and the `chat_turn` line stay. Every `captureException` call site is checked in review
+  for visitor data.
 
 ## Content rules
 
@@ -590,6 +603,7 @@ listing only the variables that process needs (least privilege: the web app neve
 | `apps/web/.env.local` + Vercel | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | rate limit; the standard REST token (the limiter writes), read at request     |
 | `apps/web` + Vercel (stage 1+) | `ANTHROPIC_API_KEY`                                  | Claude API                                                                    |
 | `apps/web/.env.local` + Vercel | `CHAT_SIGNING_KEY`                                   | HMAC key for the chat's assistant turns (ADR 0010), 32 random bytes base64url |
+| Vercel (planned, ADR 0014)     | `SENTRY_DSN`                                         | Sentry project DSN (send-only, not secret); optional, off when missing        |
 
 On Vercel, a secret is saved as a **Sensitive** environment variable (its value can no longer be read back, only
 replaced), for Production **and** Preview (a pull request's preview build runs with the Preview variables; without
