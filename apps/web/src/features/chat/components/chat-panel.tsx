@@ -144,7 +144,8 @@ export function ChatPanel() {
             void send();
           }}
         >
-          <label htmlFor={fieldId} className="font-medium">
+          {/* Hidden from sight, not from assistive technology: the field keeps its accessible name. */}
+          <label htmlFor={fieldId} className="sr-only">
             Your question
           </label>
           <textarea
@@ -157,7 +158,8 @@ export function ChatPanel() {
             onKeyDown={onKeyDown}
             maxLength={maxQuestionLength}
             rows={3}
-            className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-base"
+            placeholder="Ask about Mirel's roles, skills or case studies"
+            className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground"
           />
           <div className="flex items-center gap-2">
             {entries.length > 0 && (

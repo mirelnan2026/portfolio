@@ -268,7 +268,7 @@ checks accessibility.
   passes `<ChatPanel />` to `SiteHeader` through its `actions` slot (layout components never import from
   `features/`), behind `process.env.CHAT_ENABLED === "true"` written in the layout itself; the check is that a build
   with `CHAT_ENABLED=false` leaves no "Your question" in `.next/static`. The panel (`features/chat/components/chat-panel.tsx`)
-  keeps its state outside the sheet's content (closing keeps the conversation), empties the field as soon as a
+  keeps its state outside the sheet's content (closing keeps the conversation), labels the field "Your question" for assistive technology only (`sr-only`; the visible hint is a placeholder in `muted-foreground`), empties the field as soon as a
   question is sent (the question shows in the conversation while it waits) and puts it back on a failure unless the
   visitor has typed something new, sends the signed answers back as
   they came (`features/chat/client.ts`: a loose schema, so a new signed field survives the round trip), renders
