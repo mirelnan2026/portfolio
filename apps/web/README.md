@@ -16,15 +16,18 @@ src/
 │  ├─ *.ts                 pure, tested helpers: highlights, timeline, skills, case studies, metadata,
 │  │                       structured data, llms.txt, format (years, durations, tenure)
 │  └─ components/          the sections; Server Components unless they need the browser
-├─ features/chat/          the chat's server side: request.ts parses and verifies the request before the model,
+├─ features/chat/          the chat: request.ts parses and verifies the request before the model,
 │                          turn.ts runs the tool-use loop (timeout, step limit, cancellation, generic errors),
-│                          handler.ts turns one request into a signed answer (tested with a fake client)
+│                          handler.ts turns one request into a signed answer (tested with a fake client);
+│                          messages.ts holds the error lines both sides know, client.ts the browser's pure logic
+│                          (request body, reading a reply, limits), components/chat-panel.tsx the panel
 ├─ components/layout/      header, section navigation, theme toggle, skip link, footer
 ├─ components/ui/          shadcn/ui components on Base UI, with our accessibility fixes
 ├─ lib/                    security headers, deployment flags, the canonical origin, the 429 and 503 responses
 └─ server/                 env validation, the composition root, the rate limiter and the chat turn
                            signature (server-only; the signature functions are pure, see ADR 0010)
-e2e/                       Playwright specs: axe on every page and theme, smoke, headers, SEO
+e2e/                       Playwright specs: axe on every page and theme and on the chat's states, smoke,
+                           headers, SEO, the chat panel against a faked /api/chat
 ```
 
 ## How data reaches the page
@@ -42,16 +45,25 @@ The parts that need the browser are small client components: the theme toggle, t
 `IntersectionObserver` marks the current section), and the skill filter, which reads `?skill=` with
 `useSearchParams` inside a `<Suspense>` whose fallback is the same list, so every skill is in the static HTML.
 
+The chat panel is the one larger client component, and it is in the page only when the build has
+`CHAT_ENABLED=true`. `next.config.ts` inlines that variable, and the root layout compares it directly
+(`process.env.CHAT_ENABLED === "true" ? <ChatPanel /> : null`), so a build without it drops the import and ships
+none of the chat's JavaScript. Keep the comparison in the layout: behind a helper, only the HTML would be hidden
+([ADR 0013](../../docs/adr/0013-build-time-feature-flags.md); adding a flag: [runbook](../../docs/runbook.md#feature-flags)).
+The panel keeps the conversation in the browser and sends the signed answers back unchanged (ADR 0010); answers are
+rendered as text, never as HTML.
+
 ## Environment
 
-| Variable                   | Where                            | What                                                                                                            |
-| -------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`             | `.env.local`, Vercel (Sensitive) | the read-only role `portfolio_reader`, pooled host; validated in `server/env.ts`                                |
-| `VERCEL_ENV`               | set by Vercel, read at build     | `production` turns on indexing and the production security headers                                              |
-| `UPSTASH_REDIS_REST_URL`   | `.env.local`, Vercel (Sensitive) | Upstash Redis REST endpoint for rate limiting; read on the first API request, never at build                    |
-| `UPSTASH_REDIS_REST_TOKEN` | `.env.local`, Vercel (Sensitive) | its standard token (the limiter writes)                                                                         |
-| `ANTHROPIC_API_KEY`        | `.env.local`, Vercel (Sensitive) | Claude API key for the chat; read on the first chat request, never at build                                     |
-| `CHAT_SIGNING_KEY`         | `.env.local`, Vercel (Sensitive) | HMAC key for the chat's assistant turns (ADR 0010): 32 random bytes, base64url; a different key per environment |
+| Variable                   | Where                            | What                                                                                                                         |
+| -------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`             | `.env.local`, Vercel (Sensitive) | the read-only role `portfolio_reader`, pooled host; validated in `server/env.ts`                                             |
+| `VERCEL_ENV`               | set by Vercel, read at build     | `production` turns on indexing and the production security headers                                                           |
+| `UPSTASH_REDIS_REST_URL`   | `.env.local`, Vercel (Sensitive) | Upstash Redis REST endpoint for rate limiting; read on the first API request, never at build                                 |
+| `UPSTASH_REDIS_REST_TOKEN` | `.env.local`, Vercel (Sensitive) | its standard token (the limiter writes)                                                                                      |
+| `ANTHROPIC_API_KEY`        | `.env.local`, Vercel (Sensitive) | Claude API key for the chat; read on the first chat request, never at build                                                  |
+| `CHAT_SIGNING_KEY`         | `.env.local`, Vercel (Sensitive) | HMAC key for the chat's assistant turns (ADR 0010): 32 random bytes, base64url; a different key per environment              |
+| `CHAT_ENABLED`             | `.env.local`, CI, Vercel Preview | `true` builds the chat panel into the page; inlined at build, so a change needs a new deploy; not on Production until launch |
 
 Copy `.env.example` to `.env.local`; the reader URL comes from `pnpm --filter @mirelnan/db db:reader`.
 

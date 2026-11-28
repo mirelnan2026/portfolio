@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   agentRules: false,
   // No "X-Powered-By: Next.js": it tells an attacker which framework to probe.
   poweredByHeader: false,
+  // Inlined at build, so `process.env.CHAT_ENABLED === "true"` in the root layout is a constant: when it is false
+  // the bundler drops the ChatPanel import, and none of the chat's JavaScript reaches the page.
+  env: { CHAT_ENABLED: process.env.CHAT_ENABLED ?? "" },
   // Next asks for a promise; the list is known at build time.
   headers: () =>
     Promise.resolve([

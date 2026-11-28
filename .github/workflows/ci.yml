@@ -40,6 +40,8 @@ jobs:
     env:
       DATABASE_ADMIN_URL: postgresql://postgres@localhost:5432/portfolio?sslmode=disable
       DATABASE_URL: postgresql://postgres@localhost:5432/portfolio?sslmode=disable
+      # The chat is built in CI so the e2e and axe tests can open it; /api/chat is faked there (no API key).
+      CHAT_ENABLED: "true"
 
     steps:
       # Third-party actions are pinned to a commit SHA (a tag can be moved); the comment names the release.
