@@ -210,7 +210,7 @@ checks accessibility.
   never overstates. The chat gets the same rule as a phrase from `list_skills` (`tenure`: "less than a year", "N
   years", "more than N years"; no numeric field), repeated word for word. Likewise `list_experiences` and `get_experience` give
   each role `status` (`"ended"` / `"ongoing"`, from `period.end`), and the prompt tells an ended role in the past
-  tense with its end month, never "has worked … since", and answers "where does he work" with the most recent role. Only the **top 12** (`topSkills`) are always visible; all of them, by category, sit behind "Show all
+  tense with its end month, never "has worked … since", and answers "where does he work" with the most recent role, then his availability from `get_profile`, and nothing else about where he is now. Only the **top 12** (`topSkills`) are always visible; all of them, by category, sit behind "Show all
   N skills by category", which a `?skill=` link to a skill outside the top opens.
 - **Skill filter:** each skill is a `<button aria-pressed>`; `?skill=<slug>` is the state, so a selection is a shareable
   link (the chat and job match link to skills). The page stays static: the server `components/skills.tsx` wraps the
@@ -268,7 +268,9 @@ checks accessibility.
   passes `<ChatPanel />` to `SiteHeader` through its `actions` slot (layout components never import from
   `features/`), behind `process.env.CHAT_ENABLED === "true"` written in the layout itself; the check is that a build
   with `CHAT_ENABLED=false` leaves no "Your question" in `.next/static`. The panel (`features/chat/components/chat-panel.tsx`)
-  keeps its state outside the sheet's content (closing keeps the conversation), sends the signed answers back as
+  keeps its state outside the sheet's content (closing keeps the conversation), labels the field "Your question" for assistive technology only (`sr-only`; the visible hint is a placeholder in `muted-foreground`), empties the field as soon as a
+  question is sent (the question shows in the conversation while it waits) and puts it back on a failure unless the
+  visitor has typed something new, sends the signed answers back as
   they came (`features/chat/client.ts`: a loose schema, so a new signed field survives the round trip), renders
   answers as React text, and uses `role="log"` for the conversation, an always-present `role="status"` for
   "Thinking…" and `role="alert"` for errors; the error lines both sides know are in `features/chat/messages.ts`.
@@ -278,7 +280,8 @@ checks accessibility.
   them. shadcn copies component source into `components/ui/`: we own it and fix its accessibility gaps there. Fixes
   applied after every `shadcn add`: focus is a solid `outline-ring` outline on `:focus-visible` (not `ring-ring/50`,
   which halves the contrast, and not a box-shadow ring, which forced-colors mode removes); menu items get the same
-  outline, because their `bg-accent` highlight is only 1.07:1 against the popover; interactive parts get
+  outline, because their `bg-accent` highlight is only 1.07:1 against the popover; `Button` gets `cursor-pointer` in its
+  base classes (Tailwind v4's preflight leaves buttons on the default cursor); interactive parts get
   `pointer-coarse:min-h-11` (44px on touch). Components import `cn` from the `cn` package directly, so there is no
   `src/lib/utils.ts`. The outline variant uses `border-input` (3:1), not `border-border`. A link styled as a button
   uses `className={cn(buttonVariants(...))}`: `cva` only concatenates, so the base `border-transparent` and the
@@ -442,11 +445,16 @@ code review checks security.
   updated with the data, not reported as a model failure. Graders are code (no model judges them). Every answer of a
   run is read, not only the failures: a grader that accepts a wrong answer is a bug (the cloud case did). `--only
 <ids>` measures a fix on the cases it targets; the baseline in the README comes only from a full run (5 repeats).
-  The graders read the answer the visitor reads (after `withoutSourcesTags`); every case fails on a tool name in it,
-  and a `<sources>` tag the model wrote is counted per run (`wroteSourcesTag`), not failed. One variable per measured change: a setting that changes the model's behaviour (model, effort, thinking) is its own
+  The graders read the answer the visitor reads (after `withoutSourcesTags`); every case fails on a tool name in it
+  and on a source id written into the text (`(sourceSlug: cv)`: sources are the interface's chips, never the model's
+  text), and a `<sources>` tag the model wrote is counted per run (`wroteSourcesTag`), not failed. One variable per measured change: a setting that changes the model's behaviour (model, effort, thinking) is its own
   experiment, never bundled with a fix (effort `low`, bundled with a token-limit fix, broke the English rule).
   A case's `history` uses a real answer of another case, word for word, not a hand-written one: a hand-written first
-  answer without its end month made the model "correct" it. The prompt's limit is 4 600 characters (a test): a
+  answer without its end month made the model "correct" it. When a rule changes what that case answers, the history
+  is replaced with a real answer of the new rule (an old first answer saying "The CV lists no current role" was copied
+  by the follow-ups). A prompt rule says what to say, not only what not to say: "Never say he has no current role"
+  made 3 answers in 5 open with that phrase; "his availability is all you say about where he is now" fixed it, and a
+  rule's condition ("when every role has ended") can be echoed back to the visitor. The prompt's limit is 4 600 characters (a test): a
   compaction is a measured change like a rule (dropping the role's "using only the tools you are given" made refusals
   open with "Not in the CV" 4 times in 15). A message that is not a question gets one fixed reply, word for word.
 - **Database:** the runtime uses a read-only Postgres role; migrations/seed use a separate role; TLS required; queries

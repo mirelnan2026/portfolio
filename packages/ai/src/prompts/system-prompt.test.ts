@@ -145,10 +145,29 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain('never as "has worked … since"');
   });
 
-  it("answers 'where does he work' with the most recent role when every role has ended, not with the formula", () => {
+  it("answers 'where does he work' with the most recent role as its first sentence, not with the formula", () => {
     // "Where does Mirel work?" opened with "not in the CV." 2 times in 10, then named the most recent role anyway.
-    expect(prompt).toMatch(/when every role has ended/i);
-    expect(prompt).toMatch(/most recent role/i);
+    expect(prompt).toMatch(/where he works now is answered with his most recent role/i);
+    expect(prompt).toMatch(/as its first\s+sentence/i);
+    // "When every role has ended, …" was echoed back: "every position is marked as ended", "no longer has a current
+    // role". The rule no longer states the condition.
+    expect(prompt).not.toMatch(/when every role has ended/i);
+  });
+
+  it("follows the most recent role with his availability, and says nothing else about where he is now", () => {
+    // On the preview: "All of his listed roles have ended, so he is not currently in a role on this CV." True, but a
+    // recruiter reads it as a gap; the profile's availability says the same thing as a fact he chose to publish.
+    expect(prompt).toMatch(/then his availability from get_profile/i);
+    // "Never say he has no current role" named the phrase, and 4 answers in 5 opened with "no longer has a current
+    // role". The rule now says what to say instead.
+    expect(prompt).toMatch(/his availability is all you say about where he is now/i);
+    expect(prompt).not.toMatch(/no current role/i);
+  });
+
+  it("does not ask the model to write source slugs into the answer", () => {
+    // "Name the source of each claim with the sourceSlug" made answers end claims with "(sourceSlug: cv)". Sources
+    // will be the interface's chips, built from the signed answer, not text the model writes.
+    expect(prompt).not.toMatch(/name the source of each claim/i);
   });
 
   it("gives a message that is not a question its own reply, word for word", () => {

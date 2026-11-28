@@ -106,7 +106,7 @@ and stops at $3.50; `run.ts` runs the cases and writes each answer to `evals/res
 
 A case can require a phrase (`mustContain`), a pattern the answer must match (`mustMatch`) or must not match
 (`mustNotMatch`), the tools that must be called, and the search terms they must use. Every case also fails when the answer names a
-tool (`list_skills`), which the prompt forbids. A `<sources>` tag the model wrote is removed before grading, as in
+tool (`list_skills`), which the prompt forbids, or writes a source id into the text (`(sourceSlug: cv)`). A `<sources>` tag the model wrote is removed before grading, as in
 production, and counted: the summary says how many answers had one, and each result line has `wroteSourcesTag`. Each
 report line shows the question's progress, the model requests it took (`steps`), the tools called and the cost.
 
@@ -126,7 +126,8 @@ Before asking the model, the runner checks the fact against the database. If it 
 or removed with `db:seed`), the case is reported as `STALE` and the model is not asked: the case must be updated,
 not the model blamed.
 
-**Baseline and model.** Haiku 5.5 is the default for the chat: 95 of 95 in a 5-repeat run (2026-11-25, about $0.06).
+**Baseline and model.** Haiku 5.5 is the default for the chat: 180 of 180 on all 36 cases in a 5-repeat run
+(2026-11-28).
 Sonnet 5.5 was compared on the same cases and cost about 20 times more; it is kept for comparisons only. Results are
 written to `evals/results/` (ignored by git). Repeat the run after a change to the prompt, the tools, the cases or the
 data, and periodically to catch changes made by the provider.

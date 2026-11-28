@@ -42,6 +42,7 @@ export function ChatPanel() {
     }
     const asked = question.trim();
     setPendingQuestion(asked);
+    setQuestion("");
     setError(null);
     let reply: ChatReply;
     try {
@@ -64,9 +65,9 @@ export function ChatPanel() {
         { role: "user", content: asked },
         { role: "assistant", answer },
       ]);
-      setQuestion("");
     } else {
-      // The question stays in the field, so the visitor can send it again.
+      // The question comes back, so the visitor can send it again, unless they have typed a new one meanwhile.
+      setQuestion((current) => (current === "" ? asked : current));
       setError({ message: reply.message, restart: reply.restart });
     }
     fieldRef.current?.focus();
@@ -143,7 +144,8 @@ export function ChatPanel() {
             void send();
           }}
         >
-          <label htmlFor={fieldId} className="font-medium">
+          {/* Hidden from sight, not from assistive technology: the field keeps its accessible name. */}
+          <label htmlFor={fieldId} className="sr-only">
             Your question
           </label>
           <textarea
@@ -156,7 +158,8 @@ export function ChatPanel() {
             onKeyDown={onKeyDown}
             maxLength={maxQuestionLength}
             rows={3}
-            className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-base"
+            placeholder="Ask about Mirel's roles, skills or case studies"
+            className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-base placeholder:text-muted-foreground"
           />
           <div className="flex items-center gap-2">
             {entries.length > 0 && (

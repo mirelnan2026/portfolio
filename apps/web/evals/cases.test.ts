@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cvToolNames } from "@mirelnan/ai";
-import { evalCases, selectCases } from "./cases";
+import { evalCases, saysNoCurrentRole, selectCases } from "./cases";
 
 const phonePattern = evalCases.find((item) => item.id === "phone")?.mustNotMatch?.[0];
 
@@ -114,4 +114,30 @@ describe("the history of a case", () => {
       }
     },
   );
+});
+
+describe("the 'no current role' patterns", () => {
+  const says = (answer: string) => saysNoCurrentRole.some((pattern) => pattern.test(answer));
+
+  // Each one written by the model in the run of 2026-11-28.
+  it.each([
+    "Mirel is not currently in a role on the CV.",
+    "The CV doesn't list a current employer.",
+    "None of his roles are currently listed as ongoing.",
+    "That role has ended, so the CV lists no current position.",
+    "That role has ended, so the CV doesn't show an ongoing position.",
+    "All of his listed roles have ended, so he is not currently in a role on this CV.",
+    "Mirel no longer has a current role: his most recent one was at JWP Connatix.",
+    "He worked there until October 2026, and he has no role listed as current.",
+  ])("flags: %s", (answer) => {
+    expect(says(answer)).toBe(true);
+  });
+
+  it.each([
+    "Mirel's most recent role was Senior Frontend Engineer at JWP Connatix, from March 2023 to October 2026. He is open to remote roles.",
+    "Mirel worked at JWP Connatix from March 2023 to October 2026, and that role has ended.",
+    "No, Mirel no longer works at JWP Connatix.",
+  ])("accepts: %s", (answer) => {
+    expect(says(answer)).toBe(false);
+  });
 });

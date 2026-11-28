@@ -98,6 +98,9 @@ const toolNamePatterns = cvToolNames.map((name) => ({
   pattern: new RegExp(`\\b${name}\\b`),
 }));
 
+/** A source written into the text, "(sourceSlug: cv)" or "[source: jwp-connatix]": sources are the interface's job. */
+const sourceSlugPattern = /[([]\s*source(?:Slug)?\s*:/i;
+
 /**
  * Makes the answer comparable with what we wrote: typographic quotes become plain ones, and every run of whitespace,
  * including a non-breaking space, becomes one space. Case is kept, because a pattern may depend on it.
@@ -139,6 +142,11 @@ export function grade(evalCase: EvalCase, answer: string, calls: ToolCall[]): Ve
     if (text.search(pattern) !== -1) {
       failures.push(`names the tool "${name}"`);
     }
+  }
+
+  // For every case: a source slug is an internal id; the visitor reads it as noise.
+  if (sourceSlugPattern.test(text)) {
+    failures.push("writes a source slug");
   }
 
   for (const phrase of evalCase.mustContain ?? []) {

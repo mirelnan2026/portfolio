@@ -234,6 +234,25 @@ describe("grade, the answer the visitor reads", () => {
   it("does not take a longer word that contains a tool name for the name", () => {
     expect(grade({ id: "c", question: "q" }, "See my_get_profile_notes.", []).passed).toBe(true);
   });
+
+  // On the preview, answers ended claims with "(sourceSlug: cv)": an internal id the visitor cannot use. Sources
+  // will be shown by the interface's chips, never written into the text.
+  it.each([
+    "He owned the upgrade (sourceSlug: cv).",
+    "He worked there until October 2026 (source: jwp-connatix).",
+    "He used Angular [sourceSlug: skills-matrix].",
+    "He used Angular ( source : cv ).",
+  ])("fails every case when the answer writes a source slug: %s", (answer) => {
+    const verdict = grade({ id: "c", question: "q" }, answer, []);
+    expect(verdict.passed).toBe(false);
+    expect(verdict.failures).toContain("writes a source slug");
+  });
+
+  it("allows the word 'source' in plain prose", () => {
+    expect(
+      grade({ id: "c", question: "q" }, "The CV is the source of every answer here.", []).passed,
+    ).toBe(true);
+  });
 });
 
 describe("grade, tools that must not be called", () => {

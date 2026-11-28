@@ -14,7 +14,7 @@ export const profile = {
     "dashboard used by publishers to manage content, analytics and AI-driven media transformation. " +
     "In 2026 joined the first team in the company to adopt spec-driven development with Claude AI.",
   location: "Bucharest, Romania",
-  availability: "Open to remote",
+  availability: "Open to remote or hybrid",
   email: "nan.mirel@gmail.com",
   linkedinUrl: "https://www.linkedin.com/in/mirelnan",
   competencies: [
